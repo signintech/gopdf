@@ -2,7 +2,6 @@ package gopdf
 
 import (
 	"bytes"
-	obj "gopdf/obj"
 	ioutil "io/ioutil"
 	//"container/list"
 	"fmt"
@@ -10,45 +9,66 @@ import (
 )
 
 type GoPdf struct {
-	pdfObjs []obj.IObj
-
-	/*index ของ obj สำคัญๆ*/
+	
+	pdfObjs []IObj
+	config Config
+	/*---index ของ obj สำคัญๆ เก็บเพื่อลด loop ตอนค้นหา---*/
 	//index ของ obj pages
 	indexOfPagesObj int
 	//index ของ obj page อันแรก
 	indexOfFirstPageObj int
-	//index ของ obj page อันปัจจุบันในขณะถูกเรียกจาก AddPage
-	//indexOfCurrPageObj int
+	//ต่ำแหน่งปัจจุบัน
+	Curr Current
 }
 
-/*public:*/
+/*---public---*/
 
 //เพิ่ม page
 func (me *GoPdf) AddPage() {
-	page := new(obj.PageObj)
-	page.Init()
+	page := new(PageObj)
+	page.Init(func()(*GoPdf){
+		return me
+	})
 	index := me.AddObj(page)
 	if me.indexOfFirstPageObj == -1 {
 		me.indexOfFirstPageObj = index
 	}
+	
+	
 }
 
-func (me *GoPdf) Start() {
+//เริ่ม
+func (me *GoPdf) Start(config Config) {
+
+	me.config = config
 	me.init()
-	catalog := new(obj.CatalogObj)
-	catalog.Init()
-	pages := new(obj.PagesObj)
-	pages.Init()
+	
+	//สร้าง obj พื้นฐาน
+	catalog := new(CatalogObj)
+	catalog.Init(func()(*GoPdf){
+		return me;
+	});
+	pages := new(PagesObj)
+	pages.Init(func()(*GoPdf){
+		return me
+	})
 	me.AddObj(catalog)
 	me.indexOfPagesObj = me.AddObj(pages)
 }
 
+
+
+//set font
 func (me *GoPdf) SetFont(family string, style string, size int){
-	font := new(obj.FontObj)
-	font.Init()
+	me.Curr.FontSize = size
+	font := new(FontObj)
+	font.Init(func()(*GoPdf){
+		return me
+	})
 	me.AddObj(font)
 }
 
+//สร้าง pdf to file
 func (me *GoPdf) WritePdf(pdfPath string) {
 	me.prepare()
 	buff := new(bytes.Buffer)
@@ -71,16 +91,22 @@ func (me *GoPdf) WritePdf(pdfPath string) {
 	ioutil.WriteFile(pdfPath, buff.Bytes(), 0644)
 }
 
-func (me *GoPdf) Cell(pos Rect, txt string) {
-	content := new(obj.ContentObj)
-	content.Init()
+//สร้าง cell ของ text
+func (me *GoPdf) Cell(pos Rect, text string) {
+	content := new(ContentObj)
+	content.Init(func()(*GoPdf){
+		return me
+	})
+	content.AppendText(text)
 	me.AddObj(content)
 }
 
-/*private:*/
+/*---private---*/
 
 //init
 func (me *GoPdf) init() {
+	me.Curr.X = 0.0
+	me.Curr.Y = 0.0
 	me.indexOfPagesObj = -1
 	me.indexOfFirstPageObj = -1
 }
@@ -89,8 +115,8 @@ func (me *GoPdf) prepare() {
 	
 	if me.indexOfPagesObj != -1 {
 		indexCurrPage := -1
-		var pagesObj *obj.PagesObj
-		pagesObj = me.pdfObjs[me.indexOfPagesObj].(*obj.PagesObj)
+		var pagesObj *PagesObj
+		pagesObj = me.pdfObjs[me.indexOfPagesObj].(*PagesObj)
 		i := me.indexOfFirstPageObj
 		max := len(me.pdfObjs)
 		for i < max {
@@ -101,7 +127,7 @@ func (me *GoPdf) prepare() {
 				indexCurrPage = i
 			}else if( objtype == "Content" ){
 				if indexCurrPage != -1 {
-					me.pdfObjs[indexCurrPage].(*obj.PageObj).Contents = fmt.Sprintf("%s %d 0 R ",me.pdfObjs[indexCurrPage].(*obj.PageObj).Contents,i+1);
+					me.pdfObjs[indexCurrPage].(*PageObj).Contents = fmt.Sprintf("%s %d 0 R ",me.pdfObjs[indexCurrPage].(*PageObj).Contents,i+1);
 				}
 			}
 			i++
@@ -128,7 +154,7 @@ func (me *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) {
 	(*i)++
 }
 
-func (me *GoPdf) AddObj(iobj obj.IObj) int {
+func (me *GoPdf) AddObj(iobj IObj) int {
 	index := len(me.pdfObjs)
 	me.pdfObjs = append(me.pdfObjs, iobj)
 	return index

@@ -1,4 +1,4 @@
-package obj
+package gopdf
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ type PageObj struct { //impl IObj
 	Contents string
 }
 
-func (me *PageObj) Init() {
+func (me *PageObj) Init(funcGetRoot func()(*GoPdf)) {
 }
 
 func (me *PageObj) Build() {
@@ -30,3 +30,4 @@ func (me *PageObj) GetType() string {
 func (me *PageObj) GetObjBuff() *bytes.Buffer {
 	return &(me.buffer)
 }
+

@@ -1,4 +1,6 @@
-package obj
+package gopdf
+
+
 
 import (
 	"bytes"
@@ -9,7 +11,8 @@ type CatalogObj struct { //impl IObj
 	buffer bytes.Buffer
 }
 
-func (me *CatalogObj) Init() {
+func (me *CatalogObj) Init(funcGetRoot func()(*GoPdf)) {
+	
 }
 
 func (me *CatalogObj) Build() {
@@ -24,3 +27,4 @@ func (me *CatalogObj) GetType() string {
 func (me *CatalogObj) GetObjBuff() *bytes.Buffer {
 	return &(me.buffer)
 }
+

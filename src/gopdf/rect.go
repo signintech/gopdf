@@ -1,6 +1,6 @@
 package gopdf
 
 type Rect struct {
-	W int
-	H int
+	W float64
+	H float64
 }

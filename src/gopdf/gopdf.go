@@ -6,6 +6,7 @@ import (
 	//"container/list"
 	"fmt"
 	"strconv"
+	"gopdf/fonts"
 )
 
 type GoPdf struct {
@@ -74,16 +75,16 @@ func (me *GoPdf) WritePdf(pdfPath string) {
 	buff := new(bytes.Buffer)
 	i := 0
 	max := len(me.pdfObjs)
-	buff.WriteString("%PDF-1.7\n")
+	buff.WriteString("%PDF-1.7\n\n")
 	linelens := make([]int, max)
 	for i < max {
+		linelens[i] = buff.Len()
 		pdfObj := me.pdfObjs[i]
 		pdfObj.Build()
-		buff.WriteString(strconv.Itoa(i+1) + " 0 obj\n<<\n")
+		buff.WriteString(strconv.Itoa(i+1) + " 0 obj\n")
 		buffbyte := pdfObj.GetObjBuff().Bytes()
-		linelens[i] = len(buffbyte)
 		buff.Write(buffbyte)
-		buff.WriteString(">>\nendobj\n\n")
+		buff.WriteString("endobj\n\n")
 		i++
 	}
 	me.xref(linelens, buff, &i)
@@ -99,6 +100,13 @@ func (me *GoPdf) Cell(pos Rect, text string) {
 	})
 	content.AppendText(text)
 	me.AddObj(content)
+}
+
+func (me *GoPdf) AddFont(fontname string  ,ifont fonts.IFont){
+	encoding := new(EncodingObj)
+	ifont.Init()
+	encoding.SetFont(ifont)
+	me.AddObj(encoding)
 }
 
 /*---private---*/
@@ -137,7 +145,7 @@ func (me *GoPdf) prepare() {
 
 func (me *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) {
 	buff.WriteString("xref\n")
-	buff.WriteString(strconv.Itoa((*i)+1) + " 0\n")
+	buff.WriteString("0 "+strconv.Itoa((*i)+1)+"\n")
 	buff.WriteString("0000000000 65535 f\n")
 	j := 0
 	max := len(linelens)
@@ -159,6 +167,8 @@ func (me *GoPdf) AddObj(iobj IObj) int {
 	me.pdfObjs = append(me.pdfObjs, iobj)
 	return index
 }
+
+
 
 /*
 //append text to buffer

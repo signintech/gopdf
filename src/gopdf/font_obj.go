@@ -13,10 +13,11 @@ func (me *FontObj) Init(funcGetRoot func()(*GoPdf)) {
 }
 
 func (me *FontObj) Build() {
-	me.buffer.WriteString("\t/Type /" + me.GetType() + "\n")
-	me.buffer.WriteString("\t/Subtype /Type1\n")
-	me.buffer.WriteString("\t/BaseFont /Times-Roman\n")
-	
+	me.buffer.WriteString("<<\n")
+	me.buffer.WriteString("  /Type /" + me.GetType() + "\n")
+	me.buffer.WriteString("  /Subtype /Type1\n")
+	me.buffer.WriteString("  /BaseFont /Times-Roman\n")
+	me.buffer.WriteString(">>\n")
 	
 }
 

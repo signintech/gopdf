@@ -5,9 +5,10 @@ import (
 )
 
 type THSarabun struct{
+	family string
 	fonttype string 
 	name string
-	desc map[string]string
+	desc  []FontDescItem
 	up int
 	ut int
 	cw map[string]int
@@ -16,6 +17,7 @@ type THSarabun struct{
 }
 
 func (me * THSarabun)Init(){
+
 	me.cw = make(map[string]int)
 	//me.cw = cw
 	me.cw[Chr(0)]=692;
@@ -282,6 +284,15 @@ func (me * THSarabun)Init(){
 	me.enc = "cp874"
 	me.diff =   "130 /.notdef /.notdef /.notdef 134 /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 142 /.notdef 152 /.notdef /.notdef /.notdef /.notdef /.notdef 158 /.notdef /.notdef 161 /kokaithai /khokhaithai /khokhuatthai /khokhwaithai /khokhonthai /khorakhangthai /ngonguthai /chochanthai /chochingthai /chochangthai /sosothai /chochoethai /yoyingthai /dochadathai /topatakthai /thothanthai /thonangmonthothai /thophuthaothai /nonenthai /dodekthai /totaothai /thothungthai /thothahanthai /thothongthai /nonuthai /bobaimaithai /poplathai /phophungthai /fofathai /phophanthai /fofanthai /phosamphaothai /momathai /yoyakthai /roruathai /ruthai /lolingthai /luthai /wowaenthai /sosalathai /sorusithai /sosuathai /hohipthai /lochulathai /oangthai /honokhukthai /paiyannoithai /saraathai /maihanakatthai /saraaathai /saraamthai /saraithai /saraiithai /sarauethai /saraueethai /sarauthai /sarauuthai /phinthuthai /.notdef /.notdef /.notdef /.notdef /bahtthai /saraethai /saraaethai /saraothai /saraaimaimuanthai /saraaimaimalaithai /lakkhangyaothai /maiyamokthai /maitaikhuthai /maiekthai /maithothai /maitrithai /maichattawathai /thanthakhatthai /nikhahitthai /yamakkanthai /fongmanthai /zerothai /onethai /twothai /threethai /fourthai /fivethai /sixthai /seventhai /eightthai /ninethai /angkhankhuthai /khomutthai /.notdef /.notdef /.notdef /.notdef"
 
+	me.desc = make([]FontDescItem,8)
+	me.desc[0] =  FontDescItem{ Key:"Ascent",Val : "850" }
+	me.desc[1] =  FontDescItem{ Key: "Descent", Val : "-250" }
+	me.desc[2] =  FontDescItem{ Key:"CapHeight", Val :  "476"}
+	me.desc[3] =  FontDescItem{ Key: "Flags", Val :  "32"}
+	me.desc[4] =  FontDescItem{ Key:"FontBBox", Val :  "[-427 -421 947 836]"}
+	me.desc[5] =  FontDescItem{ Key:"ItalicAngle", Val :  "0"}
+	me.desc[6] =  FontDescItem{ Key:"StemV", Val :  "70"}
+	me.desc[7] =  FontDescItem{ Key:"MissingWidth", Val :  "692"}
 }
 func (me * THSarabun)GetType() string{
 	return me.fonttype
@@ -289,7 +300,7 @@ func (me * THSarabun)GetType() string{
 func (me * THSarabun)GetName() string{
 	return me.name
 }	
-func (me * THSarabun)GetDesc() map[string]string{
+func (me * THSarabun)GetDesc() []FontDescItem{
 	return me.desc
 }
 func (me * THSarabun)GetUp() int{
@@ -310,4 +321,12 @@ func (me * THSarabun)GetDiff() string {
 
 func (me * THSarabun) GetOriginalsize() int{
 	return 98764
+}
+
+func (me * THSarabun)  SetFamily(family string){
+	me.family = family
+}
+
+func (me * THSarabun) 	GetFamily() string{
+	return me.family
 }

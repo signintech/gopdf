@@ -20,6 +20,8 @@ type GoPdf struct {
 	indexOfFirstPageObj int
 	//ต่ำแหน่งปัจจุบัน
 	Curr Current
+	
+	indexEncodingObjFonts []int
 }
 
 /*---public---*/
@@ -30,7 +32,7 @@ func (me *GoPdf) AddPage() {
 	page.Init(func()(*GoPdf){
 		return me
 	})
-	index := me.AddObj(page)
+	index := me.addObj(page)
 	if me.indexOfFirstPageObj == -1 {
 		me.indexOfFirstPageObj = index
 	}
@@ -53,8 +55,8 @@ func (me *GoPdf) Start(config Config) {
 	pages.Init(func()(*GoPdf){
 		return me
 	})
-	me.AddObj(catalog)
-	me.indexOfPagesObj = me.AddObj(pages)
+	me.addObj(catalog)
+	me.indexOfPagesObj = me.addObj(pages)
 }
 
 
@@ -66,7 +68,8 @@ func (me *GoPdf) SetFont(family string, style string, size int){
 	font.Init(func()(*GoPdf){
 		return me
 	})
-	me.AddObj(font)
+	font.Family = family
+	me.addObj(font)
 }
 
 //สร้าง pdf to file
@@ -99,22 +102,46 @@ func (me *GoPdf) Cell(pos Rect, text string) {
 		return me
 	})
 	content.AppendText(text)
-	me.AddObj(content)
+	me.addObj(content)
 }
 
-func (me *GoPdf) AddFont(fontname string  ,ifont fonts.IFont){
+func (me *GoPdf) AddFont(family string  ,ifont fonts.IFont, zfontpath string){
 	encoding := new(EncodingObj)
 	ifont.Init()
+	ifont.SetFamily(family)
 	encoding.SetFont(ifont)
-	me.AddObj(encoding)
+	me.indexEncodingObjFonts = append(me.indexEncodingObjFonts, me.addObj(encoding))
+	
+	fontWidth := new(BasicObj)
+	fontWidth.Init(func()(*GoPdf){
+		return me
+	})
+	fontWidth.Data = "["+ fonts.FontConvertHelper_Cw2Str(ifont.GetCw())+"]\n"
+	me.addObj(fontWidth)
+	
+	fontDesc := new(FontDescriptorObj)
+	fontDesc.Init(func()(*GoPdf){
+		return me
+	})
+	fontDesc.SetFont(ifont)
+	me.addObj(fontDesc)
+	
+	embedfont := new(EmbedFontObj)
+	embedfont.Init(func()(*GoPdf){
+		return me
+	})
+	embedfont.SetFont(ifont,zfontpath)	
+	index := me.addObj(embedfont)
+	
+	fontDesc.SetFontFileObjRelate( strconv.Itoa(index + 1)  + " 0 R")
 }
 
 /*---private---*/
 
 //init
 func (me *GoPdf) init() {
-	me.Curr.X = 0.0
-	me.Curr.Y = 0.0
+	me.Curr.X = 10.0
+	me.Curr.Y = 10.0
 	me.indexOfPagesObj = -1
 	me.indexOfFirstPageObj = -1
 }
@@ -133,9 +160,24 @@ func (me *GoPdf) prepare() {
 				pagesObj.Kids = fmt.Sprintf("%s %d 0 R ", pagesObj.Kids, i+1)
 				pagesObj.PageCount++
 				indexCurrPage = i
-			}else if( objtype == "Content" ){
+			}else if  objtype == "Content" {
 				if indexCurrPage != -1 {
 					me.pdfObjs[indexCurrPage].(*PageObj).Contents = fmt.Sprintf("%s %d 0 R ",me.pdfObjs[indexCurrPage].(*PageObj).Contents,i+1);
+				}
+			}else if  objtype == "Font" {
+				tmpfont := me.pdfObjs[i].(*FontObj)
+				j := 0
+				jmax := len(me.indexEncodingObjFonts)
+				for j < jmax {
+					tmpencoding := me.pdfObjs[me.indexEncodingObjFonts[j]].(*EncodingObj).GetFont()
+					if tmpfont.Family == tmpencoding.GetFamily() {
+						tmpfont.IsEmbedFont = true
+						tmpfont.SetIndexObjEncoding( me.indexEncodingObjFonts[j] + 1)
+						tmpfont.SetIndexObjWidth( me.indexEncodingObjFonts[j] + 2)
+						tmpfont.SetIndexObjFontDescriptor( me.indexEncodingObjFonts[j] + 3)
+						break
+					}
+					j++
 				}
 			}
 			i++
@@ -162,7 +204,7 @@ func (me *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) {
 	(*i)++
 }
 
-func (me *GoPdf) AddObj(iobj IObj) int {
+func (me *GoPdf) addObj(iobj IObj) int {
 	index := len(me.pdfObjs)
 	me.pdfObjs = append(me.pdfObjs, iobj)
 	return index

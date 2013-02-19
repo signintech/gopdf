@@ -1,0 +1,18 @@
+package fonts
+
+import (
+	"strconv"
+	//"fmt"
+	"bytes"
+)
+
+func FontConvertHelper_Cw2Str(cw map[string]int) string{
+	buff := new(bytes.Buffer)
+	buff.WriteString(" ")
+	i := 32
+	for i <= 255 {
+		buff.WriteString( strconv.Itoa( cw[Chr(i)]) +" ")
+		i++
+	}
+	return buff.String()
+}

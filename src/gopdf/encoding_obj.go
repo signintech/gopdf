@@ -28,3 +28,7 @@ func (me * EncodingObj ) Build(){
 func (me * EncodingObj) SetFont(font fonts.IFont){
 	me.font  = font
 }
+
+func (me * EncodingObj) GetFont() fonts.IFont{
+	return me.font
+}

@@ -7,6 +7,7 @@ import (
 type PageObj struct { //impl IObj
 	buffer   bytes.Buffer
 	Contents string
+	realtes []string
 }
 
 func (me *PageObj) Init(funcGetRoot func()(*GoPdf)) {
@@ -20,7 +21,13 @@ func (me *PageObj) Build(){
 	me.buffer.WriteString("  /Parent 2 0 R\n")
 	me.buffer.WriteString("  /Resources <<\n")
 	me.buffer.WriteString("    /Font <<\n")
-	me.buffer.WriteString("      /F1 8 0 R \n")
+	i := 0
+	max := len(me.realtes)
+	for i < max {
+		//me.buffer.WriteString("      /F1 8 0 R \n")
+		me.buffer.WriteString(me.realtes[i]+"\n")
+		i++
+	}
 	me.buffer.WriteString("    >>\n")
 	me.buffer.WriteString("  >>\n")
 	me.buffer.WriteString("  /Contents " + me.Contents + "\n") //sample  Contents 8 0 R
@@ -33,5 +40,9 @@ func (me *PageObj) GetType() string {
 
 func (me *PageObj) GetObjBuff() *bytes.Buffer {
 	return &(me.buffer)
+}
+
+func (me * PageObj) SetResFontRelates(realtes []string){
+	
 }
 

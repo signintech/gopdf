@@ -26,7 +26,7 @@ func (me *PagesObj) Build() {
 	width := fmt.Sprintf("%0.2f",me.getRoot().config.PageSize.W);
 	me.buffer.WriteString("<<\n")
 	me.buffer.WriteString("  /Type /" + me.GetType() + "\n")
-	me.buffer.WriteString("  /MediaBox [0 0 "+width+" "+height+" ]\n") 
+	me.buffer.WriteString("  /MediaBox [ 0 0 "+width+" "+height+" ]\n") 
 	me.buffer.WriteString("  /Count "+strconv.Itoa(me.PageCount)+"\n")
 	me.buffer.WriteString("  /Kids [ "+me.Kids+" ]\n") //sample Kids [ 3 0 R ]
 	me.buffer.WriteString(">>\n")

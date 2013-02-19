@@ -11,4 +11,6 @@ type Current struct{
 	//font
 	FontSize int
 	
+	//page
+	IndexOfPageObj int
 }

@@ -22,6 +22,7 @@ type GoPdf struct {
 	Curr Current
 	
 	indexEncodingObjFonts []int
+	indexOfContent int
 }
 
 /*---public---*/
@@ -36,7 +37,7 @@ func (me *GoPdf) AddPage() {
 	if me.indexOfFirstPageObj == -1 {
 		me.indexOfFirstPageObj = index
 	}
-	
+	me.Curr.IndexOfPageObj = index
 	
 }
 
@@ -69,7 +70,12 @@ func (me *GoPdf) SetFont(family string, style string, size int){
 		return me
 	})
 	font.Family = family
-	me.addObj(font)
+	index := me.addObj(font)
+	
+	if me.Curr.IndexOfPageObj != -1 {
+	 	pageobj := me.pdfObjs[me.Curr.IndexOfPageObj].(*PageObj)
+	 	pageobj.realtes = append(pageobj.realtes,"/F1 "+ strconv.Itoa(index+1) + " 0 R ")
+	}
 }
 
 //สร้าง pdf to file
@@ -97,12 +103,18 @@ func (me *GoPdf) WritePdf(pdfPath string) {
 
 //สร้าง cell ของ text
 func (me *GoPdf) Cell(pos Rect, text string) {
-	content := new(ContentObj)
-	content.Init(func()(*GoPdf){
-		return me
-	})
+	var content *ContentObj
+	if me.indexOfContent == -1{ 
+		content = new(ContentObj)
+		content.Init(func()(*GoPdf){
+			return me
+		})	
+		me.indexOfContent = me.addObj(content)
+	}else{
+		content = me.pdfObjs[me.indexOfContent].(*ContentObj)
+	}
 	content.AppendText(text)
-	me.addObj(content)
+	
 }
 
 func (me *GoPdf) AddFont(family string  ,ifont fonts.IFont, zfontpath string){
@@ -144,6 +156,8 @@ func (me *GoPdf) init() {
 	me.Curr.Y = 10.0
 	me.indexOfPagesObj = -1
 	me.indexOfFirstPageObj = -1
+	me.Curr.IndexOfPageObj = -1
+	me.indexOfContent = -1
 }
 
 func (me *GoPdf) prepare() {
@@ -179,6 +193,8 @@ func (me *GoPdf) prepare() {
 					}
 					j++
 				}
+				
+				//me.pdfObjs[indexCurrPage].(*PageObj)
 			}
 			i++
 		}

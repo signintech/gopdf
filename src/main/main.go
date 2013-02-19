@@ -16,6 +16,8 @@ func main() {
 	pdf.SetFont("THSarabunPSK", "B", 12)
 	output , _ := iconv.ConvertString( "การบ้านต่ำสูงโต้งตั้วกุ้ง!", "utf-8", "cp874") 
 	pdf.Cell(gopdf.Rect{H: 100, W: 100}, output)
+	output , _ = iconv.ConvertString( "การบ้านต่ำสูงโต้งตั้วกุ้ง!xxxx", "utf-8", "cp874") 
+	pdf.Cell(gopdf.Rect{H: 100, W: 100}, output)
 	//pdf.Cell(gopdf.Rect{H: 10, W: 10}, "xzxzxzxzx")
 	//pdf.AddPage()
 	//pdf.Cell(gopdf.Rect{H: 10, W: 10}, "xxxx")

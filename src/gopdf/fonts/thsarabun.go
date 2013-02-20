@@ -11,14 +11,14 @@ type THSarabun struct{
 	desc  []FontDescItem
 	up int
 	ut int
-	cw map[string]int
+	cw FontCw
 	enc string
 	diff string
 }
 
 func (me * THSarabun)Init(){
 
-	me.cw = make(map[string]int)
+	me.cw = make(FontCw)
 	//me.cw = cw
 	me.cw[Chr(0)]=692;
 	me.cw[Chr(1)]=692;
@@ -52,101 +52,101 @@ func (me * THSarabun)Init(){
 	me.cw[Chr(29)]=692;
 	me.cw[Chr(30)]=692;
 	me.cw[Chr(31)]=692;
-	me.cw[" "]=216;
-	me.cw["!"]=147;
-	me.cw["\""]=208;
-	me.cw["#"]=403;
-	me.cw["$"]=361;
-	me.cw["%"]=585;
-	me.cw["&"]=423;
-	me.cw["'"]=120;
-	me.cw["("]=190;
-	me.cw[")"]=190;
-	me.cw["*"]=285;
-	me.cw["+"]=411;
-	me.cw[","]=162;
-	me.cw["-"]=216;
-	me.cw["."]=162;
-	me.cw["/"]=270;
-	me.cw["0"]=362;
-	me.cw["1"]=362;
-	me.cw["2"]=362;
-	me.cw["3"]=362;
-	me.cw["4"]=362;
-	me.cw["5"]=362;
-	me.cw["6"]=362;
-	me.cw["7"]=362;
-	me.cw["8"]=362;
-	me.cw["9"]=362;
-	me.cw[":"]=162;
-	me.cw[";"]=162;
-	me.cw["<"]=411;
-	me.cw["="]=411;
-	me.cw[">"]=411;
-	me.cw["?"]=283;
-	me.cw["@"]=536;
-	me.cw["A"]=400;
-	me.cw["B"]=378;
-	me.cw["C"]=406;
-	me.cw["D"]=431;
-	me.cw["E"]=351;
-	me.cw["F"]=351;
-	me.cw["G"]=425;
-	me.cw["H"]=441;
-	me.cw["I"]=147;
-	me.cw["J"]=264;
-	me.cw["K"]=376;
-	me.cw["L"]=353;
-	me.cw["M"]=548;
-	me.cw["N"]=441;
-	me.cw["O"]=486;
-	me.cw["P"]=378;
-	me.cw["Q"]=487;
-	me.cw["R"]=379;
-	me.cw["S"]=352;
-	me.cw["T"]=379;
-	me.cw["U"]=466;
-	me.cw["V"]=390;
-	me.cw["W"]=588;
-	me.cw["X"]=418;
-	me.cw["Y"]=366;
-	me.cw["Z"]=424;
-	me.cw["["]=196;
-	me.cw["\\"]=262;
-	me.cw["]"]=196;
-	me.cw["^"]=412;
-	me.cw["_"]=352;
-	me.cw["`"]=204;
-	me.cw["a"]=344;
-	me.cw["b"]=401;
-	me.cw["c"]=331;
-	me.cw["d"]=401;
-	me.cw["e"]=374;
-	me.cw["f"]=206;
-	me.cw["g"]=311;
-	me.cw["h"]=390;
-	me.cw["i"]=143;
-	me.cw["j"]=155;
-	me.cw["k"]=316;
-	me.cw["l"]=200;
-	me.cw["m"]=601;
-	me.cw["n"]=390;
-	me.cw["o"]=398;
-	me.cw["p"]=401;
-	me.cw["q"]=401;
-	me.cw["r"]=217;
-	me.cw["s"]=282;
-	me.cw["t"]=238;
-	me.cw["u"]=390;
-	me.cw["v"]=341;
-	me.cw["w"]=507;
-	me.cw["x"]=318;
-	me.cw["y"]=337;
-	me.cw["z"]=321;
-	me.cw["{"]=208;
-	me.cw["|"]=153;
-	me.cw["}"]=208;
-	me.cw["~"]=416;
+	me.cw[ToByte(" ")]=216;
+	me.cw[ToByte("!")]=147;
+	me.cw[ToByte("\"")]=208;
+	me.cw[ToByte("#")]=403;
+	me.cw[ToByte("$")]=361;
+	me.cw[ToByte("%")]=585;
+	me.cw[ToByte("&")]=423;
+	me.cw[ToByte("'")]=120;
+	me.cw[ToByte("(")]=190;
+	me.cw[ToByte(")")]=190;
+	me.cw[ToByte("*")]=285;
+	me.cw[ToByte("+")]=411;
+	me.cw[ToByte(",")]=162;
+	me.cw[ToByte("-")]=216;
+	me.cw[ToByte(".")]=162;
+	me.cw[ToByte("/")]=270;
+	me.cw[ToByte("0")]=362;
+	me.cw[ToByte("1")]=362;
+	me.cw[ToByte("2")]=362;
+	me.cw[ToByte("3")]=362;
+	me.cw[ToByte("4")]=362;
+	me.cw[ToByte("5")]=362;
+	me.cw[ToByte("6")]=362;
+	me.cw[ToByte("7")]=362;
+	me.cw[ToByte("8")]=362;
+	me.cw[ToByte("9")]=362;
+	me.cw[ToByte(":")]=162;
+	me.cw[ToByte(";")]=162;
+	me.cw[ToByte("<")]=411;
+	me.cw[ToByte("=")]=411;
+	me.cw[ToByte(">")]=411;
+	me.cw[ToByte("?")]=283;
+	me.cw[ToByte("@")]=536;
+	me.cw[ToByte("A")]=400;
+	me.cw[ToByte("B")]=378;
+	me.cw[ToByte("C")]=406;
+	me.cw[ToByte("D")]=431;
+	me.cw[ToByte("E")]=351;
+	me.cw[ToByte("F")]=351;
+	me.cw[ToByte("G")]=425;
+	me.cw[ToByte("H")]=441;
+	me.cw[ToByte("I")]=147;
+	me.cw[ToByte("J")]=264;
+	me.cw[ToByte("K")]=376;
+	me.cw[ToByte("L")]=353;
+	me.cw[ToByte("M")]=548;
+	me.cw[ToByte("N")]=441;
+	me.cw[ToByte("O")]=486;
+	me.cw[ToByte("P")]=378;
+	me.cw[ToByte("Q")]=487;
+	me.cw[ToByte("R")]=379;
+	me.cw[ToByte("S")]=352;
+	me.cw[ToByte("T")]=379;
+	me.cw[ToByte("U")]=466;
+	me.cw[ToByte("V")]=390;
+	me.cw[ToByte("W")]=588;
+	me.cw[ToByte("X")]=418;
+	me.cw[ToByte("Y")]=366;
+	me.cw[ToByte("Z")]=424;
+	me.cw[ToByte("[")]=196;
+	me.cw[ToByte("\\")]=262;
+	me.cw[ToByte("]")]=196;
+	me.cw[ToByte("^")]=412;
+	me.cw[ToByte("_")]=352;
+	me.cw[ToByte("`")]=204;
+	me.cw[ToByte("a")]=344;
+	me.cw[ToByte("b")]=401;
+	me.cw[ToByte("c")]=331;
+	me.cw[ToByte("d")]=401;
+	me.cw[ToByte("e")]=374;
+	me.cw[ToByte("f")]=206;
+	me.cw[ToByte("g")]=311;
+	me.cw[ToByte("h")]=390;
+	me.cw[ToByte("i")]=143;
+	me.cw[ToByte("j")]=155;
+	me.cw[ToByte("k")]=316;
+	me.cw[ToByte("l")]=200;
+	me.cw[ToByte("m")]=601;
+	me.cw[ToByte("n")]=390;
+	me.cw[ToByte("o")]=398;
+	me.cw[ToByte("p")]=401;
+	me.cw[ToByte("q")]=401;
+	me.cw[ToByte("r")]=217;
+	me.cw[ToByte("s")]=282;
+	me.cw[ToByte("t")]=238;
+	me.cw[ToByte("u")]=390;
+	me.cw[ToByte("v")]=341;
+	me.cw[ToByte("w")]=507;
+	me.cw[ToByte("x")]=318;
+	me.cw[ToByte("y")]=337;
+	me.cw[ToByte("z")]=321;
+	me.cw[ToByte("{")]=208;
+	me.cw[ToByte("|")]=153;
+	me.cw[ToByte("}")]=208;
+	me.cw[ToByte("~")]=416;
 	me.cw[Chr(127)]=692;
 	me.cw[Chr(128)]=406;
 	me.cw[Chr(129)]=692;
@@ -309,7 +309,7 @@ func (me * THSarabun)GetUp() int{
 func (me * THSarabun)GetUt()  int{
 	return me.ut
 }
-func (me * THSarabun)GetCw() map[string]int{
+func (me * THSarabun)GetCw() FontCw{
 	return me.cw
 }
 func (me * THSarabun)GetEnc() string{

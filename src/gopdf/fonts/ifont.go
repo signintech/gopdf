@@ -1,7 +1,7 @@
 package fonts
 
 import (
-	"fmt"
+	//"fmt"
 	//iconv "github.com/djimenez/iconv-go"
 )
 
@@ -12,7 +12,7 @@ type IFont interface{
 	GetDesc() []FontDescItem
 	GetUp() int
 	GetUt()  int
-	GetCw() map[string]int
+	GetCw() FontCw
 	GetEnc() string
 	GetDiff() string
 	GetOriginalsize() int
@@ -21,11 +21,17 @@ type IFont interface{
 	GetFamily() string
 }
 
+type FontCw map[byte]int
+
 type FontDescItem struct{
 	Key string
 	Val string
 }
 
-func Chr(n int) string{
-	return fmt.Sprintf("%c", n  + 0xD60 )
+func Chr(n int) byte{
+	return byte(n) //ToByte(fmt.Sprintf("%c", n ))
+}
+
+func ToByte(chr string ) byte{
+	return []byte(chr)[0]
 }

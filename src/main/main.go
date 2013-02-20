@@ -15,7 +15,7 @@ func main() {
 	pdf.AddFont("Loma",new(fonts.Loma),"res/fonts/Loma.z")
 	pdf.AddPage()
 	pdf.SetFont("THSarabunPSK", "B", 12)
-	output , _ := iconv.ConvertString( "กA", "utf-8", "cp874") 
+	output , _ := iconv.ConvertString( "กAโจตลาด  2 ล้อ พุ่ง 20% รับปีใหม่ คาดเอที toyota ยังแรงกุ้งตั้ว ", "utf-8", "cp874") 
 	pdf.Cell(gopdf.Rect{H: 100, W: 100},  output)
 	pdf.SetFont("Loma", "B", 12)
 	output , _ = iconv.ConvertString( "การบ้านx", "utf-8", "cp874") 

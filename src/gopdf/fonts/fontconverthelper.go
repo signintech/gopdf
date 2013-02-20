@@ -6,7 +6,7 @@ import (
 	"bytes"
 )
 
-func FontConvertHelper_Cw2Str(cw map[string]int) string{
+func FontConvertHelper_Cw2Str(cw FontCw) string{
 	buff := new(bytes.Buffer)
 	buff.WriteString(" ")
 	i := 32

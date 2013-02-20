@@ -7,9 +7,10 @@ import (
 /*ยังไม่เสร็จ*/
 
 type Loma struct{
+	family string
 	fonttype string 
 	name string
-	desc map[string]string
+	desc []FontDescItem
 	up int
 	ut int
 	cw map[string]int
@@ -18,7 +19,7 @@ type Loma struct{
 }
 
 func (me * Loma)Init(){
-
+	me.cw = make(map[string]int)
 	me.cw[Chr(0)]=750;
 	me.cw[Chr(1)]=750;
 	me.cw[Chr(2)]=750;
@@ -276,10 +277,22 @@ func (me * Loma)Init(){
 	me.cw[Chr(254)]=750;
 	me.cw[Chr(255)]=750;
 	
-	
+	me.up = -88;
+	me.ut = 10;
+	me.fonttype = "TrueType"
+	me.name = "Loma"
+	me.enc = "cp874"
 	me.diff =  "130 /.notdef /.notdef /.notdef 134 /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 142 /.notdef 152 /.notdef /.notdef /.notdef /.notdef /.notdef 158 /.notdef /.notdef 161 /kokaithai /khokhaithai /khokhuatthai /khokhwaithai /khokhonthai /khorakhangthai /ngonguthai /chochanthai /chochingthai /chochangthai /sosothai /chochoethai /yoyingthai /dochadathai /topatakthai /thothanthai /thonangmonthothai /thophuthaothai /nonenthai /dodekthai /totaothai /thothungthai /thothahanthai /thothongthai /nonuthai /bobaimaithai /poplathai /phophungthai /fofathai /phophanthai /fofanthai /phosamphaothai /momathai /yoyakthai /roruathai /ruthai /lolingthai /luthai /wowaenthai /sosalathai /sorusithai /sosuathai /hohipthai /lochulathai /oangthai /honokhukthai /paiyannoithai /saraathai /maihanakatthai /saraaathai /saraamthai /saraithai /saraiithai /sarauethai /saraueethai /sarauthai /sarauuthai /phinthuthai /.notdef /.notdef /.notdef /.notdef /bahtthai /saraethai /saraaethai /saraothai /saraaimaimuanthai /saraaimaimalaithai /lakkhangyaothai /maiyamokthai /maitaikhuthai /maiekthai /maithothai /maitrithai /maichattawathai /thanthakhatthai /nikhahitthai /yamakkanthai /fongmanthai /zerothai /onethai /twothai /threethai /fourthai /fivethai /sixthai /seventhai /eightthai /ninethai /angkhankhuthai /khomutthai /.notdef /.notdef /.notdef /.notdef"
-	
-	
+
+	me.desc = make([]FontDescItem,8)
+	me.desc[0] =  FontDescItem{ Key:"Ascent",Val : "800" }
+	me.desc[1] =  FontDescItem{ Key: "Descent", Val : "-200" }
+	me.desc[2] =  FontDescItem{ Key:"CapHeight", Val :  "800"}
+	me.desc[3] =  FontDescItem{ Key: "Flags", Val :  "32"}
+	me.desc[4] =  FontDescItem{ Key:"FontBBox", Val :  "[-743 -440 1338 1146]"}
+	me.desc[5] =  FontDescItem{ Key:"ItalicAngle", Val :  "0"}
+	me.desc[6] =  FontDescItem{ Key:"StemV", Val :  "70"}
+	me.desc[7] =  FontDescItem{ Key:"MissingWidth", Val :  "750"}
 
 }
 func (me * Loma)GetType() string{
@@ -288,7 +301,7 @@ func (me * Loma)GetType() string{
 func (me * Loma)GetName() string{
 	return me.name
 }	
-func (me * Loma)GetDesc() map[string]string{
+func (me * Loma)GetDesc() []FontDescItem{
 	return me.desc
 }
 func (me * Loma)GetUp() int{
@@ -308,4 +321,12 @@ func (me * Loma)GetDiff() string {
 }
 func (me * Loma) GetOriginalsize() int{
 	return 0
+}
+
+func (me * Loma)  SetFamily(family string){
+	me.family = family
+}
+
+func (me * Loma) 	GetFamily() string{
+	return me.family
 }

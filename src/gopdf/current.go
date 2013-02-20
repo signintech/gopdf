@@ -1,7 +1,7 @@
 package gopdf
 
 import (
-	"gopdf/fonts"
+	//"gopdf/fonts"
 )
 
 type Current struct{
@@ -9,8 +9,9 @@ type Current struct{
 	Y float64
 	
 	//font
-	FontSize int
-	Font fonts.IFont
+	//FontSize int
+	//IndexOfFontObj int
+	IndexOfFontObj int
 	
 	//page
 	IndexOfPageObj int

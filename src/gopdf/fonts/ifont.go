@@ -2,6 +2,7 @@ package fonts
 
 import (
 	"fmt"
+	//iconv "github.com/djimenez/iconv-go"
 )
 
 type IFont interface{
@@ -26,5 +27,5 @@ type FontDescItem struct{
 }
 
 func Chr(n int) string{
-	return fmt.Sprintf("%c",n)
+	return fmt.Sprintf("%c", n  + 0xD60 )
 }

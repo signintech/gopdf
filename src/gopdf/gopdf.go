@@ -66,26 +66,33 @@ func (me *GoPdf) Start(config Config) {
 
 //set font 
 func (me *GoPdf) SetFont(family string, style string, size int){
-	//ต้องแน่ใจว่ามีการ add font แล้ว
-	me.Curr.FontSize = size
+	
 	font := new(FontObj)
 	font.Init(func()(*GoPdf){
 		return me
 	})
-	font.Family = family
-	index := me.addObj(font)
-	
-	i := 0 
+	i := 0
 	max := len(me.indexEncodingObjFonts)
 	for i < max {
-		
+		ifont := me.pdfObjs[me.indexEncodingObjFonts[i]].(*EncodingObj).GetFont()
+		if ifont.GetFamily() == family {
+			font.Font =  ifont
+			break
+		}
 		i++
 	}
-	
-	
+	font.Family = family
+	font.Size = size
+	font.Style = style
+	me.Curr.IndexOfFontObj = me.addObj(font)
+
 	if me.Curr.IndexOfPageObj != -1 {
 	 	pageobj := me.pdfObjs[me.Curr.IndexOfPageObj].(*PageObj)
-	 	pageobj.realtes = append(pageobj.realtes,"/F1 "+ strconv.Itoa(index+1) + " 0 R ")
+	 	if !pageobj.Realtes.IsContainsFamily(family) {
+	 		indexOfFontInPage := len(pageobj.Realtes)
+	 		pageobj.Realtes = append(pageobj.Realtes,RelateFont{ Family : family, IndexOfObj : me.Curr.IndexOfFontObj  , IndexOfFontInPage : indexOfFontInPage  })
+			font.IndexOfFontInPage = indexOfFontInPage
+		}
 	}
 }
 
@@ -108,7 +115,7 @@ func (me *GoPdf) WritePdf(pdfPath string) {
 		i++
 	}
 	me.xref(linelens, buff, &i)
-	fmt.Printf("%s\n", buff.String())
+	//fmt.Printf("%s\n", buff.String())
 	ioutil.WriteFile(pdfPath, buff.Bytes(), 0644)
 }
 
@@ -124,7 +131,7 @@ func (me *GoPdf) Cell(pos Rect, text string) {
 	}else{
 		content = me.pdfObjs[me.indexOfContent].(*ContentObj)
 	}
-	content.AppendText(text)
+	content.AppendStream(text)
 	
 }
 
@@ -163,12 +170,16 @@ func (me *GoPdf) AddFont(family string  ,ifont fonts.IFont, zfontpath string){
 
 //init
 func (me *GoPdf) init() {
+
 	me.Curr.X = 10.0
 	me.Curr.Y = 10.0
+	me.Curr.IndexOfPageObj = -1
+	//me.Curr.IndexOfFontObj = -1
+	
 	me.indexOfPagesObj = -1
 	me.indexOfFirstPageObj = -1
-	me.Curr.IndexOfPageObj = -1
 	me.indexOfContent = -1
+	
 }
 
 func (me *GoPdf) prepare() {

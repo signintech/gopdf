@@ -9,7 +9,8 @@ import (
 
 type ContentObj struct { //impl IObj
 	buffer bytes.Buffer
-	text bytes.Buffer
+	stream  bytes.Buffer
+	//text bytes.Buffer
 	getRoot func()(*GoPdf)
 }
 
@@ -19,12 +20,14 @@ func (me *ContentObj) Init(funcGetRoot func()(*GoPdf)) {
 
 func (me *ContentObj) Build() {
 
-	stream,streamlen := me.buildStream()
+	//stream,streamlen := me.buildStream()
+	streamlen := me.stream.Len()
+	
 	me.buffer.WriteString("<<\n")
 	me.buffer.WriteString("/Length "+strconv.Itoa(streamlen)+"\n")
 	me.buffer.WriteString(">>\n")
 	me.buffer.WriteString("stream\n")
-	me.buffer.WriteString(stream.String())
+	me.buffer.Write(me.stream.Bytes())
 	me.buffer.WriteString("endstream\n")
 }
 
@@ -36,14 +39,9 @@ func (me *ContentObj) GetObjBuff() *bytes.Buffer {
 	return &(me.buffer)
 }
 
-func (me *ContentObj) AppendText(text string){
-	me.text.WriteString(text)
-}
 
-func (me *ContentObj) ResetText(){
-	me.text.Reset()
-}
 
+/*
 func (me *ContentObj) buildStream() (*bytes.Buffer,int){
 	fontsize := fmt.Sprintf("%d",me.getRoot().Curr.FontSize)
 	x := fmt.Sprintf("%0.2f",me.getRoot().Curr.X)
@@ -58,12 +56,27 @@ func (me *ContentObj) buildStream() (*bytes.Buffer,int){
 	
 	
 	me.getRoot().Curr.X += StrHelper_GetStringWidth(me.text.String(),me.getRoot().Curr.FontSize)
-	//x := 1
-	//y := 1
-	//temp.WriteString("2 J\n");
-	//temp.WriteString("0.57 w\n");
-	//temp.WriteString("BT /F1 16.00 Tf ET\n");
-	//temp.WriteString(fmt.Sprintf("BT 31.19 794.57 Td (%s) Tj ET\n",me.text.String()));
+
 	return temp,temp.Len()
 }
+*/
 
+func (me *ContentObj) AppendStream(text string){
+	
+	
+	fontobj := me.getRoot().pdfObjs[me.getRoot().Curr.IndexOfFontObj].(*FontObj)
+	fontSize := fontobj.Size
+	
+	x := fmt.Sprintf("%0.2f",me.getRoot().Curr.X)
+	y := fmt.Sprintf("%0.2f",me.getRoot().config.PageSize.H  - me.getRoot().Curr.Y - (float64(fontSize) *0.7) )
+	
+	
+	me.stream.WriteString("BT\n")
+	me.stream.WriteString(x+" "+y+" TD\n")
+	me.stream.WriteString("/F"+strconv.Itoa(fontobj.IndexOfFontInPage + 1)+" "+ strconv.Itoa(fontSize)+" Tf\n")
+	me.stream.WriteString("("+text+") Tj\n")
+	me.stream.WriteString("ET\n")
+	
+	me.getRoot().Curr.X += StrHelper_GetStringWidth(text,fontSize,fontobj.Font)
+	
+}

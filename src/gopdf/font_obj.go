@@ -4,27 +4,39 @@ package gopdf
 import (
 	"bytes"
 	"strconv"
+	"gopdf/fonts"
 )
 
 type FontObj struct { //impl IObj
 	buffer bytes.Buffer
 	Family string
+	Style string
+	Size int
 	IsEmbedFont bool
 	
 	indexObjWidth int
 	indexObjFontDescriptor int
 	indexObjEncoding int
+	IndexOfFontInPage int
+	Font  fonts.IFont
 }
 
 func (me *FontObj) Init(funcGetRoot func()(*GoPdf)) {
 	me.IsEmbedFont = false
+	me.IndexOfFontInPage = -1
 }
 
 func (me *FontObj) Build() {
+	
+	baseFont := me.Family
+	if me.Font != nil {
+		baseFont =me.Font.GetName()
+	}
+
 	me.buffer.WriteString("<<\n")
 	me.buffer.WriteString("  /Type /" + me.GetType() + "\n")
 	me.buffer.WriteString("  /Subtype /TrueType\n")
-	me.buffer.WriteString("  /BaseFont /THSarabunPSK\n")
+	me.buffer.WriteString("  /BaseFont /"+baseFont+"\n")
 	if me.IsEmbedFont {
 		me.buffer.WriteString("  /FirstChar 32 /LastChar 255\n")
 		me.buffer.WriteString("  /Widths "+  strconv.Itoa(me.indexObjWidth) +" 0 R\n")
@@ -32,9 +44,6 @@ func (me *FontObj) Build() {
 		me.buffer.WriteString("  /Encoding "+strconv.Itoa(me.indexObjEncoding)+" 0 R\n")
 	}
 	me.buffer.WriteString(">>\n")
-	
-	
-	
 }
 
 func (me *FontObj) GetType() string {

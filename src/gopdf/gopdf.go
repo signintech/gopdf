@@ -16,9 +16,11 @@ type GoPdf struct {
 	/*---index ของ obj สำคัญๆ เก็บเพื่อลด loop ตอนค้นหา---*/
 	//index ของ obj pages
 	indexOfPagesObj int
+	
 	//index ของ obj page อันแรก
 	indexOfFirstPageObj int
-	//ต่ำแหน่งปัจจุบัน
+	
+	//ต่ำแหน่งปัจจุบัน 
 	Curr Current
 	
 	indexEncodingObjFonts []int
@@ -72,6 +74,14 @@ func (me *GoPdf) SetFont(family string, style string, size int){
 	})
 	font.Family = family
 	index := me.addObj(font)
+	
+	i := 0 
+	max := len(me.indexEncodingObjFonts)
+	for i < max {
+		
+		i++
+	}
+	
 	
 	if me.Curr.IndexOfPageObj != -1 {
 	 	pageobj := me.pdfObjs[me.Curr.IndexOfPageObj].(*PageObj)

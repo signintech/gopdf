@@ -62,8 +62,9 @@ func (me *GoPdf) Start(config Config) {
 
 
 
-//set font
+//set font 
 func (me *GoPdf) SetFont(family string, style string, size int){
+	//ต้องแน่ใจว่ามีการ add font แล้ว
 	me.Curr.FontSize = size
 	font := new(FontObj)
 	font.Init(func()(*GoPdf){
@@ -193,8 +194,6 @@ func (me *GoPdf) prepare() {
 					}
 					j++
 				}
-				
-				//me.pdfObjs[indexCurrPage].(*PageObj)
 			}
 			i++
 		}
@@ -209,7 +208,7 @@ func (me *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) {
 	max := len(linelens)
 	for j < max {
 		linelen := linelens[j]
-		buff.WriteString(strconv.Itoa(linelen) + " 00000 n\n")
+		buff.WriteString(me.formatXrefline(linelen) + " 00000 n\n")
 		j++
 	}
 	buff.WriteString("trailer\n")
@@ -218,6 +217,15 @@ func (me *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) {
 	buff.WriteString("/Root 1 0 R\n")
 	buff.WriteString(">>\n")
 	(*i)++
+}
+
+//ปรับ xref ให้เป็น 10 หลัก
+func (me *GoPdf) formatXrefline(n int) string{
+	str := strconv.Itoa(n)
+	for len(str) < 10 {
+		str = "0" + str
+	}
+	return str
 }
 
 func (me *GoPdf) addObj(iobj IObj) int {

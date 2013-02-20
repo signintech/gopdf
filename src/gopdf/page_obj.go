@@ -24,8 +24,7 @@ func (me *PageObj) Build(){
 	i := 0
 	max := len(me.realtes)
 	for i < max {
-		//me.buffer.WriteString("      /F1 8 0 R \n")
-		me.buffer.WriteString(me.realtes[i]+"\n")
+		me.buffer.WriteString("      "+me.realtes[i]+"\n") //example: /F1 8 0 R 
 		i++
 	}
 	me.buffer.WriteString("    >>\n")

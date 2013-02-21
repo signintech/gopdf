@@ -11,6 +11,10 @@ import (
 
 type GoPdf struct {
 	
+	//page Margin
+	leftMargin float64
+	topMargin  float64
+	
 	pdfObjs []IObj
 	config Config
 	/*---index ของ obj สำคัญๆ เก็บเพื่อลด loop ตอนค้นหา---*/
@@ -28,6 +32,18 @@ type GoPdf struct {
 }
 
 /*---public---*/
+func (me *GoPdf) Ln( h  float64){
+	me.Curr.Y += h
+	me.Curr.X = me.leftMargin
+}
+
+func (me *GoPdf) SetLeftMargin(margin float64){
+	me.leftMargin = margin
+}
+
+func (me *GoPdf) SetTopMargin(margin float64){
+	me.topMargin = margin
+}
 
 //เพิ่ม page
 func (me *GoPdf) AddPage() {
@@ -51,7 +67,6 @@ func (me *GoPdf) Start(config Config) {
 
 	me.config = config
 	me.init()
-	
 	//สร้าง obj พื้นฐาน
 	catalog := new(CatalogObj)
 	catalog.Init(func()(*GoPdf){
@@ -87,13 +102,13 @@ func (me *GoPdf) SetFont(family string, style string, size int){
 	font.Family = family
 	font.Size = size
 	font.Style = style
+	font.CountOfFont = me.Curr.CountOfFont
 	me.Curr.IndexOfFontObj = me.addObj(font)
 
 	if me.Curr.IndexOfPageObj != -1 {
 	 	pageobj := me.pdfObjs[me.Curr.IndexOfPageObj].(*PageObj)
 	 	if !pageobj.Realtes.IsContainsFamily(family) {
 	 		pageobj.Realtes = append(pageobj.Realtes,RelateFont{ Family : family, IndexOfObj : me.Curr.IndexOfFontObj  , CountOfFont : me.Curr.CountOfFont  })
-			font.CountOfFont = me.Curr.CountOfFont
 			me.Curr.CountOfFont++
 		}
 	}
@@ -122,7 +137,8 @@ func (me *GoPdf) WritePdf(pdfPath string) {
 }
 
 //สร้าง cell ของ text
-func (me *GoPdf) Cell(pos Rect, text string) {
+//หมาย เหตุ ตอนนี้ Rect.H ยังไม่มีผลใดๆกับ pdf นะ
+func (me *GoPdf) Cell(rectangle *Rect, text string) {
 	var content *ContentObj
 	if me.indexOfContent <= -1{ 
 		content = new(ContentObj)
@@ -133,7 +149,7 @@ func (me *GoPdf) Cell(pos Rect, text string) {
 	}else{
 		content = me.pdfObjs[me.indexOfContent].(*ContentObj)
 	}
-	content.AppendStream(text)
+	content.AppendStream(rectangle,text)
 	
 }
 
@@ -173,6 +189,10 @@ func (me *GoPdf) AddFont(family string  ,ifont fonts.IFont, zfontpath string){
 //init
 func (me *GoPdf) init() {
 
+	//defaltr
+	me.leftMargin = 10.0
+	me.topMargin = 10.0
+
 	me.resetCurrXY()
 	me.Curr.IndexOfPageObj = -1
 	me.Curr.CountOfFont = 0
@@ -185,8 +205,8 @@ func (me *GoPdf) init() {
 }
 
 func (me * GoPdf) resetCurrXY(){
-	me.Curr.X = 10.0
-	me.Curr.Y = 10.0
+	me.Curr.X = me.leftMargin
+	me.Curr.Y = me.topMargin
 }
 
 func (me *GoPdf) prepare() {

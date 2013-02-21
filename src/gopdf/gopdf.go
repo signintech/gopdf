@@ -35,7 +35,18 @@ type GoPdf struct {
 }
 
 /*---public---*/
-func (me *GoPdf) Ln( h  float64){
+
+func (me *GoPdf)  SetLineWidth( width float64){
+	me.getContent().AppendStreamSetLineWidth(width)
+}
+
+//วาดเส้น
+func (me *GoPdf) Line(x1 float64 , y1 float64, x2 float64 , y2 float64){
+	me.getContent().AppendStreamLine(x1,y1,x2,y2)
+}
+
+//ขึ้นบรรทัดใหม่
+func (me *GoPdf) Br( h  float64){
 	me.Curr.Y += h
 	me.Curr.X = me.leftMargin
 }
@@ -136,6 +147,12 @@ func (me *GoPdf) WritePdf(pdfPath string) {
 //สร้าง cell ของ text
 //หมาย เหตุ ตอนนี้ Rect.H ยังไม่มีผลใดๆกับ pdf นะ
 func (me *GoPdf) Cell(rectangle *Rect, text string) {
+
+	me.getContent().AppendStream(rectangle,text)
+
+}
+
+func (me * GoPdf) getContent() *ContentObj{
 	var content *ContentObj
 	if me.indexOfContent <= -1{ 
 		content = new(ContentObj)
@@ -146,8 +163,8 @@ func (me *GoPdf) Cell(rectangle *Rect, text string) {
 	}else{
 		content = me.pdfObjs[me.indexOfContent].(*ContentObj)
 	}
-	content.AppendStream(rectangle,text)
 	
+	return content
 }
 
 func (me *GoPdf) AddFont(family string  ,ifont fonts.IFont, zfontpath string){
@@ -248,11 +265,10 @@ func (me *GoPdf) prepare() {
 				tmpfont := me.pdfObjs[i].(*FontObj)
 				j := 0
 				jmax := len(me.indexEncodingObjFonts)
-				//fmt.Printf(" jmax = %d \n", jmax)
 				for j < jmax {
 					tmpencoding := me.pdfObjs[me.indexEncodingObjFonts[j]].(*EncodingObj).GetFont()
 					//fmt.Printf("%s , %s \n", tmpfont.Family , tmpencoding.GetFamily())
-					if tmpfont.Family == tmpencoding.GetFamily() {
+					if tmpfont.Family == tmpencoding.GetFamily() { //ใส่ ข้อมูลของ embed font
 						tmpfont.IsEmbedFont = true
 						tmpfont.SetIndexObjEncoding( me.indexEncodingObjFonts[j] + 1)
 						tmpfont.SetIndexObjWidth( me.indexEncodingObjFonts[j] + 2)

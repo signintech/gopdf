@@ -75,12 +75,24 @@ func (me *ContentObj) AppendStream(rectangle *Rect,text string){
 	me.stream.WriteString("/F"+strconv.Itoa( me.getRoot().Curr.Font_FontCount  + 1)+" "+ strconv.Itoa(fontSize)+" Tf\n")
 	me.stream.WriteString("("+text+") Tj\n")
 	me.stream.WriteString("ET\n")
-	
+	//me.stream.WriteString("10 10 m 10 400 l S")
 	if rectangle == nil {
 		me.getRoot().Curr.X += StrHelper_GetStringWidth(text,fontSize,me.getRoot().Curr.Font_IFont)
 	}else{
 		me.getRoot().Curr.X += rectangle.W
 	}
 	
+}
+
+
+func (me *ContentObj) AppendStreamLine(x1 float64 , y1 float64, x2 float64 , y2 float64){
+
+	h := me.getRoot().config.PageSize.H
+	me.stream.WriteString( fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n",x1,h - y1,x2,h - y2))
+}
+
+func (me *ContentObj) AppendStreamSetLineWidth(w float64){
+	
+	me.stream.WriteString(fmt.Sprintf("%.2f w\n",w))
 	
 }

@@ -29,6 +29,9 @@ type GoPdf struct {
 	
 	indexEncodingObjFonts []int
 	indexOfContent int
+	
+	//index ของ procset ซึ่งควรจะมีอันเดียว
+	indexOfProcSet int
 }
 
 /*---public---*/
@@ -51,6 +54,7 @@ func (me *GoPdf) AddPage() {
 	page.Init(func()(*GoPdf){
 		return me
 	})
+	page.ResourcesRelate = strconv.Itoa(me.indexOfProcSet + 1) + " 0 R"
 	index := me.addObj(page)
 	if me.indexOfFirstPageObj == -1 {
 		me.indexOfFirstPageObj = index
@@ -78,39 +82,32 @@ func (me *GoPdf) Start(config Config) {
 	})
 	me.addObj(catalog)
 	me.indexOfPagesObj = me.addObj(pages)
+	
+	//indexOfProcSet
+	procset := new(ProcSetObj)
+	procset.Init(func()(*GoPdf){
+		return me;
+	});
+	me.indexOfProcSet = me.addObj(procset)
 }
 
 
 
 //set font 
 func (me *GoPdf) SetFont(family string, style string, size int){
-	
-	font := new(FontObj)
-	font.Init(func()(*GoPdf){
-		return me
-	})
+
 	i := 0
 	max := len(me.indexEncodingObjFonts)
 	for i < max {
 		ifont := me.pdfObjs[me.indexEncodingObjFonts[i]].(*EncodingObj).GetFont()
 		if ifont.GetFamily() == family {
-			font.Font =  ifont
+			me.Curr.Font_Size   = size
+			me.Curr.Font_Style = style
+			me.Curr.Font_IFont = ifont
+			me.Curr.Font_FontCount =   me.pdfObjs[me.indexEncodingObjFonts[i] + 4].(*FontObj).CountOfFont
 			break
 		}
 		i++
-	}
-	font.Family = family
-	font.Size = size
-	font.Style = style
-	font.CountOfFont = me.Curr.CountOfFont
-	me.Curr.IndexOfFontObj = me.addObj(font)
-
-	if me.Curr.IndexOfPageObj != -1 {
-	 	pageobj := me.pdfObjs[me.Curr.IndexOfPageObj].(*PageObj)
-	 	if !pageobj.Realtes.IsContainsFamily(family) {
-	 		pageobj.Realtes = append(pageobj.Realtes,RelateFont{ Family : family, IndexOfObj : me.Curr.IndexOfFontObj  , CountOfFont : me.Curr.CountOfFont  })
-			me.Curr.CountOfFont++
-		}
 	}
 }
 
@@ -165,23 +162,42 @@ func (me *GoPdf) AddFont(family string  ,ifont fonts.IFont, zfontpath string){
 		return me
 	})
 	fontWidth.Data = "["+ fonts.FontConvertHelper_Cw2Str(ifont.GetCw())+"]\n"
-	me.addObj(fontWidth)
+	me.addObj(fontWidth)  //1
 	
 	fontDesc := new(FontDescriptorObj)
 	fontDesc.Init(func()(*GoPdf){
 		return me
 	})
 	fontDesc.SetFont(ifont)
-	me.addObj(fontDesc)
+	me.addObj(fontDesc) //2
 	
 	embedfont := new(EmbedFontObj)
 	embedfont.Init(func()(*GoPdf){
 		return me
 	})
 	embedfont.SetFont(ifont,zfontpath)	
-	index := me.addObj(embedfont)
+	index := me.addObj(embedfont) //3
 	
 	fontDesc.SetFontFileObjRelate( strconv.Itoa(index + 1)  + " 0 R")
+	
+	
+	//start add font obj
+	font := new(FontObj)
+	font.Init(func()(*GoPdf){
+		return me
+	})
+	font.Family = family
+	font.Font = ifont
+	index  = me.addObj(font) //4
+	if me.indexOfProcSet != -1 {
+	 	procset := me.pdfObjs[me.indexOfProcSet].(*ProcSetObj)
+	 	if !procset.Realtes.IsContainsFamily(family) {
+	 		procset.Realtes = append(procset.Realtes,RelateFont{ Family : family, IndexOfObj : index , CountOfFont : me.Curr.CountOfFont  })
+			font.CountOfFont = me.Curr.CountOfFont 
+			me.Curr.CountOfFont++
+		}
+	}
+	//end add font obj
 }
 
 /*---private---*/
@@ -215,10 +231,11 @@ func (me *GoPdf) prepare() {
 		indexCurrPage := -1
 		var pagesObj *PagesObj
 		pagesObj = me.pdfObjs[me.indexOfPagesObj].(*PagesObj)
-		i := me.indexOfFirstPageObj
+		i := 0//me.indexOfFirstPageObj
 		max := len(me.pdfObjs)
 		for i < max {
 			objtype := me.pdfObjs[i].GetType()
+			//fmt.Printf(" objtype = %s , %d \n", objtype , i)
 			if objtype == "Page" {
 				pagesObj.Kids = fmt.Sprintf("%s %d 0 R ", pagesObj.Kids, i+1)
 				pagesObj.PageCount++
@@ -231,8 +248,10 @@ func (me *GoPdf) prepare() {
 				tmpfont := me.pdfObjs[i].(*FontObj)
 				j := 0
 				jmax := len(me.indexEncodingObjFonts)
+				//fmt.Printf(" jmax = %d \n", jmax)
 				for j < jmax {
 					tmpencoding := me.pdfObjs[me.indexEncodingObjFonts[j]].(*EncodingObj).GetFont()
+					//fmt.Printf("%s , %s \n", tmpfont.Family , tmpencoding.GetFamily())
 					if tmpfont.Family == tmpencoding.GetFamily() {
 						tmpfont.IsEmbedFont = true
 						tmpfont.SetIndexObjEncoding( me.indexEncodingObjFonts[j] + 1)

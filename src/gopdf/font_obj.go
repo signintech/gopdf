@@ -10,8 +10,8 @@ import (
 type FontObj struct { //impl IObj
 	buffer bytes.Buffer
 	Family string
-	Style string
-	Size int
+	//Style string
+	//Size int
 	IsEmbedFont bool
 	
 	indexObjWidth int
@@ -24,7 +24,7 @@ type FontObj struct { //impl IObj
 
 func (me *FontObj) Init(funcGetRoot func()(*GoPdf)) {
 	me.IsEmbedFont = false
-	me.CountOfFont = -1
+	//me.CountOfFont = -1
 }
 
 func (me *FontObj) Build() {

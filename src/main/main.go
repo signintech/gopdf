@@ -17,7 +17,7 @@ func main() {
 	pdf.SetFont("THSarabunPSK", "B", 14)
 	pdf.Cell(nil,  ToCp874("กAโจตลาด  2 ล้อ พุ่ง 20% รับปีใหม่ คาดเอที toyota ยังแรงกุ้งตั้ว "))
 	pdf.Ln(28)
-	pdf.SetFont("THSarabunPSK", "B", 16)
+	pdf.SetFont("THSarabunPSK", "B", 26)
 	pdf.Cell(nil,  ToCp874("ด้วยการที่เราไม่ไปทำยังไง"))
 	pdf.Cell(nil,  ToCp874("ศาลอาญา ไม่ชี้ชัด ใครยิง “ มานะ อาจราญ” เจ้าหน้าที่สวนสัตว์ดุสิตเสียชีวิต"))
 	

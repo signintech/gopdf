@@ -25,9 +25,8 @@ func (me *PageObj) Build(){
 	i := 0
 	max := len(me.Realtes)
 	for i < max {
-		//me.buffer.WriteString("      "+me.realtes[i]+"\n") //example: /F1 8 0 R 
 		realte := me.Realtes[i]
-		me.buffer.WriteString(fmt.Sprintf("      /F%d %d 0 R\n",realte.IndexOfFontInPage + 1, realte.IndexOfObj + 1))
+		me.buffer.WriteString(fmt.Sprintf("      /F%d %d 0 R\n",realte.CountOfFont + 1, realte.IndexOfObj + 1))
 		i++
 	}
 	me.buffer.WriteString("    >>\n")
@@ -63,7 +62,7 @@ type RelateFont struct{
 	
 	Family string
 	//เช่น /F1
-	IndexOfFontInPage int 
+	CountOfFont int 
 	//เช่น  5 0 R
 	IndexOfObj int
 	

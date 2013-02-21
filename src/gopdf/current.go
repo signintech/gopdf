@@ -9,9 +9,8 @@ type Current struct{
 	Y float64
 	
 	//font
-	//FontSize int
-	//IndexOfFontObj int
 	IndexOfFontObj int
+	CountOfFont int
 	
 	//page
 	IndexOfPageObj int

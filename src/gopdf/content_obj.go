@@ -73,7 +73,7 @@ func (me *ContentObj) AppendStream(text string){
 	
 	me.stream.WriteString("BT\n")
 	me.stream.WriteString(x+" "+y+" TD\n")
-	me.stream.WriteString("/F"+strconv.Itoa(fontobj.IndexOfFontInPage + 1)+" "+ strconv.Itoa(fontSize)+" Tf\n")
+	me.stream.WriteString("/F"+strconv.Itoa(fontobj.CountOfFont + 1)+" "+ strconv.Itoa(fontSize)+" Tf\n")
 	me.stream.WriteString("("+text+") Tj\n")
 	me.stream.WriteString("ET\n")
 	

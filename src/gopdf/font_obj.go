@@ -17,13 +17,14 @@ type FontObj struct { //impl IObj
 	indexObjWidth int
 	indexObjFontDescriptor int
 	indexObjEncoding int
-	IndexOfFontInPage int
+	
 	Font  fonts.IFont
+	CountOfFont int
 }
 
 func (me *FontObj) Init(funcGetRoot func()(*GoPdf)) {
 	me.IsEmbedFont = false
-	me.IndexOfFontInPage = -1
+	me.CountOfFont = -1
 }
 
 func (me *FontObj) Build() {

@@ -41,6 +41,9 @@ func (me *GoPdf) AddPage() {
 	}
 	me.Curr.IndexOfPageObj = index
 	
+	//reset
+	me.indexOfContent = -1 
+	me.resetCurrXY()
 }
 
 //เริ่ม
@@ -89,9 +92,9 @@ func (me *GoPdf) SetFont(family string, style string, size int){
 	if me.Curr.IndexOfPageObj != -1 {
 	 	pageobj := me.pdfObjs[me.Curr.IndexOfPageObj].(*PageObj)
 	 	if !pageobj.Realtes.IsContainsFamily(family) {
-	 		indexOfFontInPage := len(pageobj.Realtes)
-	 		pageobj.Realtes = append(pageobj.Realtes,RelateFont{ Family : family, IndexOfObj : me.Curr.IndexOfFontObj  , IndexOfFontInPage : indexOfFontInPage  })
-			font.IndexOfFontInPage = indexOfFontInPage
+	 		pageobj.Realtes = append(pageobj.Realtes,RelateFont{ Family : family, IndexOfObj : me.Curr.IndexOfFontObj  , CountOfFont : me.Curr.CountOfFont  })
+			font.CountOfFont = me.Curr.CountOfFont
+			me.Curr.CountOfFont++
 		}
 	}
 }
@@ -115,14 +118,13 @@ func (me *GoPdf) WritePdf(pdfPath string) {
 		i++
 	}
 	me.xref(linelens, buff, &i)
-	//fmt.Printf("%s\n", buff.String())
 	ioutil.WriteFile(pdfPath, buff.Bytes(), 0644)
 }
 
 //สร้าง cell ของ text
 func (me *GoPdf) Cell(pos Rect, text string) {
 	var content *ContentObj
-	if me.indexOfContent == -1{ 
+	if me.indexOfContent <= -1{ 
 		content = new(ContentObj)
 		content.Init(func()(*GoPdf){
 			return me
@@ -171,15 +173,20 @@ func (me *GoPdf) AddFont(family string  ,ifont fonts.IFont, zfontpath string){
 //init
 func (me *GoPdf) init() {
 
-	me.Curr.X = 10.0
-	me.Curr.Y = 10.0
+	me.resetCurrXY()
 	me.Curr.IndexOfPageObj = -1
+	me.Curr.CountOfFont = 0
 	//me.Curr.IndexOfFontObj = -1
 	
 	me.indexOfPagesObj = -1
 	me.indexOfFirstPageObj = -1
 	me.indexOfContent = -1
 	
+}
+
+func (me * GoPdf) resetCurrXY(){
+	me.Curr.X = 10.0
+	me.Curr.Y = 10.0
 }
 
 func (me *GoPdf) prepare() {
@@ -256,16 +263,3 @@ func (me *GoPdf) addObj(iobj IObj) int {
 }
 
 
-
-/*
-//append text to buffer
-func ( me *GoPdf ) appendBufferln(str string){
-	me.buffer.WriteString(str);
-	me.buffer.WriteString("\n");
-}
-
-//แปลง buffer เป็น string
-func ( me *GoPdf) bufferToString() string{
-	return me.buffer.String()
-}
-*/

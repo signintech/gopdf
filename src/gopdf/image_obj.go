@@ -29,11 +29,13 @@ func (me *ImageObj) Build() {
 		return
 	}
 	
-	m , _,  err := image.Decode(file)
+	m , _ ,  err := image.Decode(file)
 	if err != nil {
 		//fmt.Printf("1--%+v\n",err)
 		return 
 	} 
+	
+	fmt.Printf("%#v\n",m )
 	
 	imageRect := m.Bounds()
 	b, _  := ioutil.ReadFile(me.imagepath)
@@ -42,8 +44,8 @@ func (me *ImageObj) Build() {
 	me.buffer.WriteString("/Subtype /Image\n")
 	me.buffer.WriteString(fmt.Sprintf("/Width %d\n",imageRect.Dx())) // /Width 675\n"
 	me.buffer.WriteString(fmt.Sprintf("/Height %d\n",imageRect.Dy())) //  /Height 942\n"
-	me.buffer.WriteString("/ColorSpace /DeviceRGB\n")
-	me.buffer.WriteString("/BitsPerComponent 8\n")
+	me.buffer.WriteString("/ColorSpace /DeviceRGB\n") //HARD CODE ไว้เป็น RGB
+	me.buffer.WriteString("/BitsPerComponent 8\n") //HARD CODE ไว้เป็น 8 bit
 	me.buffer.WriteString("/Filter /DCTDecode\n")
 	//me.buffer.WriteString("/Filter /FlateDecode\n")
 	//me.buffer.WriteString("/DecodeParms <</Predictor 15 /Colors 3 /BitsPerComponent 8 /Columns 675>>\n")

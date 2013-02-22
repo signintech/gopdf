@@ -59,6 +59,24 @@ func (me *GoPdf) SetTopMargin(margin float64){
 	me.topMargin = margin
 }
 
+func (me * GoPdf) Image (picPath string,x float64,y float64 , rect *Rect ){
+
+	imgobj := new (ImageObj)
+	imgobj.Init(func()(*GoPdf){
+		return me;
+	});
+	imgobj.SetImagePath(picPath)
+	index := me.addObj(imgobj)
+	
+	if me.indexOfProcSet != -1 {
+		procset := me.pdfObjs[me.indexOfProcSet].(*ProcSetObj)
+		me.getContent().AppendStreamImage( me.Curr.CountOfL ,x,y,rect)
+		procset.RealteXobjs = append(procset.RealteXobjs, RealteXobject{ IndexOfObj : index } )
+	}
+	
+	
+}
+
 //เพิ่ม page
 func (me *GoPdf) AddPage() {
 	page := new(PageObj)
@@ -229,6 +247,7 @@ func (me *GoPdf) init() {
 	me.resetCurrXY()
 	me.Curr.IndexOfPageObj = -1
 	me.Curr.CountOfFont = 0
+	me.Curr.CountOfL = 0
 	//me.Curr.IndexOfFontObj = -1
 	
 	me.indexOfPagesObj = -1

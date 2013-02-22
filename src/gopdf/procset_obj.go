@@ -9,11 +9,13 @@ type ProcSetObj struct{
 	buffer bytes.Buffer
 	//Font
 	Realtes RelateFonts
+	RealteXobjs  RealteXobjects
+	getRoot func()(*GoPdf)
 }
 
 
 func (me *ProcSetObj) Init(funcGetRoot func()(*GoPdf)) {
-	//me.getRoot = funcGetRoot
+	me.getRoot = funcGetRoot
 }
 
 func (me *ProcSetObj) Build() {
@@ -33,6 +35,13 @@ func (me *ProcSetObj) Build() {
 	}
 	me.buffer.WriteString(">>\n")
 	me.buffer.WriteString("/XObject <<\n")
+	i = 0
+	max = len(me.RealteXobjs)
+	for i < max {
+		me.buffer.WriteString(fmt.Sprintf("/I%d %d 0 R\n",me.getRoot().Curr.CountOfL+1,me.RealteXobjs[i].IndexOfObj + 1))
+		me.getRoot().Curr.CountOfL++
+		i++
+	}
 	me.buffer.WriteString(">>\n")
 	me.buffer.WriteString(">>\n")
 }
@@ -44,6 +53,8 @@ func (me *ProcSetObj) GetType() string {
 func (me *ProcSetObj) GetObjBuff() *bytes.Buffer {
 	return &(me.buffer)
 }
+
+
 
 
 type  RelateFonts []RelateFont
@@ -69,4 +80,10 @@ type RelateFont struct{
 	//เช่น  5 0 R
 	IndexOfObj int
 	
+}
+
+type RealteXobjects []RealteXobject
+
+type RealteXobject struct{
+	IndexOfObj int
 }

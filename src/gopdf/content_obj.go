@@ -40,31 +40,9 @@ func (me *ContentObj) GetObjBuff() *bytes.Buffer {
 }
 
 
-
-/*
-func (me *ContentObj) buildStream() (*bytes.Buffer,int){
-	fontsize := fmt.Sprintf("%d",me.getRoot().Curr.FontSize)
-	x := fmt.Sprintf("%0.2f",me.getRoot().Curr.X)
-	y := fmt.Sprintf("%0.2f",me.getRoot().config.PageSize.H  - me.getRoot().Curr.Y - (float64(me.getRoot().Curr.FontSize) *0.7) )
-
-	temp := new(bytes.Buffer)
-	temp.WriteString("BT\n")
-	temp.WriteString(x+" "+y+" TD\n")
-	temp.WriteString("/F1 "+fontsize+" Tf\n")
-	temp.WriteString("("+me.text.String()+") Tj\n")
-	temp.WriteString("ET\n")
-	
-	
-	me.getRoot().Curr.X += StrHelper_GetStringWidth(me.text.String(),me.getRoot().Curr.FontSize)
-
-	return temp,temp.Len()
-}
-*/
-
 func (me *ContentObj) AppendStream(rectangle *Rect,text string){
 	
 	
-	//fontobj := me.getRoot().pdfObjs[me.getRoot().Curr.IndexOfFontObj].(*FontObj)
 	fontSize := me.getRoot().Curr.Font_Size
 	
 	x := fmt.Sprintf("%0.2f",me.getRoot().Curr.X)
@@ -75,7 +53,6 @@ func (me *ContentObj) AppendStream(rectangle *Rect,text string){
 	me.stream.WriteString("/F"+strconv.Itoa( me.getRoot().Curr.Font_FontCount  + 1)+" "+ strconv.Itoa(fontSize)+" Tf\n")
 	me.stream.WriteString("("+text+") Tj\n")
 	me.stream.WriteString("ET\n")
-	//me.stream.WriteString("10 10 m 10 400 l S")
 	if rectangle == nil {
 		me.getRoot().Curr.X += StrHelper_GetStringWidth(text,fontSize,me.getRoot().Curr.Font_IFont)
 	}else{
@@ -94,5 +71,14 @@ func (me *ContentObj) AppendStreamLine(x1 float64 , y1 float64, x2 float64 , y2 
 func (me *ContentObj) AppendStreamSetLineWidth(w float64){
 	
 	me.stream.WriteString(fmt.Sprintf("%.2f w\n",w))
+	
+}
+
+
+func (me *ContentObj) AppendStreamImage(iindex int,x float64,y float64,rect *Rect){
+	
+	me.stream.WriteString(fmt.Sprintf("q 85.04 0 0 92.27 28.35 732.61 cm /I%d Do Q\n",iindex+1))
+	
+	//me.stream.WriteString(fmt.Sprintf("q %.2F 0 0 %.2F %.2F %.2F cm /I%d Do Q",rect.W,rect.H,x,y,iindex+1))
 	
 }

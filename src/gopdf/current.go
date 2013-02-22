@@ -11,6 +11,7 @@ type Current struct{
 	//font
 	IndexOfFontObj int
 	CountOfFont int
+	CountOfL int
 	
 	Font_Size int
 	Font_Style string

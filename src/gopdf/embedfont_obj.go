@@ -3,7 +3,6 @@ package gopdf
 import (
 	"bytes"
 	"io/ioutil"
-	"gopdf/fonts"
 	"strconv"
 )
 
@@ -12,7 +11,7 @@ type EmbedFontObj struct{
 	buffer    bytes.Buffer
 	Data string
 	zfontpath string
-	font fonts.IFont
+	font IFont
 }
 
 func (me *EmbedFontObj) Init(funcGetRoot func()(*GoPdf)) {
@@ -40,7 +39,7 @@ func (me *EmbedFontObj) GetObjBuff() *bytes.Buffer {
 	return &(me.buffer)
 }
 
-func (me *EmbedFontObj) SetFont(font fonts.IFont,zfontpath string){
+func (me *EmbedFontObj) SetFont(font IFont,zfontpath string){
 	me.font = font
 	me.zfontpath = zfontpath
 }

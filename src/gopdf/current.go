@@ -1,7 +1,7 @@
 package gopdf
 
 import (
-	"gopdf/fonts"
+	
 )
 
 type Current struct{
@@ -15,7 +15,7 @@ type Current struct{
 	
 	Font_Size int
 	Font_Style string
-	Font_IFont fonts.IFont
+	Font_IFont IFont
 	Font_FontCount int
 	
 	//page

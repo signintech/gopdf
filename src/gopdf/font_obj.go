@@ -4,7 +4,6 @@ package gopdf
 import (
 	"bytes"
 	"strconv"
-	"gopdf/fonts"
 )
 
 type FontObj struct { //impl IObj
@@ -18,7 +17,7 @@ type FontObj struct { //impl IObj
 	indexObjFontDescriptor int
 	indexObjEncoding int
 	
-	Font  fonts.IFont
+	Font  IFont
 	CountOfFont int
 }
 

@@ -6,7 +6,6 @@ import (
 	//"container/list"
 	"fmt"
 	"strconv"
-	"gopdf/fonts"
 )
 
 type GoPdf struct {
@@ -185,7 +184,7 @@ func (me * GoPdf) getContent() *ContentObj{
 	return content
 }
 
-func (me *GoPdf) AddFont(family string  ,ifont fonts.IFont, zfontpath string){
+func (me *GoPdf) AddFont(family string  ,ifont IFont, zfontpath string){
 	encoding := new(EncodingObj)
 	ifont.Init()
 	ifont.SetFamily(family)
@@ -196,7 +195,7 @@ func (me *GoPdf) AddFont(family string  ,ifont fonts.IFont, zfontpath string){
 	fontWidth.Init(func()(*GoPdf){
 		return me
 	})
-	fontWidth.Data = "["+ fonts.FontConvertHelper_Cw2Str(ifont.GetCw())+"]\n"
+	fontWidth.Data = "["+ FontConvertHelper_Cw2Str(ifont.GetCw())+"]\n"
 	me.addObj(fontWidth)  //1
 	
 	fontDesc := new(FontDescriptorObj)

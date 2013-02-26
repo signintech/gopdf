@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gopdf"
 	 iconv "github.com/djimenez/iconv-go"
-	 "gopdf/fonts"
 )
 
 func main() {
@@ -12,8 +11,8 @@ func main() {
 	fmt.Println("start...")
 	pdf := gopdf.GoPdf{}
 	pdf.Start(gopdf.Config{Unit: "pt", PageSize: gopdf.Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
-	pdf.AddFont("THSarabunPSK",new(fonts.THSarabun),"res/fonts/THSarabun.z")
-	pdf.AddFont("Loma",new(fonts.Loma),"res/fonts/Loma.z")
+	pdf.AddFont("THSarabunPSK",new(gopdf.THSarabun),"res/fonts/THSarabun.z")
+	pdf.AddFont("Loma",new(gopdf.Loma),"res/fonts/Loma.z")
 	pdf.AddPage()
 	pdf.SetFont("THSarabunPSK", "B", 14)
 	pdf.Cell(nil,  ToCp874("ทดสอบ"))

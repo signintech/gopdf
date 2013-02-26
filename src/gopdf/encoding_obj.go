@@ -2,12 +2,11 @@ package gopdf
 
 import (
 	"bytes"
-	"gopdf/fonts"
 )
 
 type EncodingObj struct{
 	buffer    bytes.Buffer
-	font fonts.IFont
+	font IFont
 }
 
 func (me * EncodingObj )Init( funcGetRoot func()(*GoPdf)){
@@ -25,10 +24,10 @@ func (me * EncodingObj ) Build(){
 	me.buffer.WriteString("]>>\n");
 }
 
-func (me * EncodingObj) SetFont(font fonts.IFont){
+func (me * EncodingObj) SetFont(font IFont){
 	me.font  = font
 }
 
-func (me * EncodingObj) GetFont() fonts.IFont{
+func (me * EncodingObj) GetFont() IFont{
 	return me.font
 }

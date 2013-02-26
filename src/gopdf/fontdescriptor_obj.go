@@ -2,12 +2,11 @@ package gopdf
 
 import (
 	"bytes"
-	"gopdf/fonts"
 )
 
 type FontDescriptorObj struct{
 	buffer bytes.Buffer
-	font fonts.IFont
+	font IFont
 	fontFileObjRelate string
 }
 
@@ -44,11 +43,11 @@ func (me *FontDescriptorObj) GetObjBuff() *bytes.Buffer {
 	return &(me.buffer)
 }
 
-func (me * FontDescriptorObj) SetFont(font fonts.IFont) {
+func (me * FontDescriptorObj) SetFont(font IFont) {
 	me.font = font
 }
 
-func (me * FontDescriptorObj) GetFont() fonts.IFont{
+func (me * FontDescriptorObj) GetFont() IFont{
 	return me.font
 }
 

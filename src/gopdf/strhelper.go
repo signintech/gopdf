@@ -1,10 +1,9 @@
 package gopdf
 
 import (
-	"gopdf/fonts"
 )
 
-func StrHelper_GetStringWidth(str string,fontSize int,ifont fonts.IFont) float64{
+func StrHelper_GetStringWidth(str string,fontSize int,ifont IFont) float64{
 
 	w := 0
 	bs := []byte(str)

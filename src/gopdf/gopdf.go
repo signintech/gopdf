@@ -67,7 +67,12 @@ func (me * GoPdf) Image (picPath string,x float64,y float64 , rect *Rect ){
 	imgobj.SetImagePath(picPath)
 	index := me.addObj(imgobj)
 	
+	
+	
 	if me.indexOfProcSet != -1 {
+		if rect == nil {
+			rect = imgobj.GetRect()
+		}
 		procset := me.pdfObjs[me.indexOfProcSet].(*ProcSetObj)
 		me.getContent().AppendStreamImage( me.Curr.CountOfL ,x,y,rect)
 		procset.RealteXobjs = append(procset.RealteXobjs, RealteXobject{ IndexOfObj : index } )

@@ -76,9 +76,6 @@ func (me *ContentObj) AppendStreamSetLineWidth(w float64){
 
 
 func (me *ContentObj) AppendStreamImage(iindex int,x float64,y float64,rect *Rect){
-	
-	me.stream.WriteString(fmt.Sprintf("q 85.04 0 0 92.27 28.35 732.61 cm /I%d Do Q\n",iindex+1))
-	
-	//me.stream.WriteString(fmt.Sprintf("q %.2F 0 0 %.2F %.2F %.2F cm /I%d Do Q",rect.W,rect.H,x,y,iindex+1))
-	
+	h := me.getRoot().config.PageSize.H
+	me.stream.WriteString(fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", rect.W, rect.H , x , h - ( y + rect.H)  ,iindex+1))
 }

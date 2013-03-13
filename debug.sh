@@ -1,4 +1,4 @@
 #source /data/RUN/go/src/pkg/runtime/runtime-gdb.py
-rm -f ./bin/main
+rm -f ./bin/gopdf
  . ./compile.sh
-gdb ./bin/main
+gdb ./bin/gopdf

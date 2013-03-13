@@ -1,4 +1,4 @@
-rm  -f ./bin/main
+rm  -f ./bin/gopdf
 . ./compile.sh
-./bin/main
+./bin/gopdf
 

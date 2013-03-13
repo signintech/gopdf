@@ -7,13 +7,16 @@ import (
 	"testing"
 )
 
+var fontPath = "/data/CODES/WORKS/GoPdf_ws/GoPdf/res/fonts"
+var outputPdfPath = "/var/www/fpdf17/output"
+
 func TestNormol01(t *testing.T){
 
 	fmt.Println("start...")
 	pdf := gopdf.GoPdf{}
 	pdf.Start(gopdf.Config{Unit: "pt", PageSize: gopdf.Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
-	pdf.AddFont("THSarabunPSK",new(gopdf.THSarabun),"/data/CODES/WORKS/GoPdf_ws/GoPdf/res/fonts/THSarabun.z")
-	pdf.AddFont("Loma",new(gopdf.Loma),"/data/CODES/WORKS/GoPdf_ws/GoPdf/res/fonts/Loma.z")
+	pdf.AddFont("THSarabunPSK",new(gopdf.THSarabun),fontPath + "/THSarabun.z")
+	pdf.AddFont("Loma",new(gopdf.Loma), fontPath + "/Loma.z")
 	pdf.AddPage()
 	pdf.SetFont("THSarabunPSK", "B", 14)
 	pdf.Cell(nil,  ToCp874("ทดสอบ"))
@@ -37,9 +40,11 @@ func TestNormol01(t *testing.T){
 	pdf.SetLineWidth(1)
 	pdf.Line(10,10,500,10)*/
 
-	pdf.WritePdf("/var/www/fpdf17/output/x.pdf")
+	pdf.WritePdf(outputPdfPath + "/x.pdf")
 	fmt.Println("end...")
 }
+
+
 
 func ToCp874(str string) string{
 	str, _ = iconv.ConvertString( str, "utf-8", "cp874") 

@@ -22,7 +22,6 @@ func (me *ContentObj) Init(funcGetRoot func()(*GoPdf)) {
 func (me *ContentObj) Build() {
 
 	streamlen := me.stream.Len()
-		
 	me.buffer.WriteString("<<\n")
 	me.buffer.WriteString("/Length "+strconv.Itoa(streamlen)+"\n")
 	me.buffer.WriteString(">>\n")

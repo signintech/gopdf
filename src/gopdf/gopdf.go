@@ -58,6 +58,14 @@ func (me *GoPdf) SetTopMargin(margin float64){
 	me.topMargin = margin
 }
 
+func (me * GoPdf) SetX(x float64){
+	me.Curr.X = x
+}
+
+func (me * GoPdf) SetY(y float64){
+	me.Curr.Y = y
+}
+
 func (me * GoPdf) Image (picPath string,x float64,y float64 , rect *Rect ){
 
 	imgobj := new (ImageObj)

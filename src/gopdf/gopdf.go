@@ -62,8 +62,16 @@ func (me * GoPdf) SetX(x float64){
 	me.Curr.X = x
 }
 
+func (me * GoPdf) GetX() float64{
+	return me.Curr.X
+}
+
 func (me * GoPdf) SetY(y float64){
 	me.Curr.Y = y
+}
+
+func (me * GoPdf) GetY() float64{
+	return me.Curr.Y 
 }
 
 func (me * GoPdf) Image (picPath string,x float64,y float64 , rect *Rect ){

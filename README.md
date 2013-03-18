@@ -1,10 +1,10 @@
 gopdf
 =====
 
-A simple library for generating PDF written in Go lang
+A simple library for generating PDF written in Go lang.
 
+Use [fpdfGo](https://github.com/signintech/fpdfGo) to generate fonts.
 
-package main
 
 
 Sample

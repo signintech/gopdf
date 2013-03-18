@@ -31,6 +31,8 @@ type GoPdf struct {
 	
 	//index ของ procset ซึ่งควรจะมีอันเดียว
 	indexOfProcSet int
+	
+	//Underline bool
 }
 
 /*---public---*/
@@ -186,7 +188,15 @@ func (me *GoPdf) WritePdf(pdfPath string) {
 //หมาย เหตุ ตอนนี้ Rect.H ยังไม่มีผลใดๆกับ pdf นะ
 func (me *GoPdf) Cell(rectangle *Rect, text string) {
 
+	
+	//x1 := me.Curr.X
+	//y1 := me.Curr.Y
 	me.getContent().AppendStream(rectangle,text)
+	/*x2 := me.Curr.X
+	y2 := me.Curr.Y
+	if me.Underline {
+		me.Line(x1,y1,x2,y2)
+	}*/
 
 }
 
@@ -273,6 +283,9 @@ func (me *GoPdf) init() {
 	me.indexOfPagesObj = -1
 	me.indexOfFirstPageObj = -1
 	me.indexOfContent = -1
+	
+	//ไม่ขีดเส้นใต้เป็น ค่าเริ่มต้น
+	//me.Underline = false
 	
 }
 

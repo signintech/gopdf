@@ -67,15 +67,15 @@ func (me *ContentObj) AppendStreamLine(x1 float64 , y1 float64, x2 float64 , y2 
 	me.stream.WriteString( fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n",x1,h - y1,x2,h - y2))
 }
 
-ต่อ
-func (me *ContentObj) AppendUnderline(x float64 , y float64, text string){
 
-	h := me.getRoot().config.PageSize.H
+func (me *ContentObj) AppendUnderline(x float64 , y float64, text string){
+	//TODO ยังไม่เสร็จนะ
+	/*h := me.getRoot().config.PageSize.H
 	up := -35.0
 	fontSize := 14.0
 	w = StrHelper_GetStringWidth(text) + $this->ws*substr_count($txt,' ');
 	//me.stream.WriteString( fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n",x1,h - y1,x2,h - y2))
-	me.stream.WriteString( fmt.Sprintf('%0.2f %0.2f %0.2f %0.2f re f',x,(h-( y-up /1000.0*FontSize)),$w,-ut/1000*$this->FontSizePt))
+	me.stream.WriteString( fmt.Sprintf('%0.2f %0.2f %0.2f %0.2f re f',x,(h-( y-up /1000.0*FontSize)),$w,-ut/1000*$this->FontSizePt))*/
 }
 
 

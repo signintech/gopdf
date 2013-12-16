@@ -75,9 +75,9 @@ func (me * RelateFonts ) IsContainsFamily(family string) bool{
 type RelateFont struct{
 	
 	Family string
-	//เช่น /F1
+	//etc /F1
 	CountOfFont int 
-	//เช่น  5 0 R
+	//etc  5 0 R
 	IndexOfObj int
 	
 }

@@ -13,7 +13,6 @@ import (
 type ImageObj struct{
 	buffer  bytes.Buffer
 	imagepath string
-	//getRoot func()(*GoPdf)
 }
 
 func (me *ImageObj) Init(funcGetRoot func()(*GoPdf)) {
@@ -31,7 +30,6 @@ func (me *ImageObj) Build() {
 	
 	m , _ ,  err := image.Decode(file)
 	if err != nil {
-		//fmt.Printf("1--%+v\n",err)
 		return 
 	} 
 	

@@ -16,6 +16,7 @@ type GoPdf struct {
 	
 	pdfObjs []IObj
 	config Config
+	
 	/*---index ของ obj สำคัญๆ เก็บเพื่อลด loop ตอนค้นหา---*/
 	//index ของ obj pages
 	indexOfPagesObj int

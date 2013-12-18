@@ -12,22 +12,20 @@ Sample
 
 	import (
 		"fmt"
-		"gopdf"
 		 iconv "github.com/djimenez/iconv-go"
-		 "gopdf/fonts"
+		 "github.com/signintech/gopdf"
+         "github.com/signintech/gopdf/fonts"
 	)
 
 	func main() {
 
 		pdf := gopdf.GoPdf{}
-		pdf.Start(gopdf.Config{Unit: "pt", PageSize: gopdf.Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
-		pdf.AddFont("THSarabunPSK",new(fonts.THSarabun),"res/fonts/THSarabun.z")
-		pdf.AddFont("Loma",new(fonts.Loma),"res/fonts/Loma.z")
-		pdf.AddPage()
-		pdf.SetFont("THSarabunPSK", "B", 14)
-		pdf.Cell(nil,  ToCp874("ทดสอบ"))
-		pdf.Cell(nil,  ToCp874("Test"))
-		pdf.Br(28)
+        pdf.Start(gopdf.Config{Unit: "pt", PageSize: gopdf.Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+        pdf.AddFont("THSarabunPSK",new(fonts.THSarabun),"THSarabun.z")
+        pdf.AddFont("Loma",new(fonts.Loma),"Loma.z")
+        pdf.AddPage()
+        pdf.SetFont("THSarabunPSK","B",14)
+        pdf.Cell(nil,   ToCp874("Hello world  = สวัสดี โลก in thai"))
 		pdf.WritePdf("/var/www/fpdf17/output/x.pdf")
 		fmt.Println("Done...")
 	}

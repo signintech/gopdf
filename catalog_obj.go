@@ -1,7 +1,5 @@
 package gopdf
 
-
-
 import (
 	"bytes"
 	//"fmt"

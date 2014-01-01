@@ -60,26 +60,24 @@ func (me *ContentObj) AppendStream(rectangle *Rect,text string){
 	
 }
 
-
 func (me *ContentObj) AppendStreamLine(x1 float64 , y1 float64, x2 float64 , y2 float64){
 
 	h := me.getRoot().config.PageSize.H
 	me.stream.WriteString( fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n",x1,h - y1,x2,h - y2))
 }
 
+func (me *ContentObj) AppendUnderline(startX float64 , y float64,endX float64,endY float64, text string){
 
-func (me *ContentObj) AppendUnderline(x float64 , y float64, text string){
-	//TODO ยังไม่เสร็จนะ
-	/*h := me.getRoot().config.PageSize.H
-	up := -35.0
-	fontSize := 14.0
-	w = StrHelper_GetStringWidth(text) + $this->ws*substr_count($txt,' ');
-	//me.stream.WriteString( fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n",x1,h - y1,x2,h - y2))
-	me.stream.WriteString( fmt.Sprintf('%0.2f %0.2f %0.2f %0.2f re f',x,(h-( y-up /1000.0*FontSize)),$w,-ut/1000*$this->FontSizePt))*/
+	h   := me.getRoot().config.PageSize.H
+	ut  := me.getRoot().Curr.Font_IFont.GetUt()
+	//up := me.getRoot().Curr.Font_IFont.GetUp()
+	textH :=  ContentObj_CalTextHeight( me.getRoot().Curr.Font_Size)
+	arg3 := float64(h) - float64( y) - textH  - textH*0.07
+	arg4 := float64( -ut/1000*me.getRoot().Curr.Font_Size)
+	me.stream.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re f\n",startX,arg3,endX - startX ,arg4))
+
+
 }
-
-
-
 
 func (me *ContentObj) AppendStreamSetLineWidth(w float64){
 	
@@ -87,8 +85,12 @@ func (me *ContentObj) AppendStreamSetLineWidth(w float64){
 	
 }
 
-
 func (me *ContentObj) AppendStreamImage(iindex int,x float64,y float64,rect *Rect){
 	h := me.getRoot().config.PageSize.H
 	me.stream.WriteString(fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", rect.W, rect.H , x , h - ( y + rect.H)  ,iindex+1))
+}
+
+//cal text height
+func ContentObj_CalTextHeight(fontsize int) float64{
+	return (float64(fontsize) *0.7)
 }

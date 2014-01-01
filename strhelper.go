@@ -13,5 +13,5 @@ func StrHelper_GetStringWidth(str string,fontSize int,ifont IFont) float64{
 		w += ifont.GetCw()[bs[i]]
 		i++
 	}
-	return  float64(w)*(float64(fontSize)/1000.0);
+	return  float64(w)*(float64(fontSize)/1000.0)
 }

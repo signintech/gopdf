@@ -6,6 +6,7 @@ import (
 	//"container/list"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type GoPdf struct {
@@ -33,7 +34,7 @@ type GoPdf struct {
 	//index ของ procset ซึ่งควรจะมีอันเดียว
 	indexOfProcSet int
 	
-	//Underline bool
+	//IsUnderline bool
 }
 
 /*---public---*/
@@ -161,6 +162,8 @@ func (me *GoPdf) SetFont(family string, style string, size int){
 		}
 		i++
 	}
+
+
 }
 
 //สร้าง pdf to file
@@ -210,34 +213,22 @@ func (me *GoPdf) GetBytesPdf() []byte {
 }
 
 //สร้าง cell ของ text
-//หมาย เหตุ ตอนนี้ Rect.H ยังไม่มีผลใดๆกับ pdf นะ
+//Note that this has no effect on Rect.H pdf (now). Fix later :-)
 func (me *GoPdf) Cell(rectangle *Rect, text string) {
 
-	
-	//x1 := me.Curr.X
-	//y1 := me.Curr.Y
+	//undelineOffset := ContentObj_CalTextHeight(me.Curr.Font_Size) + 1
+	startX := me.Curr.X
+	startY := me.Curr.Y
 	me.getContent().AppendStream(rectangle,text)
-	/*x2 := me.Curr.X
-	y2 := me.Curr.Y
-	if me.Underline {
-		me.Line(x1,y1,x2,y2)
-	}*/
+	endX := me.Curr.X
+	endY := me.Curr.Y
 
-}
-
-func (me * GoPdf) getContent() *ContentObj{
-	var content *ContentObj
-	if me.indexOfContent <= -1{ 
-		content = new(ContentObj)
-		content.Init(func()(*GoPdf){
-			return me
-		})	
-		me.indexOfContent = me.addObj(content)
-	}else{
-		content = me.pdfObjs[me.indexOfContent].(*ContentObj)
+	//underline
+	if strings.Contains(strings.ToUpper(me.Curr.Font_Style),"U") {
+		//me.Line(x1,y1+undelineOffset,x2,y2+undelineOffset)
+		me.getContent().AppendUnderline(startX,startY,endX,endY,text)
 	}
-	
-	return content
+
 }
 
 func (me *GoPdf) AddFont(family string  ,ifont IFont, zfontpath string){
@@ -295,7 +286,7 @@ func (me *GoPdf) AddFont(family string  ,ifont IFont, zfontpath string){
 //init
 func (me *GoPdf) init() {
 
-	//defaltr
+	//default
 	me.leftMargin = 10.0
 	me.topMargin = 10.0
 
@@ -309,8 +300,8 @@ func (me *GoPdf) init() {
 	me.indexOfFirstPageObj = -1
 	me.indexOfContent = -1
 	
-	//ไม่ขีดเส้นใต้เป็น ค่าเริ่มต้น
-	//me.Underline = false
+	//No underline
+	//me.IsUnderline = false
 	
 }
 
@@ -392,6 +383,21 @@ func (me *GoPdf) addObj(iobj IObj) int {
 	index := len(me.pdfObjs)
 	me.pdfObjs = append(me.pdfObjs, iobj)
 	return index
+}
+
+func (me * GoPdf) getContent() *ContentObj{
+	var content *ContentObj
+	if me.indexOfContent <= -1{
+		content = new(ContentObj)
+		content.Init(func()(*GoPdf){
+			return me
+		})
+		me.indexOfContent = me.addObj(content)
+	}else{
+		content = me.pdfObjs[me.indexOfContent].(*ContentObj)
+	}
+
+	return content
 }
 
 

@@ -85,9 +85,10 @@ func (me *ContentObj) AppendStreamSetLineWidth(w float64){
 	
 }
 
-func (me *ContentObj) AppendStreamImage(iindex int,x float64,y float64,rect *Rect){
+func (me *ContentObj) AppendStreamImage(index int,x float64,y float64,rect *Rect){
+	//fmt.Printf("index = %d",index)
 	h := me.getRoot().config.PageSize.H
-	me.stream.WriteString(fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", rect.W, rect.H , x , h - ( y + rect.H)  ,iindex+1))
+	me.stream.WriteString(fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", rect.W, rect.H , x , h - ( y + rect.H)  ,index+1))
 }
 
 //cal text height

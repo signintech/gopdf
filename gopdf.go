@@ -87,14 +87,15 @@ func (me * GoPdf) Image (picPath string,x float64,y float64 , rect *Rect ){
 	imgobj.SetImagePath(picPath)
 	index := me.addObj(imgobj)
 	
-	
+	//fmt.Printf(">>%d<<\n",index)
 	
 	if me.indexOfProcSet != -1 {
 		if rect == nil {
 			rect = imgobj.GetRect()
 		}
 		procset := me.pdfObjs[me.indexOfProcSet].(*ProcSetObj)
-		me.getContent().AppendStreamImage( me.Curr.CountOfL ,x,y,rect)
+		me.getContent().AppendStreamImage( me.Curr.CountOfImg ,x,y,rect)
+		me.Curr.CountOfImg++
 		procset.RealteXobjs = append(procset.RealteXobjs, RealteXobject{ IndexOfObj : index } )
 	}
 	
@@ -294,6 +295,7 @@ func (me *GoPdf) init() {
 	me.Curr.IndexOfPageObj = -1
 	me.Curr.CountOfFont = 0
 	me.Curr.CountOfL = 0
+	me.Curr.CountOfImg = 0 //img
 	//me.Curr.IndexOfFontObj = -1
 	
 	me.indexOfPagesObj = -1
@@ -302,7 +304,7 @@ func (me *GoPdf) init() {
 	
 	//No underline
 	//me.IsUnderline = false
-	
+
 }
 
 func (me * GoPdf) resetCurrXY(){
@@ -335,7 +337,6 @@ func (me *GoPdf) prepare() {
 				jmax := len(me.indexEncodingObjFonts)
 				for j < jmax {
 					tmpencoding := me.pdfObjs[me.indexEncodingObjFonts[j]].(*EncodingObj).GetFont()
-					//fmt.Printf("%s , %s \n", tmpfont.Family , tmpencoding.GetFamily())
 					if tmpfont.Family == tmpencoding.GetFamily() { //ใส่ ข้อมูลของ embed font
 						tmpfont.IsEmbedFont = true
 						tmpfont.SetIndexObjEncoding( me.indexEncodingObjFonts[j] + 1)

@@ -20,4 +20,7 @@ type Current struct{
 	
 	//page
 	IndexOfPageObj int
+
+	//img
+	CountOfImg int
 }

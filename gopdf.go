@@ -99,7 +99,7 @@ func (me * GoPdf) Image (picPath string,x float64,y float64 , rect *Rect ){
 		rect = imgobj.GetRect()
 	}
 
-	if cacheImageIndex == -1 {      //ไม่เคยมีรูปเก่า
+	if cacheImageIndex == -1 {  //new image
 
 		index := me.addObj(imgobj)
 		if me.indexOfProcSet != -1 {
@@ -115,7 +115,7 @@ func (me * GoPdf) Image (picPath string,x float64,y float64 , rect *Rect ){
 			me.Curr.CountOfImg++
 		}
 
-	}else{    //มีแล้ว
+	}else{    //same img
 			me.getContent().AppendStreamImage( cacheImageIndex ,x,y,rect)
 	}
 	

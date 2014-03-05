@@ -80,25 +80,44 @@ func (me * GoPdf) GetY() float64{
 
 func (me * GoPdf) Image (picPath string,x float64,y float64 , rect *Rect ){
 
+	//check
+	cacheImageIndex := -1
+	for _, imgcache := range me.Curr.ImgCaches {
+	 	   if   picPath == imgcache.Path {
+			   cacheImageIndex = imgcache.Index
+			   break
+		   }
+	}
+
+	//create img object
 	imgobj := new (ImageObj)
 	imgobj.Init(func()(*GoPdf){
 		return me;
 	});
 	imgobj.SetImagePath(picPath)
-	index := me.addObj(imgobj)
-	
-	//fmt.Printf(">>%d<<\n",index)
-	
-	if me.indexOfProcSet != -1 {
-		if rect == nil {
-			rect = imgobj.GetRect()
-		}
-		procset := me.pdfObjs[me.indexOfProcSet].(*ProcSetObj)
-		me.getContent().AppendStreamImage( me.Curr.CountOfImg ,x,y,rect)
-		me.Curr.CountOfImg++
-		procset.RealteXobjs = append(procset.RealteXobjs, RealteXobject{ IndexOfObj : index } )
+	if rect == nil {
+		rect = imgobj.GetRect()
 	}
-	
+
+	if cacheImageIndex == -1 {      //ไม่เคยมีรูปเก่า
+
+		index := me.addObj(imgobj)
+		if me.indexOfProcSet != -1 {
+			//ยัดรูป
+			procset := me.pdfObjs[me.indexOfProcSet].(*ProcSetObj)
+			me.getContent().AppendStreamImage( me.Curr.CountOfImg ,x,y,rect)
+			procset.RealteXobjs = append(procset.RealteXobjs, RealteXobject{ IndexOfObj : index } )
+			//เก็บข้อมูลรูปเอาไว้
+			var imgcache ImageCache
+			imgcache.Index = me.Curr.CountOfImg
+			imgcache.Path = picPath
+			me.Curr.ImgCaches = append(me.Curr.ImgCaches,imgcache)
+			me.Curr.CountOfImg++
+		}
+
+	}else{    //มีแล้ว
+			me.getContent().AppendStreamImage( cacheImageIndex ,x,y,rect)
+	}
 	
 }
 

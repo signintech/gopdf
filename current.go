@@ -23,4 +23,11 @@ type Current struct{
 
 	//img
 	CountOfImg int
+	//paths ของรูปที่แสดงใน pdf ใบนั้นๆ เพราะเราจะไม่ยัดรูปซ้ำลงใน pdf เพื่อขนาดของ pdf จะเล็กลง
+	ImgCaches []ImageCache
+}
+
+type ImageCache struct{
+	Path string
+	Index int
 }

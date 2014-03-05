@@ -186,30 +186,13 @@ func (me *GoPdf) SetFont(family string, style string, size int){
 
 }
 
-//สร้าง pdf to file
+//create pdf file
 func (me *GoPdf) WritePdf(pdfPath string) {
-	me.prepare()
-	buff := new(bytes.Buffer)
-	i := 0
-	max := len(me.pdfObjs)
-	buff.WriteString("%PDF-1.7\n\n")
-	linelens := make([]int, max)
-	for i < max {
-		linelens[i] = buff.Len()
-		pdfObj := me.pdfObjs[i]
-		pdfObj.Build()
-		buff.WriteString(strconv.Itoa(i+1) + " 0 obj\n")
-		buffbyte := pdfObj.GetObjBuff().Bytes()
-		buff.Write(buffbyte)
-		buff.WriteString("endobj\n\n")
-		i++
-	}
-	me.xref(linelens, buff, &i)
-	ioutil.WriteFile(pdfPath, buff.Bytes(), 0644)
+	ioutil.WriteFile(pdfPath, me.GetBytesPdf(), 0644)
 }
 
 
-//สร้าง pdf to file
+//get bytes of pdf file
 func (me *GoPdf) GetBytesPdf() []byte {
 	me.prepare()
 	buff := new(bytes.Buffer)
@@ -228,7 +211,6 @@ func (me *GoPdf) GetBytesPdf() []byte {
 		i++
 	}
 	me.xref(linelens, buff, &i)
-	//ioutil.WriteFile(pdfPath, buff.Bytes(), 0644)
 	return buff.Bytes()
 }
 

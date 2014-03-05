@@ -34,25 +34,7 @@ func (me *ImageObj) Build() {
 	} 
 	
 	imageRect := m.Bounds()
-	
-	/*k := 1
-	w := -96 //init
-	h := -96 //init
-	if(w < 0){
-		w = -imageRect.Dx()*72/w/k;
-	}
-	if(h < 0){
-		h = -imageRect.Dy()*72/h/k;
-	}
-	if(w == 0){
-		w = h*imageRect.Dx()/imageRect.Dy();
-	}
-	if(h == 0){
-		h = w*imageRect.Dy()/imageRect.Dx()
-	}*/
-	//fmt.Printf("%#v\n",m )
-	//fmt.Printf("---------->h,w %d,%d\n",h,w)
-	
+
 	b, _  := ioutil.ReadFile(me.imagepath)
 	
 	me.buffer.WriteString("<</Type /XObject\n")

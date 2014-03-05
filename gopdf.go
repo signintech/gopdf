@@ -310,13 +310,15 @@ func (me *GoPdf) init() {
 	me.leftMargin = 10.0
 	me.topMargin = 10.0
 
+	//init curr
 	me.resetCurrXY()
 	me.Curr.IndexOfPageObj = -1
 	me.Curr.CountOfFont = 0
 	me.Curr.CountOfL = 0
 	me.Curr.CountOfImg = 0 //img
-	//me.Curr.IndexOfFontObj = -1
-	
+	me.Curr.ImgCaches = *new( []ImageCache)
+
+	//init index
 	me.indexOfPagesObj = -1
 	me.indexOfFirstPageObj = -1
 	me.indexOfContent = -1

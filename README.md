@@ -26,7 +26,7 @@ Sample
         pdf.AddPage()
         pdf.SetFont("THSarabunPSK","B",14)
         pdf.Cell(nil,   ToCp874("Hello world  = สวัสดี โลก in thai"))
-		pdf.WritePdf("/var/www/fpdf17/output/x.pdf")
+		pdf.WritePdf("x.pdf")
 		fmt.Println("Done...")
 	}
 

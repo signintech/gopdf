@@ -1,13 +1,16 @@
 package fontmaker
 
 import (
-	"encoding/binary"
+	//"encoding/binary"
+	//"encoding/hex"
 	"errors"
 	"fmt"
+	"math/big"
 	"os"
 )
 
 type TTFParser struct {
+	tables map[string]uint64
 }
 
 func (me *TTFParser) Parse(fontpath string) error {
@@ -31,12 +34,66 @@ func (me *TTFParser) Parse(fontpath string) error {
 	if err != nil {
 		return err
 	}
-
+	me.Skip(fd, 3*2) //searchRange, entrySelector, rangeShift
+	me.tables = make(map[string]uint64)
 	for i < numTables {
 
+		tag, err := me.Read(fd, 4)
+		if err != nil {
+			return err
+		}
+
+		err = me.Skip(fd, 4)
+		if err != nil {
+			return err
+		}
+
+		offset, err := me.ReadULong(fd)
+		if err != nil {
+			return err
+		}
+
+		err = me.Skip(fd, 4)
+		if err != nil {
+			return err
+		}
+		//fmt.Printf("%s\n", me.BytesToString(tag))
+		me.tables[me.BytesToString(tag)] = offset
 		i++
 	}
+
+	fmt.Printf("%+v\n", me.tables)
+
+	me.ParseHead(fd)
+
 	return nil
+}
+
+func (me *TTFParser) ParseHead(fd *os.File) error {
+	me.Seek(fd, "head")
+	me.Skip(fd, 3*4) // version, fontRevision, checkSumAdjustment
+	magicNumber, err := me.ReadULong(fd)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%d", magicNumber)
+	return nil
+}
+
+func (me *TTFParser) Seek(fd *os.File, tag string) error {
+	val, ok := me.tables[tag]
+	if !ok {
+		return errors.New("me.tables not contain key=" + tag)
+	}
+	_, err := fd.Seek(int64(val), 1)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (me *TTFParser) BytesToString(b []byte) string {
+	return string(b)
 }
 
 func (me *TTFParser) ReadUShort(fd *os.File) (uint64, error) {
@@ -44,14 +101,27 @@ func (me *TTFParser) ReadUShort(fd *os.File) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-	//fmt.Printf("%#v\n", buff)
-	num, length := binary.Uvarint(buff)
-	if length == 0 {
-		return 0, errors.New("buf too small")
-	} else if length < 0 {
-		return 0, errors.New("value larger than 64 bits (overflow)")
+	num := big.NewInt(0)
+	num.SetBytes(buff)
+	return num.Uint64(), nil
+}
+
+func (me *TTFParser) ReadULong(fd *os.File) (uint64, error) {
+	buff, err := me.Read(fd, 4)
+	if err != nil {
+		return 0, err
 	}
-	return num, nil
+	num := big.NewInt(0)
+	num.SetBytes(buff)
+	return num.Uint64(), nil
+}
+
+func (me *TTFParser) Skip(fd *os.File, length int64) error {
+	_, err := fd.Seek(int64(length), 1)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (me *TTFParser) Read(fd *os.File, length int) ([]byte, error) {

@@ -10,7 +10,8 @@ import (
 )
 
 type TTFParser struct {
-	tables map[string]uint64
+	tables     map[string]uint64
+	unitsPerEm uint64
 }
 
 func (me *TTFParser) Parse(fontpath string) error {
@@ -64,19 +65,36 @@ func (me *TTFParser) Parse(fontpath string) error {
 
 	fmt.Printf("%+v\n", me.tables)
 
-	me.ParseHead(fd)
-
+	err = me.ParseHead(fd)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (me *TTFParser) ParseHead(fd *os.File) error {
-	me.Seek(fd, "head")
-	me.Skip(fd, 3*4) // version, fontRevision, checkSumAdjustment
+	fmt.Printf("\nParseHead\n")
+	err := me.Seek(fd, "head")
+	if err != nil {
+		return err
+	}
+	err = me.Skip(fd, 3*4) // version, fontRevision, checkSumAdjustment
+	if err != nil {
+		return err
+	}
 	magicNumber, err := me.ReadULong(fd)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%d", magicNumber)
+	fmt.Printf("\nmagicNumber = %d\n", magicNumber)
+	if magicNumber != 0x5F0F3CF5 {
+		return errors.New("Incorrect magic number")
+	}
+	me.Skip(2)
+	me.unitsPerEm, err = me.ReadUShort()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -85,7 +103,7 @@ func (me *TTFParser) Seek(fd *os.File, tag string) error {
 	if !ok {
 		return errors.New("me.tables not contain key=" + tag)
 	}
-	_, err := fd.Seek(int64(val), 1)
+	_, err := fd.Seek(int64(val), 0)
 	if err != nil {
 		return err
 	}

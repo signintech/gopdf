@@ -10,8 +10,15 @@ import (
 )
 
 type TTFParser struct {
-	tables     map[string]uint64
-	unitsPerEm uint64
+	tables           map[string]uint64
+	unitsPerEm       uint64
+	xMin             uint64
+	yMin             uint64
+	xMax             uint64
+	yMax             uint64
+	numberOfHMetrics uint64
+	numGlyphs        uint64
+	widths           []uint64
 }
 
 func (me *TTFParser) Parse(fontpath string) error {
@@ -63,21 +70,87 @@ func (me *TTFParser) Parse(fontpath string) error {
 		i++
 	}
 
-	fmt.Printf("%+v\n", me.tables)
+	//fmt.Printf("%+v\n", me.tables)
 
 	err = me.ParseHead(fd)
 	if err != nil {
 		return err
 	}
+
+	err = me.ParseHhea(fd)
+	if err != nil {
+		return err
+	}
+
+	err = me.ParseMaxp(fd)
+	if err != nil {
+		return err
+	}
+	err = me.ParseHmtx(fd)
+	if err != nil {
+		return err
+	}
+	//fmt.Printf("%#v\n", me.widths)
 	return nil
 }
 
+/*
+กำลังทำ
+func (me *TTFParser) ParseCmap(fd *os.File) error {
+
+	return nil
+}*/
+
+func (me *TTFParser) ParseHmtx(fd *os.File) error {
+
+	me.Seek(fd, "hmtx")
+	i := uint64(0)
+	for i < me.numberOfHMetrics {
+		advanceWidth, err := me.ReadUShort(fd)
+		if err != nil {
+			return err
+		}
+		err = me.Skip(fd, 2)
+		if err != nil {
+			return err
+		}
+		me.widths = append(me.widths, advanceWidth)
+		i++
+	}
+	if me.numberOfHMetrics < me.numGlyphs {
+		var err error
+		lastWidth := me.widths[me.numberOfHMetrics-1]
+		me.widths, err = me.ArrayPadUint(me.widths, me.numGlyphs, lastWidth)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (me *TTFParser) ArrayPadUint(arr []uint64, size uint64, val uint64) ([]uint64, error) {
+	var result []uint64
+	i := uint64(0)
+	for i < size {
+		if int(i) < len(arr) {
+			result = append(result, arr[i])
+		} else {
+			result = append(result, val)
+		}
+		i++
+	}
+
+	return result, nil
+}
+
 func (me *TTFParser) ParseHead(fd *os.File) error {
-	fmt.Printf("\nParseHead\n")
+
+	//fmt.Printf("\nParseHead\n")
 	err := me.Seek(fd, "head")
 	if err != nil {
 		return err
 	}
+
 	err = me.Skip(fd, 3*4) // version, fontRevision, checkSumAdjustment
 	if err != nil {
 		return err
@@ -86,12 +159,79 @@ func (me *TTFParser) ParseHead(fd *os.File) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("\nmagicNumber = %d\n", magicNumber)
+
+	//fmt.Printf("\nmagicNumber = %d\n", magicNumber)
 	if magicNumber != 0x5F0F3CF5 {
 		return errors.New("Incorrect magic number")
 	}
-	me.Skip(2)
-	me.unitsPerEm, err = me.ReadUShort()
+
+	err = me.Skip(fd, 2)
+	if err != nil {
+		return err
+	}
+
+	me.unitsPerEm, err = me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+
+	err = me.Skip(fd, 2*8) // created, modified
+	if err != nil {
+		return err
+	}
+
+	me.xMin, err = me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+
+	me.yMin, err = me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+
+	me.xMax, err = me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+
+	me.yMax, err = me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (me *TTFParser) ParseHhea(fd *os.File) error {
+
+	err := me.Seek(fd, "hhea")
+	if err != nil {
+		return err
+	}
+
+	err = me.Skip(fd, 4+15*2)
+	if err != nil {
+		return err
+	}
+
+	me.numberOfHMetrics, err = me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (me *TTFParser) ParseMaxp(fd *os.File) error {
+	err := me.Seek(fd, "maxp")
+	if err != nil {
+		return err
+	}
+	err = me.Skip(fd, 4)
+	if err != nil {
+		return err
+	}
+	me.numGlyphs, err = me.ReadUShort(fd)
 	if err != nil {
 		return err
 	}

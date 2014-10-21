@@ -9,6 +9,9 @@ import (
 	"os"
 )
 
+var ERROR_NO_UNICODE_ENCODING_FOUND = errors.New("No Unicode encoding found")
+var ERROR_UNEXPECTED_SUBTABLE_FORMAT = errors.New("Unexpected subtable format")
+
 type TTFParser struct {
 	tables           map[string]uint64
 	unitsPerEm       uint64
@@ -19,6 +22,7 @@ type TTFParser struct {
 	numberOfHMetrics uint64
 	numGlyphs        uint64
 	widths           []uint64
+	chars            []uint64
 }
 
 func (me *TTFParser) Parse(fontpath string) error {
@@ -90,16 +94,163 @@ func (me *TTFParser) Parse(fontpath string) error {
 	if err != nil {
 		return err
 	}
+	err = me.ParseCmap(fd)
+	if err != nil {
+		return err
+	}
 	//fmt.Printf("%#v\n", me.widths)
 	return nil
 }
 
-/*
-กำลังทำ
 func (me *TTFParser) ParseCmap(fd *os.File) error {
+	me.Seek(fd, "cmap")
+	me.Skip(fd, 2) // version
+	numTables, err := me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
 
+	offset31 := uint64(0)
+	for i := 0; i < int(numTables); i++ {
+		platformID, err := me.ReadUShort(fd)
+		if err != nil {
+			return err
+		}
+		encodingID, err := me.ReadUShort(fd)
+		if err != nil {
+			return err
+		}
+		offset, err := me.ReadULong(fd)
+		if err != nil {
+			return err
+		}
+		if platformID == 3 && encodingID == 1 {
+			offset31 = offset
+		}
+	} //end for
+
+	if offset31 == 0 {
+		//No Unicode encoding found
+		return ERROR_NO_UNICODE_ENCODING_FOUND
+	}
+
+	var startCount, endCount, idDelta, idRangeOffset []uint64
+
+	_, err = fd.Seek(int64(me.tables["cmap"]+offset31), 0)
+	if err != nil {
+		return err
+	}
+
+	format, err := me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+
+	if format != 4 {
+		//Unexpected subtable format
+		return ERROR_UNEXPECTED_SUBTABLE_FORMAT
+	}
+
+	err = me.Skip(fd, 2*2) // length, language
+	if err != nil {
+		return err
+	}
+	segCount, err := me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+	segCount = segCount / 2
+	err = me.Skip(fd, 3*2) // searchRange, entrySelector, rangeShift
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < int(segCount); i++ {
+		tmp, err := me.ReadUShort(fd)
+		if err != nil {
+			return err
+		}
+		endCount = append(endCount, tmp)
+	}
+
+	err = me.Skip(fd, 2) // reservedPad
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < int(segCount); i++ {
+		tmp, err := me.ReadUShort(fd)
+		if err != nil {
+			return err
+		}
+		startCount = append(startCount, tmp)
+	}
+
+	for i := 0; i < int(segCount); i++ {
+		tmp, err := me.ReadUShort(fd)
+		if err != nil {
+			return err
+		}
+		idDelta = append(idDelta, tmp)
+	}
+
+	offset, err := me.FTell(fd)
+	if err != nil {
+		return err
+	}
+	for i := 0; i < int(segCount); i++ {
+		tmp, err := me.ReadUShort(fd)
+		if err != nil {
+			return err
+		}
+		idRangeOffset = append(idRangeOffset, tmp)
+	}
+	//fmt.Printf("%d\n\n\n", offset)
+	for i := 0; i < int(segCount); i++ {
+		c1 := startCount[i]
+		c2 := endCount[i]
+		d := idDelta[i]
+		ro := idRangeOffset[i]
+		if ro > 0 {
+			_, err = fd.Seek(int64(offset+uint64(2*i)+ro), 0)
+			if err != nil {
+				return err
+			}
+		}
+
+		me.chars = make([]uint64, c2+1)
+		for c := c1; c <= c2; c++ {
+			var gid uint64
+			if c == 0xFFFF {
+				break
+			}
+			if ro > 0 {
+				gid, err = me.ReadUShort(fd)
+				if err != nil {
+					return err
+				}
+				if gid > 0 {
+					gid += d
+				}
+			} else {
+				gid = c + d
+			}
+
+			if gid >= 65536 {
+				gid -= 65536
+			}
+			if gid > 0 {
+				me.chars[c] = gid
+			}
+		}
+	}
 	return nil
-}*/
+}
+
+func (me *TTFParser) FTell(fd *os.File) (uint64, error) {
+	offset, err := fd.Seek(0, os.SEEK_CUR)
+	return uint64(offset), err
+}
 
 func (me *TTFParser) ParseHmtx(fd *os.File) error {
 
@@ -125,6 +276,7 @@ func (me *TTFParser) ParseHmtx(fd *os.File) error {
 			return err
 		}
 	}
+
 	return nil
 }
 

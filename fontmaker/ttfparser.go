@@ -29,6 +29,11 @@ type TTFParser struct {
 	widths           []uint64
 	chars            []uint64
 	postScriptName   string
+	Embeddable       bool
+	Bold             bool
+	typoAscender     int64
+	typoDescender    int64
+	capHeight        int64
 }
 
 func (me *TTFParser) Parse(fontpath string) error {
@@ -108,7 +113,67 @@ func (me *TTFParser) Parse(fontpath string) error {
 	if err != nil {
 		return err
 	}
+	err = me.ParseOS2(fd)
+	if err != nil {
+		return err
+	}
 	//fmt.Printf("%#v\n", me.widths)
+	return nil
+}
+
+func (me *TTFParser) ParseOS2(fd *os.File) error {
+	err := me.Seek(fd, "OS/2")
+	if err != nil {
+		return err
+	}
+	version, err := me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+	err = me.Skip(fd, 3*2) // xAvgCharWidth, usWeightClass, usWidthClass
+	if err != nil {
+		return err
+	}
+	fsType, err := me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+
+	me.Embeddable = (fsType != 2) && ((fsType & 0x200) == 0)
+	err = me.Skip(fd, 11*2+10+4*4+4)
+	if err != nil {
+		return err
+	}
+	fsSelection, err := me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+	me.Bold = ((fsSelection & 32) != 0)
+	err = me.Skip(fd, 2*2) // usFirstCharIndex, usLastCharIndex
+	if err != nil {
+		return err
+	}
+	me.typoAscender, err = me.ReadShort(fd)
+	if err != nil {
+		return err
+	}
+	me.typoDescender, err = me.ReadShort(fd)
+	if err != nil {
+		return err
+	}
+	if version >= 2 {
+		err = me.Skip(fd, 3*2+2*4+2)
+		if err != nil {
+			return err
+		}
+		me.capHeight, err = me.ReadShort(fd)
+		if err != nil {
+			return err
+		}
+	} else {
+		me.capHeight = 0
+	}
+
 	return nil
 }
 
@@ -510,6 +575,21 @@ func (me *TTFParser) ReadUShort(fd *os.File) (uint64, error) {
 	num := big.NewInt(0)
 	num.SetBytes(buff)
 	return num.Uint64(), nil
+}
+
+func (me *TTFParser) ReadShort(fd *os.File) (int64, error) {
+	buff, err := me.Read(fd, 2)
+	if err != nil {
+		return 0, err
+	}
+	num := big.NewInt(0)
+	num.SetBytes(buff)
+	u := num.Uint64()
+	var v int64
+	if u >= 0x8000 {
+		v = int64(u - 65536)
+	}
+	return v, nil
 }
 
 func (me *TTFParser) ReadULong(fd *os.File) (uint64, error) {

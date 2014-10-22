@@ -7,10 +7,15 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"regexp"
+	"strconv"
+	"strings"
 )
 
 var ERROR_NO_UNICODE_ENCODING_FOUND = errors.New("No Unicode encoding found")
 var ERROR_UNEXPECTED_SUBTABLE_FORMAT = errors.New("Unexpected subtable format")
+var ERROR_INCORRECT_MAGIC_NUMBER = errors.New("Incorrect magic number")
+var ERROR_POSTSCRIPT_NAME_NOT_FOUND = errors.New("PostScript name not found")
 
 type TTFParser struct {
 	tables           map[string]uint64
@@ -23,6 +28,7 @@ type TTFParser struct {
 	numGlyphs        uint64
 	widths           []uint64
 	chars            []uint64
+	postScriptName   string
 }
 
 func (me *TTFParser) Parse(fontpath string) error {
@@ -98,8 +104,98 @@ func (me *TTFParser) Parse(fontpath string) error {
 	if err != nil {
 		return err
 	}
+	err = me.ParseName(fd)
+	if err != nil {
+		return err
+	}
 	//fmt.Printf("%#v\n", me.widths)
 	return nil
+}
+
+func (me *TTFParser) ParseName(fd *os.File) error {
+
+	//$this->Seek('name');
+	err := me.Seek(fd, "name")
+	if err != nil {
+		return err
+	}
+
+	tableOffset, err := me.FTell(fd)
+	if err != nil {
+		return err
+	}
+
+	me.postScriptName = ""
+	err = me.Skip(fd, 2) // format
+	if err != nil {
+		return err
+	}
+
+	count, err := me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+
+	stringOffset, err := me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < int(count); i++ {
+		err = me.Skip(fd, 3*2) // platformID, encodingID, languageID
+		if err != nil {
+			return err
+		}
+		nameID, err := me.ReadUShort(fd)
+		if err != nil {
+			return err
+		}
+		length, err := me.ReadUShort(fd)
+		if err != nil {
+			return err
+		}
+		offset, err := me.ReadUShort(fd)
+		if err != nil {
+			return err
+		}
+		if nameID == 6 {
+			// PostScript name
+			_, err = fd.Seek(int64(tableOffset+stringOffset+offset), 0)
+			if err != nil {
+				return err
+			}
+
+			stmp, err := me.Read(fd, int(length))
+			if err != nil {
+				return err
+			}
+			s := string(stmp)
+			s = strings.Replace(s, strconv.Itoa(0), "", -1)
+			s, err = me.PregReplace("|[ \\[\\](){}<>/%]|", "", s)
+			if err != nil {
+				return err
+			}
+			me.postScriptName = s
+			break
+		}
+	}
+
+	if me.postScriptName == "" {
+		return ERROR_POSTSCRIPT_NAME_NOT_FOUND
+	}
+
+	//fmt.Printf("%s\n", me.postScriptName)
+	return nil
+}
+
+func (me *TTFParser) PregReplace(pattern string, replacement string, subject string) (string, error) {
+
+	reg, err := regexp.Compile(pattern)
+	if err != nil {
+		return "", err
+	}
+	str := reg.ReplaceAllString(subject, replacement)
+	return str, nil
 }
 
 func (me *TTFParser) ParseCmap(fd *os.File) error {
@@ -314,7 +410,7 @@ func (me *TTFParser) ParseHead(fd *os.File) error {
 
 	//fmt.Printf("\nmagicNumber = %d\n", magicNumber)
 	if magicNumber != 0x5F0F3CF5 {
-		return errors.New("Incorrect magic number")
+		return ERROR_INCORRECT_MAGIC_NUMBER
 	}
 
 	err = me.Skip(fd, 2)

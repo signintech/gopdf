@@ -18,22 +18,26 @@ var ERROR_INCORRECT_MAGIC_NUMBER = errors.New("Incorrect magic number")
 var ERROR_POSTSCRIPT_NAME_NOT_FOUND = errors.New("PostScript name not found")
 
 type TTFParser struct {
-	tables           map[string]uint64
-	unitsPerEm       uint64
-	xMin             uint64
-	yMin             uint64
-	xMax             uint64
-	yMax             uint64
-	numberOfHMetrics uint64
-	numGlyphs        uint64
-	widths           []uint64
-	chars            []uint64
-	postScriptName   string
-	Embeddable       bool
-	Bold             bool
-	typoAscender     int64
-	typoDescender    int64
-	capHeight        int64
+	tables             map[string]uint64
+	unitsPerEm         uint64
+	xMin               uint64
+	yMin               uint64
+	xMax               uint64
+	yMax               uint64
+	numberOfHMetrics   uint64
+	numGlyphs          uint64
+	widths             []uint64
+	chars              []uint64
+	postScriptName     string
+	Embeddable         bool
+	Bold               bool
+	typoAscender       int64
+	typoDescender      int64
+	capHeight          int64
+	italicAngle        int64
+	underlinePosition  int64
+	underlineThickness int64
+	isFixedPitch       bool
 }
 
 func (me *TTFParser) Parse(fontpath string) error {
@@ -117,7 +121,47 @@ func (me *TTFParser) Parse(fontpath string) error {
 	if err != nil {
 		return err
 	}
+	err = me.ParsePost(fd)
+	if err != nil {
+		return err
+	}
 	//fmt.Printf("%#v\n", me.widths)
+	return nil
+}
+
+func (me *TTFParser) ParsePost(fd *os.File) error {
+
+	err := me.Seek(fd, "post")
+	if err != nil {
+		return err
+	}
+
+	err = me.Skip(fd, 4) // version
+	if err != nil {
+		return err
+	}
+
+	me.italicAngle, err = me.ReadShort(fd)
+	if err != nil {
+		return err
+	}
+
+	err = me.Skip(fd, 2) // Skip decimal part
+	if err != nil {
+		return err
+	}
+
+	me.underlinePosition, err = me.ReadShort(fd)
+	if err != nil {
+		return err
+	}
+
+	isFixedPitch, err := me.ReadULong(fd)
+	if err != nil {
+		return err
+	}
+	me.isFixedPitch = (isFixedPitch != 0)
+
 	return nil
 }
 

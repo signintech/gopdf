@@ -23,13 +23,14 @@ func NewFontMaker() *FontMaker {
 	return new(FontMaker)
 }
 
-func (me *FontMaker) MakeFont(fontpath string, encodingpath string, outfolderpath string) (gopdf.IFont, error) {
+func (me *FontMaker) MakeFont(fontpath string, mappath string, encode string, outfolderpath string) (gopdf.IFont, error) {
 
 	fmt.Println("start")
 
+	encodingpath := mappath + "/" + encode + ".map"
 	//encode
-	encode := filepath.Base(encodingpath)
-	encode = strings.Replace(encode, ".map", "", -1)
+	//encode := filepath.Base(encodingpath)
+	//encode = strings.Replace(encode, ".map", "", -1)
 
 	//read font file
 	if _, err := os.Stat(fontpath); os.IsNotExist(err) {
@@ -77,7 +78,7 @@ func (me *FontMaker) MakeFont(fontpath string, encodingpath string, outfolderpat
 	}
 	info.PushString("File", gzfilename)
 
-	err = me.MakeDefinitionFile(me.GoStructName(basename), outfolderpath+"/"+basename+".font.go", encode, fontmaps, info)
+	err = me.MakeDefinitionFile(me.GoStructName(basename), mappath, outfolderpath+"/"+basename+".font.go", encode, fontmaps, info)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +92,7 @@ func (me *FontMaker) GoStructName(name string) string {
 	return goname
 }
 
-func (me *FontMaker) MakeDefinitionFile(gofontname string, exportfile string, encode string, fontmaps []FontMap, info TtfInfo) error {
+func (me *FontMaker) MakeDefinitionFile(gofontname string, mappath string, exportfile string, encode string, fontmaps []FontMap, info TtfInfo) error {
 
 	fonttype := "TrueType"
 	str := ""
@@ -116,21 +117,48 @@ func (me *FontMaker) MakeDefinitionFile(gofontname string, exportfile string, en
 	if err != nil {
 		return err
 	}
-	tmp, err := me.MakeWidthArray(widths)
+
+	tmpStr, err := me.MakeWidthArray(widths)
 	if err != nil {
 		return err
 	}
-	str += tmp
-	//str += "\tme.up = " + info["UnderlinePosition"] + "\n"
-	//str += "\tme.ut = " + info["UnderlineThickness"] + "\n"
+	str += tmpStr
+
+	tmpInt64, err := info.GetInt64("UnderlinePosition")
+	if err != nil {
+		return err
+	}
+	str += fmt.Sprintf("\tme.up = %d\n", tmpInt64)
+
+	tmpInt64, err = info.GetInt64("UnderlineThickness")
+	if err != nil {
+		return err
+	}
+	str += fmt.Sprintf("\tme.ut = %d\n", tmpInt64)
+
 	str += "\tme.fonttype = \"" + fonttype + "\"\n"
-	//str += "\tme.name = \"" + info["FontName"] + "\"\n"
+
+	tmpStr, err = info.GetString("FontName")
+	if err != nil {
+		return err
+	}
+	str += fmt.Sprintf("\tme.name = %s\n", tmpStr)
+
 	str += "\tme.enc = \"" + encode + "\"\n"
-	//diff := MakeFontEncoding(fontmaps)
-	//if diff {
-	//	str += "\tme.diff = \"" + diff + "\"\n"
-	//}
-	//str += MakeFontDescriptor(info)
+	diff, err := me.MakeFontEncoding(mappath, fontmaps)
+	if err != nil {
+		return err
+	}
+	if diff != "" {
+		str += "\tme.diff = \"" + diff + "\"\n"
+	}
+
+	fd, err := me.MakeFontDescriptor(info)
+	if err != nil {
+		return err
+	}
+	str += fd
+
 	str += "}\n"
 
 	str += "func (me * " + gofontname + ")GetType() string{\n"
@@ -172,6 +200,118 @@ func (me *FontMaker) MakeDefinitionFile(gofontname string, exportfile string, en
 
 	fmt.Printf("%s\n", str)
 	return nil
+}
+
+func (me *FontMaker) MakeFontDescriptor(info TtfInfo) (string, error) {
+
+	fd := ""
+	fd = "\tme.desc = make([]gopdf.FontDescItem,8)\n"
+
+	// Ascent
+	ascender, err := info.GetInt64("Ascender")
+	if err != nil {
+		return "", err
+	}
+	fd += fmt.Sprintf("\tme.desc[0] =  gopdf.FontDescItem{ Key:\"Ascent\",Val : \"%d\" }\n", ascender)
+
+	// Descent
+	descender, err := info.GetInt64("Descender")
+	if err != nil {
+		return "", err
+	}
+	fd += fmt.Sprintf("\tme.desc[1] =  gopdf.FontDescItem{ Key: \"Descent\", Val : \"%d\" }\n", descender)
+
+	// CapHeight
+	capHeight, err := info.GetInt64("CapHeight")
+	if err == nil {
+		fd += fmt.Sprintf("\tme.desc[2] =  gopdf.FontDescItem{ Key:\"CapHeight\", Val :  \"%d\" }\n", capHeight)
+	} else if err == ERROR_NO_KEY_FOUND {
+		fd += fmt.Sprintf("\tme.desc[2] =  gopdf.FontDescItem{ Key:\"CapHeight\", Val :  \"%d\" }\n", ascender)
+	} else {
+		return "", err
+	}
+
+	// Flags
+	flags := 0
+	isFixedPitch, err := info.GetBool("IsFixedPitch")
+	if err != nil {
+		return "", err
+	}
+
+	if isFixedPitch {
+		flags += 1 << 0
+	}
+	flags += 1 << 5
+	italicAngle, err := info.GetInt64("ItalicAngle")
+	if italicAngle != 0 {
+		flags += 1 << 6
+	}
+	fd += fmt.Sprintf("\tme.desc[3] =  gopdf.FontDescItem{ Key: \"Flags\", Val :  \"%d\" }\n", flags)
+	//fmt.Printf("\n----\n")
+	// FontBBox
+	fbb, err := info.GetInt64s("FontBBox")
+	if err != nil {
+		return "", err
+	}
+	fd += fmt.Sprintf("\tme.desc[4] =  gopdf.FontDescItem{ Key:\"FontBBox\", Val :  \"[%d %d %d %d]\" }\n", fbb[0], fbb[1], fbb[2], fbb[3])
+
+	// ItalicAngle
+	fd += fmt.Sprintf("\tme.desc[5] =  gopdf.FontDescItem{ Key:\"ItalicAngle\", Val :  \"%d\" }\n", italicAngle)
+
+	// StemV
+	stdVW, err := info.GetInt64("StdVW")
+	issetStdVW := false
+	if err == nil {
+		issetStdVW = true
+	} else if err == ERROR_NO_KEY_FOUND {
+		issetStdVW = false
+	} else {
+		return "", err
+	}
+
+	bold, err := info.GetBool("Bold")
+	if err != nil {
+		return "", err
+	}
+
+	stemv := int64(0)
+	if issetStdVW {
+		stemv = stdVW
+	} else if bold {
+		stemv = 120
+	} else {
+		stemv = 70
+	}
+	fd += fmt.Sprintf("\tme.desc[6] =  gopdf.FontDescItem{ Key:\"StemV\", Val :  \"%d\" }\n ", stemv)
+
+	// MissingWidth
+	missingWidth, err := info.GetInt64("MissingWidth")
+	if err != nil {
+		return "", err
+	}
+	fd += fmt.Sprintf("\tme.desc[7] =  gopdf.FontDescItem{ Key:\"MissingWidth\", Val :  \"%d\" } \n ", missingWidth)
+	return fd, nil
+}
+
+func (me *FontMaker) MakeFontEncoding(mappath string, fontmaps []FontMap) (string, error) {
+
+	refpath := mappath + "/cp1252.map"
+	ref, err := me.LoadMap(refpath)
+	if err != nil {
+		return "", err
+	}
+	s := ""
+	last := 0
+	for c := 0; c < 255; c++ {
+		if fontmaps[c].Name != ref[c].Name {
+			if c != last+1 {
+				s += fmt.Sprintf("%d ", c)
+			}
+			last = c
+			s += "/" + fontmaps[c].Name + " "
+		}
+	}
+	return strings.TrimSpace(s), nil
 }
 
 func (me *FontMaker) MakeWidthArray(widths map[int]int64) (string, error) {
@@ -244,7 +384,7 @@ func (me *FontMaker) GetInfoFromTrueType(fontpath string, fontmaps []FontMap) (T
 	info.PushInt64("Ascender", me.MultiplyAndRound(k, parser.typoAscender))
 	info.PushInt64("Descender", me.MultiplyAndRound(k, parser.typoDescender))
 	info.PushInt64("UnderlineThickness", me.MultiplyAndRound(k, parser.underlineThickness))
-
+	info.PushInt64("UnderlinePosition", me.MultiplyAndRound(k, parser.underlinePosition))
 	fontBBoxs := []int64{
 		me.MultiplyAndRoundWithUInt64(k, parser.xMin),
 		me.MultiplyAndRoundWithUInt64(k, parser.yMin),

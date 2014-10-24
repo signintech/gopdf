@@ -37,6 +37,62 @@ func (me TtfInfo) PushMapIntInt64(key string, val map[int]int64) {
 	me[key] = val
 }
 
+func (me TtfInfo) GetBool(key string) (bool, error) {
+	if val, ok := me[key]; ok {
+
+		if m, ok := val.(bool); ok {
+			/* act on str */
+			return m, nil
+		} else {
+			return false, ERROR_NO_GET_WRONG_TYPE
+		}
+	} else {
+		return false, ERROR_NO_KEY_FOUND
+	}
+}
+
+func (me TtfInfo) GetString(key string) (string, error) {
+	if val, ok := me[key]; ok {
+
+		if m, ok := val.(string); ok {
+			/* act on str */
+			return m, nil
+		} else {
+			return "", ERROR_NO_GET_WRONG_TYPE
+		}
+	} else {
+		return "", ERROR_NO_KEY_FOUND
+	}
+}
+
+func (me TtfInfo) GetInt64(key string) (int64, error) {
+	if val, ok := me[key]; ok {
+
+		if m, ok := val.(int64); ok {
+			/* act on str */
+			return m, nil
+		} else {
+			return 0, ERROR_NO_GET_WRONG_TYPE
+		}
+	} else {
+		return 0, ERROR_NO_KEY_FOUND
+	}
+}
+
+func (me TtfInfo) GetInt64s(key string) ([]int64, error) {
+	if val, ok := me[key]; ok {
+
+		if m, ok := val.([]int64); ok {
+			/* act on str */
+			return m, nil
+		} else {
+			return nil, ERROR_NO_GET_WRONG_TYPE
+		}
+	} else {
+		return nil, ERROR_NO_KEY_FOUND
+	}
+}
+
 func (me TtfInfo) GetMapIntInt64(key string) (map[int]int64, error) {
 	if val, ok := me[key]; ok {
 

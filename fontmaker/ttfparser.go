@@ -27,7 +27,7 @@ type TTFParser struct {
 	numberOfHMetrics   uint64
 	numGlyphs          uint64
 	widths             []uint64
-	chars              []uint64
+	chars              map[int]uint64
 	postScriptName     string
 	Embeddable         bool
 	Bold               bool
@@ -41,7 +41,7 @@ type TTFParser struct {
 }
 
 func (me *TTFParser) Parse(fontpath string) error {
-	fmt.Printf("start parse\n")
+	fmt.Printf("\nstart parse\n")
 	fd, err := os.Open(fontpath)
 	if err != nil {
 		return err
@@ -411,6 +411,7 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 		idRangeOffset = append(idRangeOffset, tmp)
 	}
 	//fmt.Printf("%d\n\n\n", offset)
+	me.chars = make(map[int]uint64)
 	for i := 0; i < int(segCount); i++ {
 		c1 := startCount[i]
 		c2 := endCount[i]
@@ -423,7 +424,6 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 			}
 		}
 
-		me.chars = make([]uint64, c2+1)
 		for c := c1; c <= c2; c++ {
 			var gid uint64
 			if c == 0xFFFF {
@@ -445,9 +445,11 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 				gid -= 65536
 			}
 			if gid > 0 {
-				me.chars[c] = gid
+				//fmt.Printf("%d gid = %d, ", int(c), gid)
+				me.chars[int(c)] = gid
 			}
 		}
+		//fmt.Printf("%#v\n\n", me.chars)
 	}
 	return nil
 }

@@ -53,3 +53,5 @@ proguard-project.txt
 /project.properties
 lint.xml
 .bzr
+
+fontmaker/cmd/tmp/

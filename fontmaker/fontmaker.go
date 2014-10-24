@@ -78,7 +78,7 @@ func (me *FontMaker) MakeFont(fontpath string, mappath string, encode string, ou
 	}
 	info.PushString("File", gzfilename)
 
-	err = me.MakeDefinitionFile(me.GoStructName(basename), mappath, outfolderpath+"/"+basename+".font.go", encode, fontmaps, info)
+	_, err = me.MakeDefinitionFile(me.GoStructName(basename), mappath, outfolderpath+"/"+basename+".font.go", encode, fontmaps, info)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (me *FontMaker) GoStructName(name string) string {
 	return goname
 }
 
-func (me *FontMaker) MakeDefinitionFile(gofontname string, mappath string, exportfile string, encode string, fontmaps []FontMap, info TtfInfo) error {
+func (me *FontMaker) MakeDefinitionFile(gofontname string, mappath string, exportfile string, encode string, fontmaps []FontMap, info TtfInfo) (string, error) {
 
 	fonttype := "TrueType"
 	str := ""
@@ -115,24 +115,24 @@ func (me *FontMaker) MakeDefinitionFile(gofontname string, mappath string, expor
 	str += "func (me * " + gofontname + ") Init(){\n"
 	widths, err := info.GetMapIntInt64("Widths")
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	tmpStr, err := me.MakeWidthArray(widths)
 	if err != nil {
-		return err
+		return "", err
 	}
 	str += tmpStr
 
 	tmpInt64, err := info.GetInt64("UnderlinePosition")
 	if err != nil {
-		return err
+		return "", err
 	}
 	str += fmt.Sprintf("\tme.up = %d\n", tmpInt64)
 
 	tmpInt64, err = info.GetInt64("UnderlineThickness")
 	if err != nil {
-		return err
+		return "", err
 	}
 	str += fmt.Sprintf("\tme.ut = %d\n", tmpInt64)
 
@@ -140,14 +140,14 @@ func (me *FontMaker) MakeDefinitionFile(gofontname string, mappath string, expor
 
 	tmpStr, err = info.GetString("FontName")
 	if err != nil {
-		return err
+		return "", err
 	}
 	str += fmt.Sprintf("\tme.name = %s\n", tmpStr)
 
 	str += "\tme.enc = \"" + encode + "\"\n"
 	diff, err := me.MakeFontEncoding(mappath, fontmaps)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if diff != "" {
 		str += "\tme.diff = \"" + diff + "\"\n"
@@ -155,7 +155,7 @@ func (me *FontMaker) MakeDefinitionFile(gofontname string, mappath string, expor
 
 	fd, err := me.MakeFontDescriptor(info)
 	if err != nil {
-		return err
+		return "", err
 	}
 	str += fd
 
@@ -198,8 +198,12 @@ func (me *FontMaker) MakeDefinitionFile(gofontname string, mappath string, expor
 	str += "\treturn me.family\n"
 	str += "}\n"
 
-	fmt.Printf("%s\n", str)
-	return nil
+	err = ioutil.WriteFile(exportfile, []byte(str), 0666)
+	if err != nil {
+		return "", err
+	}
+
+	return str, nil
 }
 
 func (me *FontMaker) MakeFontDescriptor(info TtfInfo) (string, error) {

@@ -3,10 +3,8 @@ gopdf
 
 A simple library for generating PDF written in Go lang.
 
-<strike>Use [fpdfGo](https://github.com/signintech/fpdfGo) to generate fonts.</strike>
-
-Use fontmaker to generate fonts.
-
+<strike>Use [fpdfGo](https://github.com/signintech/fpdfGo) to generate fonts.</strike><br />
+Use fontmaker to generate fonts.<br />
 Sample code [here](https://github.com/oneplus1000/gopdfusecase) 
 
 

@@ -20,10 +20,10 @@ var ERROR_POSTSCRIPT_NAME_NOT_FOUND = errors.New("PostScript name not found")
 type TTFParser struct {
 	tables             map[string]uint64
 	unitsPerEm         uint64
-	xMin               uint64
-	yMin               uint64
-	xMax               uint64
-	yMax               uint64
+	xMin               int64
+	yMin               int64
+	xMax               int64
+	yMax               int64
 	numberOfHMetrics   uint64
 	numGlyphs          uint64
 	widths             []uint64
@@ -156,6 +156,14 @@ func (me *TTFParser) ParsePost(fd *os.File) error {
 		return err
 	}
 
+	fmt.Printf("start>>>>>>>\n")
+	me.underlineThickness, err = me.ReadShort(fd)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("end>>>>>>>\n")
+	//fmt.Printf(">>>>>>>%d\n", me.underlineThickness)
+
 	isFixedPitch, err := me.ReadULong(fd)
 	if err != nil {
 		return err
@@ -182,9 +190,9 @@ func (me *TTFParser) ParseOS2(fd *os.File) error {
 	if err != nil {
 		return err
 	}
-
 	me.Embeddable = (fsType != 2) && ((fsType & 0x200) == 0)
-	err = me.Skip(fd, 11*2+10+4*4+4)
+
+	err = me.Skip(fd, (11*2)+10+(4*4)+4)
 	if err != nil {
 		return err
 	}
@@ -201,6 +209,7 @@ func (me *TTFParser) ParseOS2(fd *os.File) error {
 	if err != nil {
 		return err
 	}
+
 	me.typoDescender, err = me.ReadShort(fd)
 	if err != nil {
 		return err
@@ -546,22 +555,22 @@ func (me *TTFParser) ParseHead(fd *os.File) error {
 		return err
 	}
 
-	me.xMin, err = me.ReadUShort(fd)
+	me.xMin, err = me.ReadShort(fd)
 	if err != nil {
 		return err
 	}
 
-	me.yMin, err = me.ReadUShort(fd)
+	me.yMin, err = me.ReadShort(fd)
 	if err != nil {
 		return err
 	}
 
-	me.xMax, err = me.ReadUShort(fd)
+	me.xMax, err = me.ReadShort(fd)
 	if err != nil {
 		return err
 	}
 
-	me.yMax, err = me.ReadUShort(fd)
+	me.yMax, err = me.ReadShort(fd)
 	if err != nil {
 		return err
 	}
@@ -638,9 +647,13 @@ func (me *TTFParser) ReadShort(fd *os.File) (int64, error) {
 	num := big.NewInt(0)
 	num.SetBytes(buff)
 	u := num.Uint64()
+
+	fmt.Printf("%#v\n", buff)
 	var v int64
 	if u >= 0x8000 {
-		v = int64(u - 65536)
+		v = int64(u) - 65536
+	} else {
+		v = int64(u)
 	}
 	return v, nil
 }

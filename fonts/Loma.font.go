@@ -1,4 +1,4 @@
-package fonts
+package fonts //change this
 import (
 	"github.com/signintech/gopdf"
 )
@@ -272,17 +272,17 @@ func (me * Loma) Init(){
 	me.cw[gopdf.Chr(254)]=750
 	me.cw[gopdf.Chr(255)]=750
 	me.up = -88
-	me.ut = 10
+	me.ut = 0
 	me.fonttype = "TrueType"
 	me.name = "Loma"
 	me.enc = "cp874"
-	me.diff = "130 /.notdef /.notdef /.notdef 134 /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 142 /.notdef 152 /.notdef /.notdef /.notdef /.notdef /.notdef 158 /.notdef /.notdef 161 /kokaithai /khokhaithai /khokhuatthai /khokhwaithai /khokhonthai /khorakhangthai /ngonguthai /chochanthai /chochingthai /chochangthai /sosothai /chochoethai /yoyingthai /dochadathai /topatakthai /thothanthai /thonangmonthothai /thophuthaothai /nonenthai /dodekthai /totaothai /thothungthai /thothahanthai /thothongthai /nonuthai /bobaimaithai /poplathai /phophungthai /fofathai /phophanthai /fofanthai /phosamphaothai /momathai /yoyakthai /roruathai /ruthai /lolingthai /luthai /wowaenthai /sosalathai /sorusithai /sosuathai /hohipthai /lochulathai /oangthai /honokhukthai /paiyannoithai /saraathai /maihanakatthai /saraaathai /saraamthai /saraithai /saraiithai /sarauethai /saraueethai /sarauthai /sarauuthai /phinthuthai /.notdef /.notdef /.notdef /.notdef /bahtthai /saraethai /saraaethai /saraothai /saraaimaimuanthai /saraaimaimalaithai /lakkhangyaothai /maiyamokthai /maitaikhuthai /maiekthai /maithothai /maitrithai /maichattawathai /thanthakhatthai /nikhahitthai /yamakkanthai /fongmanthai /zerothai /onethai /twothai /threethai /fourthai /fivethai /sixthai /seventhai /eightthai /ninethai /angkhankhuthai /khomutthai /.notdef /.notdef /.notdef /.notdef"
+	me.diff = "130 /.notdef /.notdef /.notdef 134 /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 142 /.notdef 152 /.notdef /.notdef /.notdef /.notdef /.notdef 158 /.notdef /.notdef 161 /kokaithai /khokhaithai /khokhuatthai /khokhwaithai /khokhonthai /khorakhangthai /ngonguthai /chochanthai /chochingthai /chochangthai /sosothai /chochoethai /yoyingthai /dochadathai /topatakthai /thothanthai /thonangmonthothai /thophuthaothai /nonenthai /dodekthai /totaothai /thothungthai /thothahanthai /thothongthai /nonuthai /bobaimaithai /poplathai /phophungthai /fofathai /phophanthai /fofanthai /phosamphaothai /momathai /yoyakthai /roruathai /ruthai /lolingthai /luthai /wowaenthai /sosalathai /sorusithai /sosuathai /hohipthai /lochulathai /oangthai /honokhukthai /paiyannoithai /saraathai /maihanakatthai /saraaathai /saraamthai /saraithai /saraiithai /sarauethai /saraueethai /sarauthai /sarauuthai /phinthuthai /.notdef /.notdef /.notdef /.notdef /bahtthai /saraethai /saraaethai /saraothai /saraaimaimuanthai /saraaimaimalaithai /lakkhangyaothai /maiyamokthai /maitaikhuthai /maiekthai /maithothai /maitrithai /maichattawathai /thanthakhatthai /nikhahitthai /yamakkanthai /fongmanthai /zerothai /onethai /twothai /threethai /fourthai /fivethai /sixthai /seventhai /eightthai /ninethai /angkhankhuthai /khomutthai /.notdef /.notdef /.notdef"
 	me.desc = make([]gopdf.FontDescItem,8)
-	me.desc[0] =  gopdf.FontDescItem{ Key:"Ascent",Val : "800" }
+	me.desc[0] =  gopdf.FontDescItem{ Key:"Ascent",Val : "0" }
 	me.desc[1] =  gopdf.FontDescItem{ Key: "Descent", Val : "-200" }
-	me.desc[2] =  gopdf.FontDescItem{ Key:"CapHeight", Val :  "800" }
-	me.desc[3] =  gopdf.FontDescItem{ Key: "Flags", Val :  "32" }
-	me.desc[4] =  gopdf.FontDescItem{ Key:"FontBBox", Val :  "[-743 -440 1338 1146]" }
+	me.desc[2] =  gopdf.FontDescItem{ Key:"CapHeight", Val :  "0" }
+	me.desc[3] =  gopdf.FontDescItem{ Key: "Flags", Val :  "33" }
+	me.desc[4] =  gopdf.FontDescItem{ Key:"FontBBox", Val :  "[31257 31560 1338 1146]" }
 	me.desc[5] =  gopdf.FontDescItem{ Key:"ItalicAngle", Val :  "0" }
 	me.desc[6] =  gopdf.FontDescItem{ Key:"StemV", Val :  "70" }
  	me.desc[7] =  gopdf.FontDescItem{ Key:"MissingWidth", Val :  "750" } 

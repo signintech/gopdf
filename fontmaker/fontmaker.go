@@ -8,7 +8,7 @@ import (
 	//"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/signintech/gopdf"
+	//"github.com/signintech/gopdf"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -25,7 +25,7 @@ func NewFontMaker() *FontMaker {
 	return new(FontMaker)
 }
 
-func (me *FontMaker) MakeFont(fontpath string, mappath string, encode string, outfolderpath string) (gopdf.IFont, error) {
+func (me *FontMaker) MakeFont(fontpath string, mappath string, encode string, outfolderpath string) error {
 
 	//fmt.Println("start")
 
@@ -36,23 +36,23 @@ func (me *FontMaker) MakeFont(fontpath string, mappath string, encode string, ou
 
 	//read font file
 	if _, err := os.Stat(fontpath); os.IsNotExist(err) {
-		return nil, err
+		return err
 	}
 
 	fileext := filepath.Ext(fontpath)
 	if strings.ToLower(fileext) != ".ttf" {
 		//now support only ttf :-P
-		return nil, errors.New("support only ttf ")
+		return errors.New("support only ttf ")
 	}
 
 	fontmaps, err := me.LoadMap(encodingpath)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	info, err := me.GetInfoFromTrueType(fontpath, fontmaps)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	//zip
@@ -66,30 +66,28 @@ func (me *FontMaker) MakeFont(fontpath string, mappath string, encode string, ou
 
 	fontbytes, err := ioutil.ReadFile(fontpath)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	_, err = gzipwriter.Write(fontbytes)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	gzipwriter.Close()
 	err = ioutil.WriteFile(outfolderpath+"/"+gzfilename, buff.Bytes(), 0644)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	//binary.W
 
-	//fmt.Printf("%#v", buff.String())
 	info.PushString("File", gzfilename)
 
+	//Definition File
 	_, err = me.MakeDefinitionFile(me.GoStructName(basename), mappath, outfolderpath+"/"+basename+".font.go", encode, fontmaps, info)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	//fmt.Println("end")
-	return nil, nil
+	return nil
 }
 
 func (me *FontMaker) GoStructName(name string) string {
@@ -311,7 +309,7 @@ func (me *FontMaker) MakeFontEncoding(mappath string, fontmaps []FontMap) (strin
 	}
 	s := ""
 	last := 0
-	for c := 0; c < 255; c++ {
+	for c := 0; c <= 255; c++ {
 		if fontmaps[c].Name != ref[c].Name {
 			if c != last+1 {
 				s += fmt.Sprintf("%d ", c)
@@ -395,12 +393,15 @@ func (me *FontMaker) GetInfoFromTrueType(fontpath string, fontmaps []FontMap) (T
 	info.PushInt64("Ascender", me.MultiplyAndRound(k, parser.typoAscender))
 	info.PushInt64("Descender", me.MultiplyAndRound(k, parser.typoDescender))
 	info.PushInt64("UnderlineThickness", me.MultiplyAndRound(k, parser.underlineThickness))
+
+	//fmt.Printf("%#v\n", parser.underlineThickness)
+
 	info.PushInt64("UnderlinePosition", me.MultiplyAndRound(k, parser.underlinePosition))
 	fontBBoxs := []int64{
-		me.MultiplyAndRoundWithUInt64(k, parser.xMin),
-		me.MultiplyAndRoundWithUInt64(k, parser.yMin),
-		me.MultiplyAndRoundWithUInt64(k, parser.xMax),
-		me.MultiplyAndRoundWithUInt64(k, parser.yMax),
+		me.MultiplyAndRound(k, parser.xMin),
+		me.MultiplyAndRound(k, parser.yMin),
+		me.MultiplyAndRound(k, parser.xMax),
+		me.MultiplyAndRound(k, parser.yMax),
 	}
 	info.PushInt64s("FontBBox", fontBBoxs)
 	info.PushInt64("CapHeight", me.MultiplyAndRound(k, parser.capHeight))

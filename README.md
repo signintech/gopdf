@@ -52,6 +52,6 @@ $ go build
 	fontmaker encoding map_folder font_file output_folder
 
 ###Example:
-	fontmaker cp874 ../map  ../ttf/Loma.ttf ./tmp 
+	fontmaker cp874 /home/go/src/github.com/signintech/gopdf/fontmaker/fontmaker/map  ../ttf/Loma.ttf ./tmp 
 
 

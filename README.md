@@ -37,4 +37,9 @@ Sample
 	```
 	
 fontmaker
-======	
+======
+Build Fontmaker
+
+cd {GOPATH}/src/github.com/signintech/gopdf/fontmaker/fontmaker
+go build	
+

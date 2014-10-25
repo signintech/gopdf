@@ -54,4 +54,4 @@ proguard-project.txt
 lint.xml
 .bzr
 
-fontmaker/cmd/tmp/
+fontmaker/fontmaker/tmp/

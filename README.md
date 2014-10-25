@@ -7,8 +7,7 @@ A simple library for generating PDF written in Go lang.
 Use fontmaker to generate fonts.<br />
 Sample code [here](https://github.com/oneplus1000/gopdfusecase) 
 
-
-###Sample
+###Example
   ```go
   package main
   import (
@@ -37,7 +36,6 @@ Sample code [here](https://github.com/oneplus1000/gopdfusecase)
   }
 	
   ```
-	
 gopdf / fontmaker
 ======
 fontmaker is tool for making font file to use with gopdf.

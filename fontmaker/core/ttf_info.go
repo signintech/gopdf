@@ -1,4 +1,4 @@
-package fontmaker
+package core
 
 import (
 	"errors"

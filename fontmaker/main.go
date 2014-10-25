@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/signintech/gopdf/fontmaker"
+	"github.com/signintech/gopdf/fontmaker/core"
 	"os"
 	//"runtime/debug"
 )
@@ -25,8 +25,7 @@ func main() {
 	fontpath := os.Args[3]
 	outputpath := os.Args[4]
 
-	//fmt.Printf("%#s\n", encoding)
-	fmk := fontmaker.NewFontMaker()
+	fmk := core.NewFontMaker()
 	err := fmk.MakeFont(fontpath, mappath, encoding, outputpath)
 	if err != nil {
 		fmt.Printf("ERROR: %s\n\n", err.Error())

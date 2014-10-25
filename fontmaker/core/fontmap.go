@@ -1,4 +1,4 @@
-package fontmaker
+package core
 
 type FontMap struct {
 	Uv   int

@@ -40,6 +40,7 @@ Sample code [here](https://github.com/oneplus1000/gopdfusecase)
 	
 gopdf / fontmaker
 ======
+fontmaker is tool for making font file to use with gopdf.
 
 ###Build fontmaker
 

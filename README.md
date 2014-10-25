@@ -7,8 +7,7 @@ A simple library for generating PDF written in Go lang.
 Use fontmaker to generate fonts.<br />
 Sample code [here](https://github.com/oneplus1000/gopdfusecase) 
 
-
-###Sample
+####Example
   ```go
   package main
   import (
@@ -37,21 +36,30 @@ Sample code [here](https://github.com/oneplus1000/gopdfusecase)
   }
 	
   ```
-	
 gopdf / fontmaker
 ======
 fontmaker is tool for making font file to use with gopdf.
 
-###Build fontmaker
+####Build fontmaker
+######open terminal 
+  ```
+  $ cd {GOPATH}/src/github.com/signintech/gopdf/fontmaker
 
-$ cd {GOPATH}/src/github.com/signintech/gopdf/fontmaker/fontmaker
-
-$ go build
-
-###Usage:
-  **fontmaker** encoding map_folder font_file output_folder
-
-###Example:
-  **fontmaker** cp874 /gopath/github.com/signintech/gopdf/fontmaker/fontmaker/map  ../ttf/Loma.ttf ./tmp 
-
+  $ go build
+  ```
+####Usage:
+  ```
+  fontmaker encoding  map_folder  font_file  output_folder
+  ```
+####Example:
+######run command
+  ```
+  fontmaker  cp874  /gopath/github.com/signintech/gopdf/fontmaker/map   ../ttf/Loma.ttf  ./tmp 
+  ```
+######result  
+  ```
+  Save Z file at ./tmp/Loma.z.
+  Save GO file at ./tmp/Loma.font.go.
+  Finish.
+  ```
 

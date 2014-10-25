@@ -41,7 +41,7 @@ type TTFParser struct {
 }
 
 func (me *TTFParser) Parse(fontpath string) error {
-	fmt.Printf("\nstart parse\n")
+	//fmt.Printf("\nstart parse\n")
 	fd, err := os.Open(fontpath)
 	if err != nil {
 		return err
@@ -278,7 +278,14 @@ func (me *TTFParser) ParseName(fd *os.File) error {
 			if err != nil {
 				return err
 			}
-			s := string(stmp)
+
+			var tmpStmp []byte
+			for _, v := range stmp {
+				if v != 0 {
+					tmpStmp = append(tmpStmp, v)
+				}
+			}
+			s := fmt.Sprintf("%s", string(tmpStmp)) //strings(stmp)
 			s = strings.Replace(s, strconv.Itoa(0), "", -1)
 			s, err = me.PregReplace("|[ \\[\\](){}<>/%]|", "", s)
 			if err != nil {

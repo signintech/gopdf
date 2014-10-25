@@ -3,7 +3,9 @@ package fontmaker
 import (
 	"bufio"
 	"bytes"
-	"compress/gzip"
+	"compress/zlib"
+	//"compress/flate"
+	//"encoding/binary"
 	"errors"
 	"fmt"
 	"github.com/signintech/gopdf"
@@ -25,7 +27,7 @@ func NewFontMaker() *FontMaker {
 
 func (me *FontMaker) MakeFont(fontpath string, mappath string, encode string, outfolderpath string) (gopdf.IFont, error) {
 
-	fmt.Println("start")
+	//fmt.Println("start")
 
 	encodingpath := mappath + "/" + encode + ".map"
 	//encode
@@ -58,8 +60,9 @@ func (me *FontMaker) MakeFont(fontpath string, mappath string, encode string, ou
 	tmp := strings.Split(basename, ".")
 	basename = strings.Replace(tmp[0], " ", "_", -1)
 	gzfilename := basename + ".z"
+
 	var buff bytes.Buffer
-	gzipwriter := gzip.NewWriter(&buff)
+	gzipwriter := zlib.NewWriter(&buff) //gzip.NewWriterLevel(&buff, gzip.DefaultCompression) //gzip.NewWriter(&buff)
 
 	fontbytes, err := ioutil.ReadFile(fontpath)
 	if err != nil {
@@ -71,11 +74,13 @@ func (me *FontMaker) MakeFont(fontpath string, mappath string, encode string, ou
 		return nil, err
 	}
 	gzipwriter.Close()
-
-	err = ioutil.WriteFile(outfolderpath+"/"+gzfilename, buff.Bytes(), 0666)
+	err = ioutil.WriteFile(outfolderpath+"/"+gzfilename, buff.Bytes(), 0644)
 	if err != nil {
 		return nil, err
 	}
+	//binary.W
+
+	//fmt.Printf("%#v", buff.String())
 	info.PushString("File", gzfilename)
 
 	_, err = me.MakeDefinitionFile(me.GoStructName(basename), mappath, outfolderpath+"/"+basename+".font.go", encode, fontmaps, info)
@@ -83,7 +88,7 @@ func (me *FontMaker) MakeFont(fontpath string, mappath string, encode string, ou
 		return nil, err
 	}
 
-	fmt.Println("end")
+	//fmt.Println("end")
 	return nil, nil
 }
 
@@ -142,7 +147,7 @@ func (me *FontMaker) MakeDefinitionFile(gofontname string, mappath string, expor
 	if err != nil {
 		return "", err
 	}
-	str += fmt.Sprintf("\tme.name = %s\n", tmpStr)
+	str += fmt.Sprintf("\tme.name = \"%s\"\n", tmpStr)
 
 	str += "\tme.enc = \"" + encode + "\"\n"
 	diff, err := me.MakeFontEncoding(mappath, fontmaps)
@@ -382,6 +387,8 @@ func (me *FontMaker) GetInfoFromTrueType(fontpath string, fontmaps []FontMap) (T
 
 	k := float64(1000.0 / float64(parser.unitsPerEm))
 	info.PushString("FontName", parser.postScriptName)
+	//info.PushString("FontName", "Tahoma")
+
 	info.PushBool("Bold", parser.Bold)
 	info.PushInt64("ItalicAngle", parser.italicAngle)
 	info.PushBool("IsFixedPitch", parser.isFixedPitch)
@@ -491,6 +498,7 @@ func (me *FontMaker) LoadMap(encodingpath string) ([]FontMap, error) {
 	return fontmaps, nil
 }
 
+/*
 func (me *FontMaker) CompressFont(path string) (*bytes.Buffer, error) {
 	rawbytes, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -504,4 +512,4 @@ func (me *FontMaker) CompressFont(path string) (*bytes.Buffer, error) {
 	}
 	gw.Close()
 	return &buff, nil
-}
+}*/

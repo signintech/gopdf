@@ -78,7 +78,7 @@ func (me *FontMaker) MakeFont(fontpath string, mappath string, encode string, ou
 	if err != nil {
 		return err
 	}
-
+	fmt.Printf("Save Z file at %s.\n", outfolderpath+"/"+gzfilename)
 	info.PushString("File", gzfilename)
 
 	//Definition File
@@ -205,7 +205,7 @@ func (me *FontMaker) MakeDefinitionFile(gofontname string, mappath string, expor
 	if err != nil {
 		return "", err
 	}
-
+	fmt.Printf("Save GO file at %s.\n", exportfile)
 	return str, nil
 }
 

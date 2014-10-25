@@ -156,12 +156,12 @@ func (me *TTFParser) ParsePost(fd *os.File) error {
 		return err
 	}
 
-	fmt.Printf("start>>>>>>>\n")
+	//fmt.Printf("start>>>>>>>\n")
 	me.underlineThickness, err = me.ReadShort(fd)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("end>>>>>>>\n")
+	//fmt.Printf("end>>>>>>>\n")
 	//fmt.Printf(">>>>>>>%d\n", me.underlineThickness)
 
 	isFixedPitch, err := me.ReadULong(fd)
@@ -648,7 +648,7 @@ func (me *TTFParser) ReadShort(fd *os.File) (int64, error) {
 	num.SetBytes(buff)
 	u := num.Uint64()
 
-	fmt.Printf("%#v\n", buff)
+	//fmt.Printf("%#v\n", buff)
 	var v int64
 	if u >= 0x8000 {
 		v = int64(u) - 65536

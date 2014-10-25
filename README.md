@@ -43,11 +43,12 @@ gopdf / fontmaker
 fontmaker is tool for making font file to use with gopdf.
 
 ###Build fontmaker
+  open terminal 
+  ```
+  $ cd {GOPATH}/src/github.com/signintech/gopdf/fontmaker
 
-$ cd {GOPATH}/src/github.com/signintech/gopdf/fontmaker
-
-$ go build
-
+  $ go build
+  ```
 ###Usage:
   ```
   fontmaker encoding  map_folder  font_file  output_folder

@@ -20,15 +20,16 @@ func main() {
 		mappath := "/var/www/html/fpdfGo/makefont"
 		encoding := "cp874"
 	*/
-	encoding := os.Args[1]
-	mappath := os.Args[2]
-	fontpath := os.Args[3]
-	outputpath := os.Args[4]
+	i := 1
+	encoding := os.Args[i+0]
+	mappath := os.Args[i+1]
+	fontpath := os.Args[i+2]
+	outputpath := os.Args[i+3]
 
 	fmk := core.NewFontMaker()
 	err := fmk.MakeFont(fontpath, mappath, encoding, outputpath)
 	if err != nil {
-		fmt.Printf("ERROR: %s\n\n", err.Error())
+		fmt.Fprintf(os.Stderr, "\nERROR: %s\n\n", err.Error())
 		echoUsage()
 		return
 	}

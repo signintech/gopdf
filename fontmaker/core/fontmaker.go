@@ -424,7 +424,7 @@ func (me *FontMaker) GetInfoFromTrueType(fontpath string, fontmaps []FontMap) (T
 				w := parser.widths[val]
 				widths[c] = me.MultiplyAndRoundWithUInt64(k, w)
 			} else {
-				fmt.Printf("Character %s (%d) is missing\n", fontmaps[c].Name, fontmaps[c].Uv)
+				fmt.Printf("Warning: Character %s (%d) is missing\n", fontmaps[c].Name, fontmaps[c].Uv)
 			}
 		}
 		c++

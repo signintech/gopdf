@@ -54,9 +54,10 @@ fontmaker is tool for making font file to use with gopdf.
 ###Example:
   ```
   fontmaker  cp874  /gopath/github.com/signintech/gopdf/fontmaker/map   ../ttf/Loma.ttf  ./tmp 
+  ```
+  ```
   Save Z file at ./tmp/Loma.z.
   Save GO file at ./tmp/Loma.font.go.
   Finish.
-
   ```
 

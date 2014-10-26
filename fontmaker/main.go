@@ -33,6 +33,12 @@ func main() {
 		echoUsage()
 		return
 	}
+
+	//print result
+	results := fmk.GetResults()
+	for _, result := range results {
+		fmt.Println(result)
+	}
 	fmt.Printf("Finish.\n")
 }
 
@@ -43,7 +49,7 @@ func echoUsage() {
 	buff.WriteString("\nUsage:\n")
 	buff.WriteString("\tfontmaker encoding map_folder font_file output_folder\n")
 	buff.WriteString("\nExample:\n")
-	buff.WriteString("\tfontmaker cp874 ../map  ../ttf/Loma.ttf ./tmp\n")
+	buff.WriteString("\tfontmaker cp874 /gopath/github.com/signintech/gopdf/fontmaker/map  ../ttf/Loma.ttf ./tmp\n")
 	buff.WriteString("\n")
 	fmt.Print(buff.String())
 }

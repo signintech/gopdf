@@ -4,11 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"compress/zlib"
-	//"compress/flate"
-	//"encoding/binary"
 	"errors"
 	"fmt"
-	//"github.com/signintech/gopdf"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -19,6 +16,11 @@ import (
 var ERROR_FONT_LICENSE_DOES_NOT_ALLOW_EMBEDDING = errors.New("Font license does not allow embedding")
 
 type FontMaker struct {
+	results []string
+}
+
+func (me *FontMaker) GetResults() []string {
+	return me.results
 }
 
 func NewFontMaker() *FontMaker {
@@ -27,12 +29,7 @@ func NewFontMaker() *FontMaker {
 
 func (me *FontMaker) MakeFont(fontpath string, mappath string, encode string, outfolderpath string) error {
 
-	//fmt.Println("start")
-
 	encodingpath := mappath + "/" + encode + ".map"
-	//encode
-	//encode := filepath.Base(encodingpath)
-	//encode = strings.Replace(encode, ".map", "", -1)
 
 	//read font file
 	if _, err := os.Stat(fontpath); os.IsNotExist(err) {
@@ -62,7 +59,7 @@ func (me *FontMaker) MakeFont(fontpath string, mappath string, encode string, ou
 	gzfilename := basename + ".z"
 
 	var buff bytes.Buffer
-	gzipwriter := zlib.NewWriter(&buff) //gzip.NewWriterLevel(&buff, gzip.DefaultCompression) //gzip.NewWriter(&buff)
+	gzipwriter := zlib.NewWriter(&buff)
 
 	fontbytes, err := ioutil.ReadFile(fontpath)
 	if err != nil {
@@ -78,8 +75,8 @@ func (me *FontMaker) MakeFont(fontpath string, mappath string, encode string, ou
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Save Z file at %s.\n", outfolderpath+"/"+gzfilename)
 	info.PushString("File", gzfilename)
+	me.results = append(me.results, fmt.Sprintf("Save Z file at %s.", outfolderpath+"/"+gzfilename))
 
 	//Definition File
 	_, err = me.MakeDefinitionFile(me.GoStructName(basename), mappath, outfolderpath+"/"+basename+".font.go", encode, fontmaps, info)
@@ -205,7 +202,7 @@ func (me *FontMaker) MakeDefinitionFile(gofontname string, mappath string, expor
 	if err != nil {
 		return "", err
 	}
-	fmt.Printf("Save GO file at %s.\n", exportfile)
+	me.results = append(me.results, fmt.Sprintf("Save GO file at %s.", exportfile))
 	return str, nil
 }
 
@@ -385,17 +382,12 @@ func (me *FontMaker) GetInfoFromTrueType(fontpath string, fontmaps []FontMap) (T
 
 	k := float64(1000.0 / float64(parser.unitsPerEm))
 	info.PushString("FontName", parser.postScriptName)
-	//info.PushString("FontName", "Tahoma")
-
 	info.PushBool("Bold", parser.Bold)
 	info.PushInt64("ItalicAngle", parser.italicAngle)
 	info.PushBool("IsFixedPitch", parser.isFixedPitch)
 	info.PushInt64("Ascender", me.MultiplyAndRound(k, parser.typoAscender))
 	info.PushInt64("Descender", me.MultiplyAndRound(k, parser.typoDescender))
 	info.PushInt64("UnderlineThickness", me.MultiplyAndRound(k, parser.underlineThickness))
-
-	//fmt.Printf("%#v\n", parser.underlineThickness)
-
 	info.PushInt64("UnderlinePosition", me.MultiplyAndRound(k, parser.underlinePosition))
 	fontBBoxs := []int64{
 		me.MultiplyAndRound(k, parser.xMin),
@@ -424,7 +416,7 @@ func (me *FontMaker) GetInfoFromTrueType(fontpath string, fontmaps []FontMap) (T
 				w := parser.widths[val]
 				widths[c] = me.MultiplyAndRoundWithUInt64(k, w)
 			} else {
-				fmt.Printf("Warning: Character %s (%d) is missing\n", fontmaps[c].Name, fontmaps[c].Uv)
+				me.results = append(me.results, fmt.Sprintf("Warning: Character %s (%d) is missing", fontmaps[c].Name, fontmaps[c].Uv))
 			}
 		}
 		c++
@@ -436,13 +428,11 @@ func (me *FontMaker) GetInfoFromTrueType(fontpath string, fontmaps []FontMap) (T
 
 func (me *FontMaker) MultiplyAndRoundWithUInt64(k float64, v uint64) int64 {
 	r := k * float64(v)
-	//fmt.Printf("%#v %#v %#v = %#v\n", k, v, r, me.Round(r))
 	return me.Round(r)
 }
 
 func (me *FontMaker) MultiplyAndRound(k float64, v int64) int64 {
 	r := k * float64(v)
-	//fmt.Printf("%#v %#v %#v = %#v\n", k, v, r, me.Round(r))
 	return me.Round(r)
 }
 
@@ -498,19 +488,3 @@ func (me *FontMaker) LoadMap(encodingpath string) ([]FontMap, error) {
 
 	return fontmaps, nil
 }
-
-/*
-func (me *FontMaker) CompressFont(path string) (*bytes.Buffer, error) {
-	rawbytes, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	var buff bytes.Buffer
-	gw := gzip.NewWriter(&buff)
-	_, err = gw.Write(rawbytes)
-	if err != nil {
-		return nil, err
-	}
-	gw.Close()
-	return &buff, nil
-}*/

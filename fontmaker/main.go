@@ -15,11 +15,7 @@ func main() {
 		echoUsage()
 		return
 	}
-	/*
-		fontpath := "/var/www/html/fpdfGo/ttf/tahoma.ttf"
-		mappath := "/var/www/html/fpdfGo/makefont"
-		encoding := "cp874"
-	*/
+
 	i := 1
 	encoding := os.Args[i+0]
 	mappath := os.Args[i+1]
@@ -44,7 +40,6 @@ func main() {
 
 func echoUsage() {
 	var buff bytes.Buffer
-	//buff.WriteString("\n")
 	buff.WriteString("fontmaker is tool for making font file to use with gopdf.\n")
 	buff.WriteString("\nUsage:\n")
 	buff.WriteString("\tfontmaker encoding map_folder font_file output_folder\n")

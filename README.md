@@ -43,7 +43,7 @@ Sample code [here](https://github.com/oneplus1000/gopdfusecase)
   ```
 gopdf / fontmaker
 ======
-fontmaker is a tool for making font file and using with gopdf.
+fontmaker is a font making tool for gopdf.
 
 ####Build fontmaker
 ######open terminal 

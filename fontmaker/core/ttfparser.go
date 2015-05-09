@@ -18,7 +18,7 @@ var ERROR_INCORRECT_MAGIC_NUMBER = errors.New("Incorrect magic number")
 var ERROR_POSTSCRIPT_NAME_NOT_FOUND = errors.New("PostScript name not found")
 
 type TTFParser struct {
-	tables             map[string]uint64
+	tables             map[string]TableDirectoryEntry
 	unitsPerEm         uint64
 	xMin               int64
 	yMin               int64
@@ -38,6 +38,19 @@ type TTFParser struct {
 	underlinePosition  int64
 	underlineThickness int64
 	isFixedPitch       bool
+
+	//cmap
+	LocaTable            []uint64
+	SegCount             uint64
+	StartCount, EndCount []uint64
+	IdRangeOffset        []uint64
+	IdDelta              []uint64
+}
+
+type TableDirectoryEntry struct {
+	CheckSum uint64
+	Offset   uint64
+	Length   uint64
 }
 
 func (me *TTFParser) Parse(fontpath string) error {
@@ -62,7 +75,7 @@ func (me *TTFParser) Parse(fontpath string) error {
 		return err
 	}
 	me.Skip(fd, 3*2) //searchRange, entrySelector, rangeShift
-	me.tables = make(map[string]uint64)
+	me.tables = make(map[string]TableDirectoryEntry)
 	for i < numTables {
 
 		tag, err := me.Read(fd, 4)
@@ -70,7 +83,7 @@ func (me *TTFParser) Parse(fontpath string) error {
 			return err
 		}
 
-		err = me.Skip(fd, 4)
+		checksum, err := me.ReadULong(fd)
 		if err != nil {
 			return err
 		}
@@ -80,12 +93,16 @@ func (me *TTFParser) Parse(fontpath string) error {
 			return err
 		}
 
-		err = me.Skip(fd, 4)
+		length, err := me.ReadULong(fd)
 		if err != nil {
 			return err
 		}
 		//fmt.Printf("%s\n", me.BytesToString(tag))
-		me.tables[me.BytesToString(tag)] = offset
+		var table TableDirectoryEntry
+		table.Offset = offset
+		table.CheckSum = checksum
+		table.Length = length
+		me.tables[me.BytesToString(tag)] = table
 		i++
 	}
 
@@ -125,7 +142,34 @@ func (me *TTFParser) Parse(fontpath string) error {
 	if err != nil {
 		return err
 	}
+	err = me.ParseLoca(fd)
+	if err != nil {
+		return err
+	}
 	//fmt.Printf("%#v\n", me.widths)
+	return nil
+}
+
+func (me *TTFParser) ParseLoca(fd *os.File) error {
+
+	err := me.Seek(fd, "loca")
+	if err != nil {
+		return err
+	}
+	table := me.tables["loca"]
+	entries := table.Length / 2
+	//do ShortIndex
+	var locaTable []uint64
+	i := uint64(0)
+	for i < entries {
+		item, err := me.ReadUShort(fd)
+		if err != nil {
+			return err
+		}
+		locaTable = append(locaTable, item*2)
+		i++
+	}
+	me.LocaTable = locaTable
 	return nil
 }
 
@@ -357,7 +401,7 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 
 	var startCount, endCount, idDelta, idRangeOffset []uint64
 
-	_, err = fd.Seek(int64(me.tables["cmap"]+offset31), 0)
+	_, err = fd.Seek(int64(me.tables["cmap"].Offset+offset31), 0)
 	if err != nil {
 		return err
 	}
@@ -381,6 +425,7 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 		return err
 	}
 	segCount = segCount / 2
+	me.SegCount = segCount
 	err = me.Skip(fd, 3*2) // searchRange, entrySelector, rangeShift
 	if err != nil {
 		return err
@@ -393,6 +438,7 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 		}
 		endCount = append(endCount, tmp)
 	}
+	me.EndCount = endCount
 
 	err = me.Skip(fd, 2) // reservedPad
 	if err != nil {
@@ -406,6 +452,7 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 		}
 		startCount = append(startCount, tmp)
 	}
+	me.StartCount = startCount
 
 	for i := 0; i < int(segCount); i++ {
 		tmp, err := me.ReadUShort(fd)
@@ -414,6 +461,7 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 		}
 		idDelta = append(idDelta, tmp)
 	}
+	me.IdDelta = idDelta
 
 	offset, err := me.FTell(fd)
 	if err != nil {
@@ -426,6 +474,7 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 		}
 		idRangeOffset = append(idRangeOffset, tmp)
 	}
+	me.IdRangeOffset = idRangeOffset
 	//fmt.Printf("%d\n\n\n", offset)
 	me.chars = make(map[int]uint64)
 	for i := 0; i < int(segCount); i++ {
@@ -614,10 +663,11 @@ func (me *TTFParser) ParseMaxp(fd *os.File) error {
 }
 
 func (me *TTFParser) Seek(fd *os.File, tag string) error {
-	val, ok := me.tables[tag]
+	table, ok := me.tables[tag]
 	if !ok {
 		return errors.New("me.tables not contain key=" + tag)
 	}
+	val := table.Offset
 	_, err := fd.Seek(int64(val), 0)
 	if err != nil {
 		return err

@@ -40,11 +40,12 @@ type TTFParser struct {
 	isFixedPitch       bool
 
 	//cmap
-	LocaTable            []uint64
-	SegCount             uint64
-	StartCount, EndCount []uint64
-	IdRangeOffset        []uint64
-	IdDelta              []uint64
+	LocaTable     []uint64
+	SegCount      uint64
+	StartCount    []uint64
+	EndCount      []uint64
+	IdRangeOffset []uint64
+	IdDelta       []uint64
 }
 
 type TableDirectoryEntry struct {

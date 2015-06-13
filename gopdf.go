@@ -270,9 +270,11 @@ func (me *GoPdf) Cell(rectangle *Rect, text string) {
 
 //AddTTFFont font use subtype font
 func (me *GoPdf) AddTTFFont(family string, ttfpath string) error {
+
 	if _, err := os.Stat(ttfpath); os.IsNotExist(err) {
 		return err
 	}
+
 	subsetFont := new(SubsetFontObj)
 	subsetFont.Init(func() *GoPdf {
 		return me
@@ -282,7 +284,15 @@ func (me *GoPdf) AddTTFFont(family string, ttfpath string) error {
 	if err != nil {
 		return err
 	}
-	me.addObj(subsetFont)
+
+	unicodemap := new(UnicodeMap)
+	unicodemap.Init(func() *GoPdf {
+		return me
+	})
+	unicodemap.SetPtrToSubsetFontObj(subsetFont)
+	me.addObj(unicodemap)
+
+	me.addObj(subsetFont) //add หลังสุด
 	return nil
 }
 

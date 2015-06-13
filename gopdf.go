@@ -177,9 +177,10 @@ func (me *GoPdf) SetFont(family string, style string, size int) error {
 		if ifont.GetFamily() == family {
 			me.Curr.Font_Size = size
 			me.Curr.Font_Style = style
-			me.Curr.Font_IFont = ifont
 			me.Curr.Font_FontCount = me.pdfObjs[me.indexEncodingObjFonts[i]+4].(*FontObj).CountOfFont
 			me.Curr.Font_Type = CURRENT_FONT_TYPE_IFONT
+			me.Curr.Font_IFont = ifont
+			me.Curr.Font_ISubset = nil
 			found = true
 			break
 		}
@@ -197,8 +198,9 @@ func (me *GoPdf) SetFont(family string, style string, size int) error {
 					if sub.GetFamily() == family {
 						me.Curr.Font_Size = size
 						me.Curr.Font_Style = style
-						me.Curr.Font_IFont = nil
 						me.Curr.Font_Type = CURRENT_FONT_TYPE_SUBSET
+						me.Curr.Font_IFont = nil
+						me.Curr.Font_ISubset = sub
 						found = true
 						break
 					}
@@ -249,7 +251,12 @@ func (me *GoPdf) Cell(rectangle *Rect, text string) {
 	//undelineOffset := ContentObj_CalTextHeight(me.Curr.Font_Size) + 1
 	startX := me.Curr.X
 	startY := me.Curr.Y
-	me.getContent().AppendStream(rectangle, text)
+	if me.Curr.Font_Type == CURRENT_FONT_TYPE_IFONT {
+		me.getContent().AppendStream(rectangle, text)
+	} else if me.Curr.Font_Type == CURRENT_FONT_TYPE_SUBSET {
+		me.Curr.Font_ISubset.AddChars(text)
+		me.getContent().AppendStreamSubsetFont(rectangle, text)
+	}
 	endX := me.Curr.X
 	endY := me.Curr.Y
 

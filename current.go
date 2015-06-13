@@ -14,9 +14,12 @@ type Current struct {
 
 	Font_Size      int
 	Font_Style     string
-	Font_IFont     IFont
 	Font_FontCount int
 	Font_Type      int // CURRENT_FONT_TYPE_IFONT or  CURRENT_FONT_TYPE_SUBSET
+
+	Font_IFont   IFont   // depend on Font_Type
+	Font_ISubset ISubset // depend on Font_Type
+
 	//page
 	IndexOfPageObj int
 

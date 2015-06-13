@@ -2,6 +2,7 @@ package gopdf
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 
 	"github.com/signintech/gopdf/fontmaker/core"
@@ -9,6 +10,7 @@ import (
 
 //PdfType0 Font
 type SubsetFontObj struct {
+	buffer                bytes.Buffer
 	ttfp                  core.TTFParser
 	Family                string
 	CharacterToGlyphIndex map[rune]uint64
@@ -19,7 +21,12 @@ func (me *SubsetFontObj) Init(funcGetRoot func() *GoPdf) {
 }
 
 func (me *SubsetFontObj) Build() {
-	//print PdfToUnicodeMap
+	me.buffer.WriteString(fmt.Sprintf("/BaseFont /%s\n", CreateEmbeddedFontSubsetName(me.Family)))
+	me.buffer.WriteString("/DescendantFonts [9 0 R]\n") //TODO fix
+	me.buffer.WriteString("/Encoding /Identity-H\n")
+	me.buffer.WriteString("/Subtype /Type0\n")
+	me.buffer.WriteString("/ToUnicode 8 0 R\n") //TODO fix
+	me.buffer.WriteString("/Type /Font\n")
 }
 
 func (me *SubsetFontObj) SetFamily(familyname string) {
@@ -53,11 +60,8 @@ func (me *SubsetFontObj) GetType() string {
 }
 
 func (me *SubsetFontObj) GetObjBuff() *bytes.Buffer {
-
-	var buffer bytes.Buffer
-	//buffer.Write(me.PdfToUnicodeMap().Bytes())
-	//log.Printf("\n%s\n", buffer.String())
-	return &buffer
+	fmt.Printf("%s\n", me.buffer.String())
+	return &me.buffer
 }
 
 func (me *SubsetFontObj) CharCodeToGlyphIndex(r rune) uint64 {

@@ -19,7 +19,6 @@ func (me *ContentObj) Init(funcGetRoot func() *GoPdf) {
 }
 
 func (me *ContentObj) Build() {
-
 	streamlen := me.stream.Len()
 	me.buffer.WriteString("<<\n")
 	me.buffer.WriteString("/Length " + strconv.Itoa(streamlen) + "\n")
@@ -54,7 +53,7 @@ func (me *ContentObj) AppendStream(rectangle *Rect, text string) {
 	me.stream.WriteString("(" + text + ") Tj\n")
 	me.stream.WriteString("ET\n")
 	if rectangle == nil {
-		me.getRoot().Curr.X += StrHelper_GetStringWidth(text, fontSize, me.getRoot().Curr.Font_IFont)
+		me.getRoot().Curr.X += StrHelperGetStringWidth(text, fontSize, me.getRoot().Curr.Font_IFont)
 	} else {
 		me.getRoot().Curr.X += rectangle.W
 	}

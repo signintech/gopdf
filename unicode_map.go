@@ -3,10 +3,10 @@ package gopdf
 import (
 	"bytes"
 	"fmt"
-	"log"
 )
 
 type UnicodeMap struct {
+	buffer             bytes.Buffer
 	PtrToSubsetFontObj *SubsetFontObj
 }
 
@@ -18,7 +18,7 @@ func (me *UnicodeMap) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 }
 
 func (me *UnicodeMap) Build() {
-	//print PdfToUnicodeMap
+	me.buffer.Write(me.pdfToUnicodeMap().Bytes())
 }
 
 func (me *UnicodeMap) GetType() string {
@@ -26,10 +26,7 @@ func (me *UnicodeMap) GetType() string {
 }
 
 func (me *UnicodeMap) GetObjBuff() *bytes.Buffer {
-	var buffer bytes.Buffer
-	buffer.Write(me.pdfToUnicodeMap().Bytes())
-	log.Printf("\n%s\n", buffer.String())
-	return &buffer
+	return &me.buffer
 }
 
 func (me *UnicodeMap) pdfToUnicodeMap() *bytes.Buffer {

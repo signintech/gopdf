@@ -1,10 +1,6 @@
 package gopdf
 
-import (
-)
-
-func StrHelper_GetStringWidth(str string,fontSize int,ifont IFont) float64{
-
+func StrHelperGetStringWidth(str string, fontSize int, ifont IFont) float64 {
 	w := 0
 	bs := []byte(str)
 	i := 0
@@ -13,5 +9,10 @@ func StrHelper_GetStringWidth(str string,fontSize int,ifont IFont) float64{
 		w += ifont.GetCw()[bs[i]]
 		i++
 	}
-	return  float64(w)*(float64(fontSize)/1000.0)
+	return float64(w) * (float64(fontSize) / 1000.0)
+}
+
+func CreateEmbeddedFontSubsetName(name string) string {
+	//TODO ทำด้วย  :-)
+	return name
 }

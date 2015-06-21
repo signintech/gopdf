@@ -54,6 +54,22 @@ type TableDirectoryEntry struct {
 	Length   uint64
 }
 
+func (me *TTFParser) UnitsPerEm() uint64 {
+	return me.unitsPerEm
+}
+
+func (me *TTFParser) NumberOfHMetrics() uint64 {
+	return me.numberOfHMetrics
+}
+
+func (me *TTFParser) Widths() []uint64 {
+	return me.widths
+}
+
+func (me *TTFParser) Chars() map[int]uint64 {
+	return me.chars
+}
+
 func (me *TTFParser) Parse(fontpath string) error {
 	//fmt.Printf("\nstart parse\n")
 	fd, err := os.Open(fontpath)

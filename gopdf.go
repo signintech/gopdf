@@ -292,6 +292,13 @@ func (me *GoPdf) AddTTFFont(family string, ttfpath string) error {
 	unicodemap.SetPtrToSubsetFontObj(subsetFont)
 	me.addObj(unicodemap)
 
+	cidfont := new(CIDFontObj)
+	cidfont.Init(func() *GoPdf {
+		return me
+	})
+	cidfont.SetPtrToSubsetFontObj(subsetFont)
+	me.addObj(cidfont)
+
 	me.addObj(subsetFont) //add หลังสุด
 	return nil
 }

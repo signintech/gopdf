@@ -86,3 +86,15 @@ func (me *SubsetFontObj) CharCodeToGlyphIndex(r rune) uint64 {
 	log.Panic("unsupport yet!")
 	return 0
 }
+
+func (me *SubsetFontObj) GlyphIndexToPdfWidth(gindex int) (int, error) {
+	numHm := me.ttfp.NumberOfHMetrics()
+	unPEm := me.ttfp.UnitsPerEm()
+	fmt.Printf("\n%d %d\n\n", numHm, unPEm)
+	return 0, nil
+}
+
+/*
+func (me *SubsetFontObj) GetTTFParser() *core.TTFParser {
+	return &me.ttfp
+}*/

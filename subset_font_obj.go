@@ -60,7 +60,7 @@ func (me *SubsetFontObj) GetType() string {
 }
 
 func (me *SubsetFontObj) GetObjBuff() *bytes.Buffer {
-	fmt.Printf("%s\n", me.buffer.String())
+	//fmt.Printf("%s\n", me.buffer.String())
 	return &me.buffer
 }
 
@@ -87,14 +87,17 @@ func (me *SubsetFontObj) CharCodeToGlyphIndex(r rune) uint64 {
 	return 0
 }
 
-func (me *SubsetFontObj) GlyphIndexToPdfWidth(gindex int) (int, error) {
-	numHm := me.ttfp.NumberOfHMetrics()
-	unPEm := me.ttfp.UnitsPerEm()
-	fmt.Printf("\n%d %d\n\n", numHm, unPEm)
-	return 0, nil
-}
+func (me *SubsetFontObj) GlyphIndexToPdfWidth(glyphIndex uint64) uint64 {
 
-/*
-func (me *SubsetFontObj) GetTTFParser() *core.TTFParser {
-	return &me.ttfp
-}*/
+	numberOfHMetrics := me.ttfp.NumberOfHMetrics()
+	unitsPerEm := me.ttfp.UnitsPerEm()
+	if glyphIndex >= numberOfHMetrics {
+		glyphIndex = numberOfHMetrics - 1
+	}
+
+	width := me.ttfp.Widths()[glyphIndex]
+	if unitsPerEm == 1000 {
+		return width
+	}
+	return width * 1000 / unitsPerEm
+}

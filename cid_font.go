@@ -25,10 +25,15 @@ func (me *CIDFontObj) Build() {
 	me.buffer.WriteString("/Subtype /CIDFontType2\n")
 	me.buffer.WriteString("/Type /Font\n")
 
-	//fake
-	me.PtrToSubsetFontObj.GlyphIndexToPdfWidth(123)
-
-	me.buffer.WriteString("/W [123[605]124[683]]\n")
+	characterToGlyphIndex := me.PtrToSubsetFontObj.CharacterToGlyphIndex
+	me.buffer.WriteString("/W [")
+	for _, v := range characterToGlyphIndex {
+		width := me.PtrToSubsetFontObj.GlyphIndexToPdfWidth(v)
+		//fmt.Printf("%d[%d]\n", v, width)
+		me.buffer.WriteString(fmt.Sprintf("%d[%d]", v, width))
+	}
+	me.buffer.WriteString("]\n")
+	//me.buffer.WriteString("/W [123[605]124[683]]\n")
 }
 
 func (me *CIDFontObj) GetType() string {
@@ -36,6 +41,7 @@ func (me *CIDFontObj) GetType() string {
 }
 
 func (me *CIDFontObj) GetObjBuff() *bytes.Buffer {
+	fmt.Printf("%s\n", me.buffer.String())
 	return &me.buffer
 }
 

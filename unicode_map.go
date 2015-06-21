@@ -31,7 +31,7 @@ func (me *UnicodeMap) GetObjBuff() *bytes.Buffer {
 
 func (me *UnicodeMap) pdfToUnicodeMap() *bytes.Buffer {
 
-	var characterToGlyphIndex = me.PtrToSubsetFontObj.CharacterToGlyphIndex
+	characterToGlyphIndex := me.PtrToSubsetFontObj.CharacterToGlyphIndex
 	var buffer bytes.Buffer
 	prefix :=
 		"/CIDInit /ProcSet findresource begin\n" +

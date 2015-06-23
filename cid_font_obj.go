@@ -14,6 +14,7 @@ func (me *CIDFontObj) Init(funcGetRoot func() *GoPdf) {
 }
 
 func (me *CIDFontObj) Build() {
+
 	me.buffer.WriteString(fmt.Sprintf("/BaseFont /%s\n", CreateEmbeddedFontSubsetName(me.PtrToSubsetFontObj.GetFamily())))
 	me.buffer.WriteString("/CIDSystemInfo\n")
 	me.buffer.WriteString("<<\n")
@@ -24,16 +25,14 @@ func (me *CIDFontObj) Build() {
 	me.buffer.WriteString("/FontDescriptor 7 0 R\n") //TODO fix
 	me.buffer.WriteString("/Subtype /CIDFontType2\n")
 	me.buffer.WriteString("/Type /Font\n")
-
 	characterToGlyphIndex := me.PtrToSubsetFontObj.CharacterToGlyphIndex
 	me.buffer.WriteString("/W [")
 	for _, v := range characterToGlyphIndex {
 		width := me.PtrToSubsetFontObj.GlyphIndexToPdfWidth(v)
-		//fmt.Printf("%d[%d]\n", v, width)
 		me.buffer.WriteString(fmt.Sprintf("%d[%d]", v, width))
 	}
 	me.buffer.WriteString("]\n")
-	//me.buffer.WriteString("/W [123[605]124[683]]\n")
+
 }
 
 func (me *CIDFontObj) GetType() string {

@@ -70,6 +70,10 @@ func (me *TTFParser) Chars() map[int]uint64 {
 	return me.chars
 }
 
+func (me *TTFParser) GetTables() map[string]TableDirectoryEntry {
+	return me.tables
+}
+
 func (me *TTFParser) Parse(fontpath string) error {
 	//fmt.Printf("\nstart parse\n")
 	fd, err := os.Open(fontpath)
@@ -693,7 +697,7 @@ func (me *TTFParser) Seek(fd *os.File, tag string) error {
 }
 
 func (me *TTFParser) BytesToString(b []byte) string {
-	return string(b)
+	return strings.TrimSpace(string(b))
 }
 
 func (me *TTFParser) ReadUShort(fd *os.File) (uint64, error) {

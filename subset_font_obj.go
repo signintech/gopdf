@@ -101,3 +101,7 @@ func (me *SubsetFontObj) GlyphIndexToPdfWidth(glyphIndex uint64) uint64 {
 	}
 	return width * 1000 / unitsPerEm
 }
+
+func (me *SubsetFontObj) GetTTFParser() *core.TTFParser {
+	return &me.ttfp
+}

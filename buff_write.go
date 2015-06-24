@@ -2,7 +2,7 @@ package gopdf
 
 import "io"
 
-func WriteUInt32(w io.Writer, v uint32) error {
+func WriteUInt32(w io.Writer, v uint) error {
 	a := byte(v >> 24)
 	b := byte(v >> 16)
 	c := byte(v >> 8)
@@ -14,7 +14,7 @@ func WriteUInt32(w io.Writer, v uint32) error {
 	return nil
 }
 
-func WriteUInt16(w io.Writer, v uint16) error {
+func WriteUInt16(w io.Writer, v uint) error {
 
 	a := byte(v >> 8)
 	b := byte(v)

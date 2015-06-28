@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"sort"
 
 	"github.com/signintech/gopdf/fontmaker/core"
 )
@@ -60,7 +61,22 @@ func (me *PdfDictionaryObj) makeFont() error {
 	WriteUInt16(&buff, ((1 << uint(selector)) * 16))
 	WriteUInt16(&buff, uint(selector))
 	WriteUInt16(&buff, (uint(tableCount)-(1<<uint(selector)))*16)
-	fmt.Printf("%#v\n\n", buff)
+	//fmt.Printf("%#v\n\n", buff)
 	//fmt.Printf("%#v\n\n%#v\n", tables, ttfp.GetTables())
+	//fmt.Printf("tableCount = %d\n", tableCount)
+	var tags []string
+	for tag, _ := range tables {
+		tags = append(tags, tag) //copy all tag
+	}
+	//fmt.Printf("%#v\n", tags)
+	sort.Strings(tags) //order
+	//fmt.Printf("%#v\n", tags)
+	idx := 0
+	for idx < tableCount {
+		entry := tables[tags[idx]]
+		fmt.Printf("%#v\n", entry)
+		idx++
+	}
+
 	return nil
 }

@@ -24,3 +24,12 @@ func WriteUInt16(w io.Writer, v uint) error {
 	}
 	return nil
 }
+
+func WriteTag(w io.Writer, tag string) error {
+	b := []byte(tag)
+	_, err := w.Write(b)
+	if err != nil {
+		return err
+	}
+	return nil
+}

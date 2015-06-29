@@ -697,7 +697,7 @@ func (me *TTFParser) Seek(fd *os.File, tag string) error {
 }
 
 func (me *TTFParser) BytesToString(b []byte) string {
-	return strings.TrimSpace(string(b))
+	return string(b) //strings.TrimSpace(string(b))
 }
 
 func (me *TTFParser) ReadUShort(fd *os.File) (uint64, error) {

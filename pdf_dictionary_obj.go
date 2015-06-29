@@ -2,7 +2,6 @@ package gopdf
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"sort"
 
@@ -43,7 +42,7 @@ func (me *PdfDictionaryObj) makeFont() error {
 	ttfp := me.PtrToSubsetFontObj.GetTTFParser()
 	tables := make(map[string]core.TableDirectoryEntry)
 	//tables["cmap"] = ttfp.GetTables()["cmap"]
-	tables["cvt"] = ttfp.GetTables()["cvt"]
+	tables["cvt "] = ttfp.GetTables()["cvt "]
 	tables["fpgm"] = ttfp.GetTables()["fpgm"]
 	tables["glyf"] = ttfp.GetTables()["glyf"]
 	tables["head"] = ttfp.GetTables()["head"]
@@ -68,13 +67,17 @@ func (me *PdfDictionaryObj) makeFont() error {
 	for tag, _ := range tables {
 		tags = append(tags, tag) //copy all tag
 	}
-	//fmt.Printf("%#v\n", tags)
 	sort.Strings(tags) //order
-	//fmt.Printf("%#v\n", tags)
 	idx := 0
 	for idx < tableCount {
 		entry := tables[tags[idx]]
-		fmt.Printf("%#v\n", entry)
+		WriteTag(&buff, tags[idx])
+		WriteUInt32(&buff, uint(entry.CheckSum))
+		//fmt.Printf("%#v\n", buff)
+		//WriteUInt32(&buff, uint(entry.Offset))
+		//WriteUInt32(&buff, uint(entry.Length))
+
+		//break
 		idx++
 	}
 

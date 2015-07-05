@@ -109,6 +109,7 @@ func (me *TTFParser) Parse(fontpath string) error {
 			return err
 		}
 
+		//fmt.Printf("offset\n")
 		offset, err := me.ReadULong(fd)
 		if err != nil {
 			return err
@@ -118,9 +119,11 @@ func (me *TTFParser) Parse(fontpath string) error {
 		if err != nil {
 			return err
 		}
-		//fmt.Printf("%s\n", me.BytesToString(tag))
+
+		//fmt.Printf("\n\ntag=%s  \nOffset = %d\n", tag, offset)
+
 		var table TableDirectoryEntry
-		table.Offset = offset
+		table.Offset = uint64(offset)
 		table.CheckSum = checksum
 		table.Length = length
 		me.tables[me.BytesToString(tag)] = table
@@ -731,6 +734,7 @@ func (me *TTFParser) ReadShort(fd *os.File) (int64, error) {
 
 func (me *TTFParser) ReadULong(fd *os.File) (uint64, error) {
 	buff, err := me.Read(fd, 4)
+	fmt.Printf("%#v\n", buff)
 	if err != nil {
 		return 0, err
 	}

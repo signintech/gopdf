@@ -41,8 +41,7 @@ func (me *PdfDictionaryObj) makeFont() error {
 	var buff bytes.Buffer
 	ttfp := me.PtrToSubsetFontObj.GetTTFParser()
 	tables := make(map[string]core.TableDirectoryEntry)
-	//tables["cmap"] = ttfp.GetTables()["cmap"]
-	tables["cvt "] = ttfp.GetTables()["cvt "]
+	tables["cvt "] = ttfp.GetTables()["cvt "] //มีช่องว่างด้วยนะ
 	tables["fpgm"] = ttfp.GetTables()["fpgm"]
 	tables["glyf"] = ttfp.GetTables()["glyf"]
 	tables["head"] = ttfp.GetTables()["head"]
@@ -51,7 +50,6 @@ func (me *PdfDictionaryObj) makeFont() error {
 	tables["loca"] = ttfp.GetTables()["loca"]
 	tables["maxp"] = ttfp.GetTables()["maxp"]
 	tables["prep"] = ttfp.GetTables()["prep"]
-	//fmt.Printf("%#v\n\n%#v\n", tables, ttfp.GetTables())
 	tableCount := len(tables)
 	selector := EntrySelectors[tableCount]
 
@@ -69,15 +67,17 @@ func (me *PdfDictionaryObj) makeFont() error {
 	}
 	sort.Strings(tags) //order
 	idx := 0
+	tablePosition := int(12 + 16*tableCount)
 	for idx < tableCount {
 		entry := tables[tags[idx]]
 		WriteTag(&buff, tags[idx])
 		WriteUInt32(&buff, uint(entry.CheckSum))
-		//fmt.Printf("%#v\n", buff)
-		//WriteUInt32(&buff, uint(entry.Offset))
-		//WriteUInt32(&buff, uint(entry.Length))
 
-		//break
+		WriteUInt32(&buff, uint(tablePosition))
+		//WriteUInt32(&buff, uint(entry.Length))
+		log.Fatalf("%s\n,%#v,\n%d\n", tags[idx], buff, entry.Offset)
+		endPosition := buff.Len()
+		tablePosition = endPosition
 		idx++
 	}
 

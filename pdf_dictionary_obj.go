@@ -2,6 +2,7 @@ package gopdf
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"sort"
 
@@ -72,14 +73,12 @@ func (me *PdfDictionaryObj) makeFont() error {
 		entry := tables[tags[idx]]
 		WriteTag(&buff, tags[idx])
 		WriteUInt32(&buff, uint(entry.CheckSum))
-
-		WriteUInt32(&buff, uint(tablePosition))
-		//WriteUInt32(&buff, uint(entry.Length))
-		log.Fatalf("%s\n,%#v,\n%d\n", tags[idx], buff, entry.Offset)
+		WriteUInt32(&buff, uint(tablePosition)) //offset
+		WriteUInt32(&buff, uint(entry.Length))
 		endPosition := buff.Len()
 		tablePosition = endPosition
 		idx++
 	}
-
+	fmt.Printf("buff= %#v\n", buff)
 	return nil
 }

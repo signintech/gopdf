@@ -40,7 +40,7 @@ func (me *CIDFontObj) GetType() string {
 }
 
 func (me *CIDFontObj) GetObjBuff() *bytes.Buffer {
-	fmt.Printf("%s\n", me.buffer.String())
+	//fmt.Printf("%s\n", me.buffer.String())
 	return &me.buffer
 }
 

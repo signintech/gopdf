@@ -734,7 +734,7 @@ func (me *TTFParser) ReadShort(fd *os.File) (int64, error) {
 
 func (me *TTFParser) ReadULong(fd *os.File) (uint64, error) {
 	buff, err := me.Read(fd, 4)
-	fmt.Printf("%#v\n", buff)
+	//fmt.Printf("%#v\n", buff)
 	if err != nil {
 		return 0, err
 	}

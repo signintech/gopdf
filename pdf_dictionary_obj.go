@@ -77,8 +77,11 @@ func (me *PdfDictionaryObj) makeFont() error {
 		WriteUInt32(&buff, uint(entry.Length))
 		endPosition := buff.Len()
 		tablePosition = endPosition
+
+		fmt.Printf("====tag %s entry.Offset = %d entry.Offset = %d PaddedLength = %d\n", tags[idx], entry.Offset, entry.Offset, entry.PaddedLength())
 		idx++
 	}
-	fmt.Printf("buff= %#v\n", buff)
+	//fmt.Printf("buff= %#v\n", buff)
+	DebugSubType(buff)
 	return nil
 }

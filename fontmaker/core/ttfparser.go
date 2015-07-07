@@ -54,6 +54,11 @@ type TableDirectoryEntry struct {
 	Length   uint64
 }
 
+func (t TableDirectoryEntry) PaddedLength() int {
+	l := int(t.Length)
+	return (l + 3) & ^3
+}
+
 func (me *TTFParser) UnitsPerEm() uint64 {
 	return me.unitsPerEm
 }

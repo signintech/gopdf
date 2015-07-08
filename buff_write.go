@@ -33,3 +33,12 @@ func WriteTag(w io.Writer, tag string) error {
 	}
 	return nil
 }
+
+func WriteBytes(w io.Writer, data []byte, offset int, count int) error {
+
+	_, err := w.Write(data[offset : offset+count])
+	if err != nil {
+		return err
+	}
+	return nil
+}

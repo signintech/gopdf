@@ -2,7 +2,6 @@ package gopdf
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"sort"
 
@@ -39,7 +38,7 @@ func (me *PdfDictionaryObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 }
 
 func (me *PdfDictionaryObj) makeFont() error {
-	var buff bytes.Buffer
+	var buff Buff
 	ttfp := me.PtrToSubsetFontObj.GetTTFParser()
 	tables := make(map[string]core.TableDirectoryEntry)
 	tables["cvt "] = ttfp.GetTables()["cvt "] //มีช่องว่างด้วยนะ
@@ -71,17 +70,29 @@ func (me *PdfDictionaryObj) makeFont() error {
 	tablePosition := int(12 + 16*tableCount)
 	for idx < tableCount {
 		entry := tables[tags[idx]]
-		WriteTag(&buff, tags[idx])
-		WriteUInt32(&buff, uint(entry.CheckSum))
-		WriteUInt32(&buff, uint(tablePosition)) //offset
-		WriteUInt32(&buff, uint(entry.Length))
-		endPosition := buff.Len()
+		//write data
+		entry.Offset = uint64(tablePosition)
+		buff.SetPosition(tablePosition)
+		if tags[idx] == "glyf" {
+			//
+		} else {
+			WriteBytes(&buff, ttfp.FontData(), int(entry.Offset), entry.PaddedLength())
+		}
+		endPosition := buff.Position()
 		tablePosition = endPosition
 
-		fmt.Printf("====tag %s entry.Offset = %d entry.Offset = %d PaddedLength = %d\n", tags[idx], entry.Offset, entry.Offset, entry.PaddedLength())
+		//write table
+		buff.SetPosition(idx*16 + 12)
+		WriteTag(&buff, tags[idx])
+		WriteUInt32(&buff, uint(entry.CheckSum))
+		WriteUInt32(&buff, uint(entry.Offset)) //offset
+		WriteUInt32(&buff, uint(entry.Length))
+
+		tablePosition = endPosition
+		//fmt.Printf("====tag %s entry.Offset = %d entry.Offset = %d PaddedLength = %d\n", tags[idx], entry.Offset, entry.Offset, entry.PaddedLength())
 		idx++
 	}
 	//fmt.Printf("buff= %#v\n", buff)
-	DebugSubType(buff)
+	DebugSubType(buff.Bytes())
 	return nil
 }

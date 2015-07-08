@@ -1,12 +1,9 @@
 package gopdf
 
-import (
-	"bytes"
-	"log"
-)
+import "log"
 
-func DebugSubType(buff bytes.Buffer) {
-	b := buff.Bytes()
+func DebugSubType(b []byte) {
+	//b := buff.Bytes()
 	var max = len(a)
 	var i = 0
 	for i < max {

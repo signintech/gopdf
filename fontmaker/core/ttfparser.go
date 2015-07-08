@@ -5,6 +5,7 @@ import (
 	//"encoding/hex"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"math/big"
 	"os"
 	"regexp"
@@ -46,6 +47,9 @@ type TTFParser struct {
 	EndCount      []uint64
 	IdRangeOffset []uint64
 	IdDelta       []uint64
+
+	//data of font
+	cahceFontData []byte
 }
 
 type TableDirectoryEntry struct {
@@ -90,7 +94,6 @@ func (me *TTFParser) Parse(fontpath string) error {
 	if err != nil {
 		return err
 	}
-
 	if !me.CompareBytes(version, []byte{0x00, 0x01, 0x00, 0x00}) {
 		return errors.New("Unrecognized file (font) format")
 	}
@@ -176,7 +179,24 @@ func (me *TTFParser) Parse(fontpath string) error {
 		return err
 	}
 	//fmt.Printf("%#v\n", me.widths)
+	me.cahceFontData, err = me.readFontData(fontpath)
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (me *TTFParser) FontData() []byte {
+	return me.cahceFontData
+}
+
+func (me *TTFParser) readFontData(fontpath string) ([]byte, error) {
+	b, err := ioutil.ReadFile(fontpath)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }
 
 func (me *TTFParser) ParseLoca(fd *os.File) error {

@@ -52,15 +52,8 @@ type TTFParser struct {
 	cahceFontData []byte
 }
 
-type TableDirectoryEntry struct {
-	CheckSum uint64
-	Offset   uint64
-	Length   uint64
-}
-
-func (t TableDirectoryEntry) PaddedLength() int {
-	l := int(t.Length)
-	return (l + 3) & ^3
+func (me *TTFParser) NumGlyphs() uint64 {
+	return me.numGlyphs
 }
 
 func (me *TTFParser) UnitsPerEm() uint64 {
@@ -134,6 +127,7 @@ func (me *TTFParser) Parse(fontpath string) error {
 		table.Offset = uint64(offset)
 		table.CheckSum = checksum
 		table.Length = length
+		fmt.Printf("\n\ntag=%s  \nOffset = %d\nPaddedLength =%d\n\n ", tag, table.Offset, table.PaddedLength())
 		me.tables[me.BytesToString(tag)] = table
 		i++
 	}

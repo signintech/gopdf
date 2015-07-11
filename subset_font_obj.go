@@ -21,6 +21,7 @@ func (me *SubsetFontObj) Init(funcGetRoot func() *GoPdf) {
 }
 
 func (me *SubsetFontObj) Build() {
+	//me.AddChars("จ")
 	me.buffer.WriteString(fmt.Sprintf("/BaseFont /%s\n", CreateEmbeddedFontSubsetName(me.Family)))
 	me.buffer.WriteString("/DescendantFonts [9 0 R]\n") //TODO fix
 	me.buffer.WriteString("/Encoding /Identity-H\n")

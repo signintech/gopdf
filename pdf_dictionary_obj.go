@@ -2,6 +2,7 @@ package gopdf
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"sort"
 
@@ -37,6 +38,72 @@ func (me *PdfDictionaryObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 	me.PtrToSubsetFontObj = ptr
 }
 
+func (me *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
+	ttfp := me.PtrToSubsetFontObj.GetTTFParser()
+	glyf := ttfp.GetTables()["glyf"]
+
+	numGlyphs := int(ttfp.NumGlyphs())
+
+	glyphCount := len(me.PtrToSubsetFontObj.CharacterToGlyphIndex)
+	glyphTable := make([]byte, glyf.PaddedLength())
+	locaTable := make([]int, numGlyphs)
+
+	//copy
+	var glyphArray []int
+	for _, v := range me.PtrToSubsetFontObj.CharacterToGlyphIndex {
+		glyphArray = append(glyphArray, int(v))
+	}
+	sort.Ints(glyphArray)
+
+	size := 0
+	for idx := 0; idx < glyphCount; idx++ {
+		size += me.getGlyphSize(glyphArray[idx])
+	}
+	fmt.Printf("size---->%d\n", size)
+
+	glyphOffset := 0
+	glyphIndex := 0
+	for idx := 0; idx < numGlyphs; idx++ {
+		locaTable[idx] = glyphOffset
+		if glyphIndex < glyphCount && glyphArray[glyphIndex] == idx {
+			glyphIndex++
+			bytes := me.getGlyphData(idx)
+			length := len(bytes)
+			if length > 0 {
+				for i := 0; i < length; i++ {
+					glyphTable[glyphOffset+i] = bytes[i]
+				}
+				glyphOffset += length
+			}
+		}
+	} //end for
+	fmt.Printf("---->%d\n", len(glyphTable))
+	return glyphTable, locaTable, nil
+}
+
+func (me *PdfDictionaryObj) getGlyphSize(glyph int) int {
+	ttfp := me.PtrToSubsetFontObj.GetTTFParser()
+	glyf := ttfp.GetTables()["glyf"]
+	start := int(glyf.Offset + ttfp.LocaTable[glyph])
+	next := int(glyf.Offset + ttfp.LocaTable[glyph+1])
+	return next - start
+}
+
+func (me *PdfDictionaryObj) getGlyphData(glyph int) []byte {
+	ttfp := me.PtrToSubsetFontObj.GetTTFParser()
+	glyf := ttfp.GetTables()["glyf"]
+	start := int(glyf.Offset + ttfp.LocaTable[glyph])
+	next := int(glyf.Offset + ttfp.LocaTable[glyph+1])
+	count := next - start
+	var data []byte
+	i := 0
+	for i < count {
+		data = append(data, ttfp.FontData()[start+i])
+		i++
+	}
+	return data
+}
+
 func (me *PdfDictionaryObj) makeFont() error {
 	var buff Buff
 	ttfp := me.PtrToSubsetFontObj.GetTTFParser()
@@ -52,6 +119,11 @@ func (me *PdfDictionaryObj) makeFont() error {
 	tables["prep"] = ttfp.GetTables()["prep"]
 	tableCount := len(tables)
 	selector := EntrySelectors[tableCount]
+
+	_, _, err := me.makeGlyfAndLocaTable()
+	if err != nil {
+		return err
+	}
 
 	WriteUInt32(&buff, 0x00010000)
 	WriteUInt16(&buff, uint(tableCount))
@@ -95,4 +167,9 @@ func (me *PdfDictionaryObj) makeFont() error {
 	//fmt.Printf("buff= %#v\n", buff)
 	DebugSubType(buff.Bytes())
 	return nil
+}
+
+func (me *PdfDictionaryObj) completeGlyphClosure(characterToGlyphIndex map[rune]uint64) map[rune]uint64 {
+
+	return characterToGlyphIndex
 }

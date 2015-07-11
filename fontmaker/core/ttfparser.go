@@ -41,6 +41,7 @@ type TTFParser struct {
 	isFixedPitch       bool
 
 	//cmap
+	IsShortIndex  bool
 	LocaTable     []uint64
 	SegCount      uint64
 	StartCount    []uint64
@@ -127,7 +128,7 @@ func (me *TTFParser) Parse(fontpath string) error {
 		table.Offset = uint64(offset)
 		table.CheckSum = checksum
 		table.Length = length
-		fmt.Printf("\n\ntag=%s  \nOffset = %d\nPaddedLength =%d\n\n ", tag, table.Offset, table.PaddedLength())
+		//fmt.Printf("\n\ntag=%s  \nOffset = %d\nPaddedLength =%d\n\n ", tag, table.Offset, table.PaddedLength())
 		me.tables[me.BytesToString(tag)] = table
 		i++
 	}
@@ -213,6 +214,7 @@ func (me *TTFParser) ParseLoca(fd *os.File) error {
 		i++
 	}
 	me.LocaTable = locaTable
+	me.IsShortIndex = true //hard code
 	return nil
 }
 

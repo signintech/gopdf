@@ -62,7 +62,7 @@ func (me *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 	//fmt.Printf("size---->%d\n", size)
 
 	glyphTable := make([]byte, glyf.PaddedLength())
-	locaTable := make([]int, numGlyphs)
+	locaTable := make([]int, numGlyphs+1)
 
 	glyphOffset := 0
 	glyphIndex := 0
@@ -80,6 +80,7 @@ func (me *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 			}
 		}
 	} //end for
+	locaTable[numGlyphs] = glyphOffset
 	//fmt.Printf("---->%d\n", len(glyphTable))
 	return glyphTable, locaTable, nil
 }
@@ -123,21 +124,19 @@ func (me *PdfDictionaryObj) makeFont() error {
 	tableCount := len(tables)
 	selector := EntrySelectors[tableCount]
 
-	glyphTable, _, err := me.makeGlyfAndLocaTable()
+	glyphTable, locaTable, err := me.makeGlyfAndLocaTable()
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("%#v", glyphTable)
+	//fmt.Printf("%#v", glyphTable)
 
 	WriteUInt32(&buff, 0x00010000)
 	WriteUInt16(&buff, uint(tableCount))
 	WriteUInt16(&buff, ((1 << uint(selector)) * 16))
 	WriteUInt16(&buff, uint(selector))
 	WriteUInt16(&buff, (uint(tableCount)-(1<<uint(selector)))*16)
-	//fmt.Printf("%#v\n\n", buff)
-	//fmt.Printf("%#v\n\n%#v\n", tables, ttfp.GetTables())
-	//fmt.Printf("tableCount = %d\n", tableCount)
+
 	var tags []string
 	for tag, _ := range tables {
 		tags = append(tags, tag) //copy all tag
@@ -148,13 +147,35 @@ func (me *PdfDictionaryObj) makeFont() error {
 	for idx < tableCount {
 		entry := tables[tags[idx]]
 		//write data
-		entry.Offset = uint64(tablePosition)
+		//entry.Offset = uint64(tablePosition)
+		offset := uint64(tablePosition)
 		buff.SetPosition(tablePosition)
 		if tags[idx] == "glyf" {
 			entry.Length = uint64(len(glyphTable))
 			entry.CheckSum = CheckSum(glyphTable)
 			WriteBytes(&buff, glyphTable, 0, entry.PaddedLength())
+		} else if tags[idx] == "loca" {
+			if !ttfp.IsShortIndex {
+				log.Fatalf("not suport none short index yet!")
+				return nil
+			}
+			//entry.Offset = 0
+			entry.Length = uint64(len(locaTable) * 2)
+			data := make([]byte, entry.PaddedLength())
+			length := len(locaTable)
+			byteIdx := 0
+			for idx := 0; idx < length; idx++ {
+				val := locaTable[idx] / 2
+				data[byteIdx] = byte(val >> 8)
+				byteIdx++
+				data[byteIdx] = byte(val)
+				byteIdx++
+			}
+			entry.CheckSum = CheckSum(data)
+			WriteBytes(&buff, data, 0, len(data))
+			//fmt.Printf(">>>>%#v\n%#v\n\n %d \n %d\n", entry, data, len(data), entry.CheckSum)
 		} else {
+			fmt.Printf("tag=%s offset=%d\n ", tags[idx], int(entry.Offset))
 			WriteBytes(&buff, ttfp.FontData(), int(entry.Offset), entry.PaddedLength())
 		}
 		endPosition := buff.Position()
@@ -164,11 +185,10 @@ func (me *PdfDictionaryObj) makeFont() error {
 		buff.SetPosition(idx*16 + 12)
 		WriteTag(&buff, tags[idx])
 		WriteUInt32(&buff, uint(entry.CheckSum))
-		WriteUInt32(&buff, uint(entry.Offset)) //offset
+		WriteUInt32(&buff, uint(offset)) //offset
 		WriteUInt32(&buff, uint(entry.Length))
 
 		tablePosition = endPosition
-		//fmt.Printf("====tag %s entry.Offset = %d entry.Offset = %d PaddedLength = %d\n", tags[idx], entry.Offset, entry.Offset, entry.PaddedLength())
 		idx++
 	}
 	DebugSubType(buff.Bytes())

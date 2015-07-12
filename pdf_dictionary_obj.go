@@ -2,9 +2,11 @@ package gopdf
 
 import (
 	"bytes"
+	"compress/zlib"
 	"fmt"
 	"log"
 	"sort"
+	"strconv"
 
 	"github.com/signintech/gopdf/fontmaker/core"
 )
@@ -20,10 +22,29 @@ func (me *PdfDictionaryObj) Init(funcGetRoot func() *GoPdf) {
 }
 
 func (me *PdfDictionaryObj) Build() {
-	err := me.makeFont()
+	b, err := me.makeFont()
 	if err != nil {
 		log.Panicf("%s", err.Error())
 	}
+
+	//zipvar buff bytes.Buffer
+	var zbuff bytes.Buffer
+	gzipwriter := zlib.NewWriter(&zbuff)
+	_, err = gzipwriter.Write(b)
+	if err != nil {
+		log.Panicf("%s", err.Error())
+		return
+	}
+	gzipwriter.Close()
+
+	//fmt.Printf("\n%d\n", len(by))
+	me.buffer.WriteString("<</Length " + strconv.Itoa(zbuff.Len()) + "\n")
+	me.buffer.WriteString("/Filter /FlateDecode\n")
+	me.buffer.WriteString("/Length1 " + strconv.Itoa(len(b)) + "\n")
+	me.buffer.WriteString(">>\n")
+	me.buffer.WriteString("stream\n")
+	me.buffer.Write(zbuff.Bytes())
+	me.buffer.WriteString("\nendstream\n")
 }
 
 func (me *PdfDictionaryObj) GetType() string {
@@ -108,7 +129,7 @@ func (me *PdfDictionaryObj) getGlyphData(glyph int) []byte {
 	return data
 }
 
-func (me *PdfDictionaryObj) makeFont() error {
+func (me *PdfDictionaryObj) makeFont() ([]byte, error) {
 	var buff Buff
 	ttfp := me.PtrToSubsetFontObj.GetTTFParser()
 	tables := make(map[string]core.TableDirectoryEntry)
@@ -126,7 +147,7 @@ func (me *PdfDictionaryObj) makeFont() error {
 
 	glyphTable, locaTable, err := me.makeGlyfAndLocaTable()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	//fmt.Printf("%#v", glyphTable)
@@ -157,7 +178,7 @@ func (me *PdfDictionaryObj) makeFont() error {
 		} else if tags[idx] == "loca" {
 			if !ttfp.IsShortIndex {
 				log.Fatalf("not suport none short index yet!")
-				return nil
+				return nil, nil
 			}
 			//entry.Offset = 0
 			entry.Length = uint64(len(locaTable) * 2)
@@ -191,8 +212,9 @@ func (me *PdfDictionaryObj) makeFont() error {
 		tablePosition = endPosition
 		idx++
 	}
-	DebugSubType(buff.Bytes())
-	return nil
+	//DebugSubType(buff.Bytes())
+	//me.buffer.Write(buff.Bytes())
+	return buff.Bytes(), nil
 }
 
 func (me *PdfDictionaryObj) completeGlyphClosure(glyphs map[rune]uint64) map[rune]uint64 {

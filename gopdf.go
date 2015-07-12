@@ -299,6 +299,12 @@ func (me *GoPdf) AddTTFFont(family string, ttfpath string) error {
 	cidfont.SetPtrToSubsetFontObj(subsetFont)
 	me.addObj(cidfont)
 
+	subfontdesc := new(SubfontDescriptorObj)
+	subfontdesc.Init(func() *GoPdf {
+		return me
+	})
+	me.addObj(subfontdesc)
+
 	pdfdic := new(PdfDictionaryObj)
 	pdfdic.Init(func() *GoPdf {
 		return me

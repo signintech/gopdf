@@ -303,6 +303,7 @@ func (me *GoPdf) AddTTFFont(family string, ttfpath string) error {
 	subfontdesc.Init(func() *GoPdf {
 		return me
 	})
+	subfontdesc.SetPtrToSubsetFontObj(subsetFont)
 	me.addObj(subfontdesc)
 
 	pdfdic := new(PdfDictionaryObj)

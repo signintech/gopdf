@@ -53,6 +53,18 @@ type TTFParser struct {
 	cahceFontData []byte
 }
 
+func (me *TTFParser) TypoAscender() int64 {
+	return me.typoAscender
+}
+
+func (me *TTFParser) TypoDescender() int64 {
+	return me.typoDescender
+}
+
+func (me *TTFParser) CapHeight() int64 {
+	return me.capHeight
+}
+
 func (me *TTFParser) NumGlyphs() uint64 {
 	return me.numGlyphs
 }

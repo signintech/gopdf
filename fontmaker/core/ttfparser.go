@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math/big"
 	"os"
 	"regexp"
@@ -39,6 +40,9 @@ type TTFParser struct {
 	underlinePosition  int64
 	underlineThickness int64
 	isFixedPitch       bool
+	sTypoLineGap       int64
+	usWinAscent        uint64
+	usWinDescent       uint64
 
 	//cmap
 	IsShortIndex  bool
@@ -51,6 +55,20 @@ type TTFParser struct {
 
 	//data of font
 	cahceFontData []byte
+}
+
+func (me *TTFParser) Ascender() int64 {
+	if me.typoAscender == 0 {
+		log.Fatalf("not support me.typoAscender == 0 ")
+	}
+	return int64(me.usWinAscent)
+}
+
+func (me *TTFParser) Descender() int64 {
+	if me.typoDescender == 0 {
+		log.Fatalf("not support me.typoDescender == 0 ")
+	}
+	return int64(me.usWinDescent)
 }
 
 func (me *TTFParser) TypoAscender() int64 {
@@ -315,8 +333,24 @@ func (me *TTFParser) ParseOS2(fd *os.File) error {
 	if err != nil {
 		return err
 	}
+
+	me.sTypoLineGap, err = me.ReadShort(fd)
+	if err != nil {
+		return err
+	}
+
+	me.usWinAscent, err = me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+
+	me.usWinDescent, err = me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+
 	if version >= 2 {
-		err = me.Skip(fd, 3*2+2*4+2)
+		err = me.Skip(fd, 2*4+2)
 		if err != nil {
 			return err
 		}
@@ -327,6 +361,7 @@ func (me *TTFParser) ParseOS2(fd *os.File) error {
 	} else {
 		me.capHeight = 0
 	}
+	//fmt.Printf("\n\nme.capHeight=%d , me.usWinAscent=%d,me.usWinDescent=%d\n\n", me.capHeight, me.usWinAscent, me.usWinDescent)
 
 	return nil
 }

@@ -439,12 +439,7 @@ func (f *FontMaker) MultiplyAndRound(k float64, v int64) int64 {
 }
 
 func (f *FontMaker) Round(value float64) int64 {
-	if value < 0.0 {
-		value -= 0.5
-	} else {
-		value += 0.5
-	}
-	return int64(value)
+	return Round(value)
 }
 
 func (f *FontMaker) LoadMap(encodingpath string) ([]FontMap, error) {

@@ -24,11 +24,20 @@ func (me *SubfontDescriptorObj) GetObjBuff() *bytes.Buffer {
 
 func (me *SubfontDescriptorObj) Build() {
 	ttfp := me.PtrToSubsetFontObj.GetTTFParser()
-	_ = ttfp
 	me.buffer.WriteString("<<\n")
 	me.buffer.WriteString("/Type /FontDescriptor\n")
-	//fake
-	me.buffer.WriteString(fmt.Sprintf(">>>%d    %d\n", DesignUnitsToPdf(ttfp.Ascender(), ttfp.UnitsPerEm()), DesignUnitsToPdf(ttfp.Descender(), ttfp.UnitsPerEm())))
+	me.buffer.WriteString(fmt.Sprintf("/Ascent %d\n", DesignUnitsToPdf(ttfp.Ascender(), ttfp.UnitsPerEm())))
+	me.buffer.WriteString(fmt.Sprintf("/CapHeight %d\n", DesignUnitsToPdf(ttfp.CapHeight(), ttfp.UnitsPerEm())))
+	me.buffer.WriteString(fmt.Sprintf("/Descent %d\n", DesignUnitsToPdf(ttfp.Descender(), ttfp.UnitsPerEm())))
+	me.buffer.WriteString(fmt.Sprintf("/Flags %d\n", ttfp.Flag()))
+	me.buffer.WriteString(fmt.Sprintf("/FontBBox [%d %d %d %d]\n",
+		DesignUnitsToPdf(ttfp.XMin(), ttfp.UnitsPerEm()),
+		DesignUnitsToPdf(ttfp.YMin(), ttfp.UnitsPerEm()),
+		DesignUnitsToPdf(ttfp.XMax(), ttfp.UnitsPerEm()),
+		DesignUnitsToPdf(ttfp.YMax(), ttfp.UnitsPerEm()),
+	))
+
+	//me.buffer.WriteString(fmt.Sprintf(">>>%d    %d\n", DesignUnitsToPdf(ttfp.Ascender(), ttfp.UnitsPerEm()), DesignUnitsToPdf(ttfp.Descender(), ttfp.UnitsPerEm())))
 	me.buffer.WriteString(">>\n")
 }
 

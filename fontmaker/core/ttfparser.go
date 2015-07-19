@@ -57,9 +57,38 @@ type TTFParser struct {
 	EndCount      []uint64
 	IdRangeOffset []uint64
 	IdDelta       []uint64
-
+	symbol        bool
 	//data of font
 	cahceFontData []byte
+}
+
+var Symbolic = 1 << 2
+var Nonsymbolic = (1 << 5)
+
+func (me *TTFParser) XMin() int64 {
+	return me.xMin
+}
+
+func (me *TTFParser) YMin() int64 {
+	return me.yMin
+}
+
+func (me *TTFParser) XMax() int64 {
+	return me.xMax
+}
+
+func (me *TTFParser) YMax() int64 {
+	return me.yMax
+}
+
+func (me *TTFParser) Flag() int {
+	flag := 0
+	if me.symbol {
+		flag |= Symbolic
+	} else {
+		flag |= Nonsymbolic
+	}
+	return flag
 }
 
 func (me *TTFParser) Ascender() int64 {
@@ -89,6 +118,7 @@ func (me *TTFParser) TypoDescender() int64 {
 }
 
 func (me *TTFParser) CapHeight() int64 {
+	//fmt.Printf("\n\n>>>>>%d\n\n\n", me.capHeight)
 	return me.capHeight
 }
 
@@ -368,7 +398,7 @@ func (me *TTFParser) ParseOS2(fd *os.File) error {
 			return err
 		}
 	} else {
-		me.capHeight = 0
+		me.capHeight = me.ascender
 	}
 	//fmt.Printf("\n\nme.capHeight=%d , me.usWinAscent=%d,me.usWinDescent=%d\n\n", me.capHeight, me.usWinAscent, me.usWinDescent)
 
@@ -490,9 +520,15 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 		if err != nil {
 			return err
 		}
+
+		me.symbol = false //init
 		if platformID == 3 && encodingID == 1 {
+			if encodingID == 0 {
+				me.symbol = true
+			}
 			offset31 = offset
 		}
+		//fmt.Printf("me.symbol=%d\n", me.symbol)
 	} //end for
 
 	if offset31 == 0 {

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math/big"
 	"os"
 	"regexp"
@@ -20,13 +19,19 @@ var ERROR_INCORRECT_MAGIC_NUMBER = errors.New("Incorrect magic number")
 var ERROR_POSTSCRIPT_NAME_NOT_FOUND = errors.New("PostScript name not found")
 
 type TTFParser struct {
-	tables             map[string]TableDirectoryEntry
-	unitsPerEm         uint64
-	xMin               int64
-	yMin               int64
-	xMax               int64
-	yMax               int64
-	numberOfHMetrics   uint64
+	tables     map[string]TableDirectoryEntry
+	unitsPerEm uint64
+	xMin       int64
+	yMin       int64
+	xMax       int64
+	yMax       int64
+
+	//Hhea
+	numberOfHMetrics uint64
+	ascender         int64
+	descender        int64
+	//end Hhea
+
 	numGlyphs          uint64
 	widths             []uint64
 	chars              map[int]uint64
@@ -59,16 +64,20 @@ type TTFParser struct {
 
 func (me *TTFParser) Ascender() int64 {
 	if me.typoAscender == 0 {
-		log.Fatalf("not support me.typoAscender == 0 ")
+		return me.ascender
 	}
 	return int64(me.usWinAscent)
 }
 
 func (me *TTFParser) Descender() int64 {
 	if me.typoDescender == 0 {
-		log.Fatalf("not support me.typoDescender == 0 ")
+		return me.descender
 	}
-	return int64(me.usWinDescent)
+	descender := int64(me.usWinDescent)
+	if me.descender < 0 {
+		descender = descender * (-1)
+	}
+	return descender
 }
 
 func (me *TTFParser) TypoAscender() int64 {
@@ -726,7 +735,22 @@ func (me *TTFParser) ParseHhea(fd *os.File) error {
 		return err
 	}
 
-	err = me.Skip(fd, 4+15*2)
+	err = me.Skip(fd, 4) //skip version
+	if err != nil {
+		return err
+	}
+
+	me.ascender, err = me.ReadShort(fd)
+	if err != nil {
+		return err
+	}
+
+	me.descender, err = me.ReadShort(fd)
+	if err != nil {
+		return err
+	}
+
+	err = me.Skip(fd, 13*2)
 	if err != nil {
 		return err
 	}
@@ -735,6 +759,8 @@ func (me *TTFParser) ParseHhea(fd *os.File) error {
 	if err != nil {
 		return err
 	}
+
+	//fmt.Printf("---------me.numberOfHMetrics=%d,me.ascender=%d,me.descender = %d\n\n", me.numberOfHMetrics, me.ascender, me.descender)
 	return nil
 }
 

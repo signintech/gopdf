@@ -8,8 +8,9 @@ import (
 )
 
 type SubfontDescriptorObj struct {
-	buffer             bytes.Buffer
-	PtrToSubsetFontObj *SubsetFontObj
+	buffer                bytes.Buffer
+	PtrToSubsetFontObj    *SubsetFontObj
+	indexObjPdfDictionary int
 }
 
 func (me *SubfontDescriptorObj) Init(func() *GoPdf) {
@@ -36,9 +37,16 @@ func (me *SubfontDescriptorObj) Build() {
 		DesignUnitsToPdf(ttfp.XMax(), ttfp.UnitsPerEm()),
 		DesignUnitsToPdf(ttfp.YMax(), ttfp.UnitsPerEm()),
 	))
-
-	//me.buffer.WriteString(fmt.Sprintf(">>>%d    %d\n", DesignUnitsToPdf(ttfp.Ascender(), ttfp.UnitsPerEm()), DesignUnitsToPdf(ttfp.Descender(), ttfp.UnitsPerEm())))
+	me.buffer.WriteString(fmt.Sprintf("/FontFile2 %d 0 R\n", me.indexObjPdfDictionary+1))
+	me.buffer.WriteString(fmt.Sprintf("/FontName %s\n", CreateEmbeddedFontSubsetName(me.PtrToSubsetFontObj.GetFamily())))
+	me.buffer.WriteString(fmt.Sprintf("/ItalicAngle %d\n", ttfp.ItalicAngle()))
+	me.buffer.WriteString("/StemV 0\n")
+	me.buffer.WriteString(fmt.Sprintf("/XHeight %d\n", DesignUnitsToPdf(ttfp.XHeight(), ttfp.UnitsPerEm())))
 	me.buffer.WriteString(">>\n")
+}
+
+func (me *SubfontDescriptorObj) SetIndexObjPdfDictionary(index int) {
+	me.indexObjPdfDictionary = index
 }
 
 func (me *SubfontDescriptorObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {

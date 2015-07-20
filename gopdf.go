@@ -290,30 +290,43 @@ func (me *GoPdf) AddTTFFont(family string, ttfpath string) error {
 		return me
 	})
 	unicodemap.SetPtrToSubsetFontObj(subsetFont)
-	me.addObj(unicodemap)
-
-	cidfont := new(CIDFontObj)
-	cidfont.Init(func() *GoPdf {
-		return me
-	})
-	cidfont.SetPtrToSubsetFontObj(subsetFont)
-	me.addObj(cidfont)
-
-	subfontdesc := new(SubfontDescriptorObj)
-	subfontdesc.Init(func() *GoPdf {
-		return me
-	})
-	subfontdesc.SetPtrToSubsetFontObj(subsetFont)
-	me.addObj(subfontdesc)
+	unicodeindex := me.addObj(unicodemap)
 
 	pdfdic := new(PdfDictionaryObj)
 	pdfdic.Init(func() *GoPdf {
 		return me
 	})
 	pdfdic.SetPtrToSubsetFontObj(subsetFont)
-	me.addObj(pdfdic)
+	pdfdicindex := me.addObj(pdfdic)
 
-	me.addObj(subsetFont) //add หลังสุด
+	subfontdesc := new(SubfontDescriptorObj)
+	subfontdesc.Init(func() *GoPdf {
+		return me
+	})
+	subfontdesc.SetPtrToSubsetFontObj(subsetFont)
+	subfontdesc.SetIndexObjPdfDictionary(pdfdicindex)
+	subfontdescindex := me.addObj(subfontdesc)
+
+	cidfont := new(CIDFontObj)
+	cidfont.Init(func() *GoPdf {
+		return me
+	})
+	cidfont.SetPtrToSubsetFontObj(subsetFont)
+	cidfont.SetIndexObjSubfontDescriptor(subfontdescindex)
+	cidindex := me.addObj(cidfont)
+
+	subsetFont.SetIndexObjCIDFont(cidindex)
+	subsetFont.SetIndexObjUnicodeMap(unicodeindex)
+	index := me.addObj(subsetFont) //add หลังสุด
+
+	if me.indexOfProcSet != -1 {
+		procset := me.pdfObjs[me.indexOfProcSet].(*ProcSetObj)
+		if !procset.Realtes.IsContainsFamily(family) {
+			procset.Realtes = append(procset.Realtes, RelateFont{Family: family, IndexOfObj: index, CountOfFont: me.Curr.CountOfFont})
+			subsetFont.CountOfFont = me.Curr.CountOfFont
+			me.Curr.CountOfFont++
+		}
+	}
 	return nil
 }
 

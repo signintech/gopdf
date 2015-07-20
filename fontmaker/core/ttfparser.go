@@ -32,15 +32,21 @@ type TTFParser struct {
 	descender        int64
 	//end Hhea
 
-	numGlyphs          uint64
-	widths             []uint64
-	chars              map[int]uint64
-	postScriptName     string
-	Embeddable         bool
-	Bold               bool
-	typoAscender       int64
-	typoDescender      int64
-	capHeight          int64
+	numGlyphs      uint64
+	widths         []uint64
+	chars          map[int]uint64
+	postScriptName string
+
+	//os2
+	os2Version    uint64
+	Embeddable    bool
+	Bold          bool
+	typoAscender  int64
+	typoDescender int64
+	capHeight     int64
+	sxHeight      int64
+
+	//post
 	italicAngle        int64
 	underlinePosition  int64
 	underlineThickness int64
@@ -65,6 +71,14 @@ type TTFParser struct {
 var Symbolic = 1 << 2
 var Nonsymbolic = (1 << 5)
 
+func (me *TTFParser) XHeight() int64 {
+	if me.os2Version >= 2 && me.sxHeight != 0 {
+		return me.sxHeight
+	} else {
+		return int64((0.66) * float64(me.ascender))
+	}
+}
+
 func (me *TTFParser) XMin() int64 {
 	return me.xMin
 }
@@ -79,6 +93,10 @@ func (me *TTFParser) XMax() int64 {
 
 func (me *TTFParser) YMax() int64 {
 	return me.yMax
+}
+
+func (me *TTFParser) ItalicAngle() int64 {
+	return me.italicAngle
 }
 
 func (me *TTFParser) Flag() int {
@@ -340,6 +358,8 @@ func (me *TTFParser) ParseOS2(fd *os.File) error {
 	if err != nil {
 		return err
 	}
+	me.os2Version = version
+
 	err = me.Skip(fd, 3*2) // xAvgCharWidth, usWeightClass, usWidthClass
 	if err != nil {
 		return err
@@ -389,14 +409,22 @@ func (me *TTFParser) ParseOS2(fd *os.File) error {
 	}
 
 	if version >= 2 {
-		err = me.Skip(fd, 2*4+2)
+
+		err = me.Skip(fd, 2*4)
 		if err != nil {
 			return err
 		}
+
+		me.sxHeight, err = me.ReadShort(fd)
+		if err != nil {
+			return err
+		}
+
 		me.capHeight, err = me.ReadShort(fd)
 		if err != nil {
 			return err
 		}
+
 	} else {
 		me.capHeight = me.ascender
 	}

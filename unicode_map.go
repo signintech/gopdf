@@ -65,5 +65,6 @@ func (me *UnicodeMap) pdfToUnicodeMap() *bytes.Buffer {
 	}
 	buffer.WriteString("endbfrange\n")
 	buffer.WriteString(suffix)
+	buffer.WriteString("\n")
 	return &buffer
 }

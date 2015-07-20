@@ -14,6 +14,9 @@ type SubsetFontObj struct {
 	ttfp                  core.TTFParser
 	Family                string
 	CharacterToGlyphIndex map[rune]uint64
+	CountOfFont           int
+	indexObjCIDFont       int
+	indexObjUnicodeMap    int
 }
 
 func (me *SubsetFontObj) Init(funcGetRoot func() *GoPdf) {
@@ -22,12 +25,22 @@ func (me *SubsetFontObj) Init(funcGetRoot func() *GoPdf) {
 
 func (me *SubsetFontObj) Build() {
 	//me.AddChars("จ")
+	me.buffer.WriteString("<<\n")
 	me.buffer.WriteString(fmt.Sprintf("/BaseFont /%s\n", CreateEmbeddedFontSubsetName(me.Family)))
-	me.buffer.WriteString("/DescendantFonts [9 0 R]\n") //TODO fix
+	me.buffer.WriteString(fmt.Sprintf("/DescendantFonts [%d 0 R]\n", me.indexObjCIDFont+1)) //TODO fix
 	me.buffer.WriteString("/Encoding /Identity-H\n")
 	me.buffer.WriteString("/Subtype /Type0\n")
-	me.buffer.WriteString("/ToUnicode 8 0 R\n") //TODO fix
+	me.buffer.WriteString(fmt.Sprintf("/ToUnicode %d 0 R\n", me.indexObjUnicodeMap+1)) //TODO fix
 	me.buffer.WriteString("/Type /Font\n")
+	me.buffer.WriteString(">>\n")
+}
+
+func (me *SubsetFontObj) SetIndexObjCIDFont(index int) {
+	me.indexObjCIDFont = index
+}
+
+func (me *SubsetFontObj) SetIndexObjUnicodeMap(index int) {
+	me.indexObjUnicodeMap = index
 }
 
 func (me *SubsetFontObj) SetFamily(familyname string) {

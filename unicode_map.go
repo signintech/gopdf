@@ -10,8 +10,7 @@ type UnicodeMap struct {
 	PtrToSubsetFontObj *SubsetFontObj
 }
 
-func (me *UnicodeMap) Init(funcGetRoot func() *GoPdf) {
-}
+func (me *UnicodeMap) Init(funcGetRoot func() *GoPdf) {}
 
 func (me *UnicodeMap) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 	me.PtrToSubsetFontObj = ptr
@@ -30,9 +29,8 @@ func (me *UnicodeMap) GetObjBuff() *bytes.Buffer {
 }
 
 func (me *UnicodeMap) pdfToUnicodeMap() *bytes.Buffer {
-
+	//stream
 	characterToGlyphIndex := me.PtrToSubsetFontObj.CharacterToGlyphIndex
-	var buffer bytes.Buffer
 	prefix :=
 		"/CIDInit /ProcSet findresource begin\n" +
 			"12 dict begin\n" +
@@ -55,16 +53,27 @@ func (me *UnicodeMap) pdfToUnicodeMap() *bytes.Buffer {
 		glyphIndexToCharacter[index] = k
 	}
 
-	buffer.WriteString(prefix)
-	buffer.WriteString("1 begincodespacerange\n")
-	buffer.WriteString(fmt.Sprintf("<%04X><%04X>\n", lowIndex, hiIndex))
-	buffer.WriteString("endcodespacerange\n")
-	buffer.WriteString(fmt.Sprintf("%d beginbfrange\n", len(glyphIndexToCharacter)))
+	var buff bytes.Buffer
+	buff.WriteString(prefix)
+	buff.WriteString("1 begincodespacerange\n")
+	buff.WriteString(fmt.Sprintf("<%04X><%04X>\n", lowIndex, hiIndex))
+	buff.WriteString("endcodespacerange\n")
+	buff.WriteString(fmt.Sprintf("%d beginbfrange\n", len(glyphIndexToCharacter)))
 	for k, v := range glyphIndexToCharacter {
-		buffer.WriteString(fmt.Sprintf("<%04X><%04X><%04X>\n", k, k, v))
+		buff.WriteString(fmt.Sprintf("<%04X><%04X><%04X>\n", k, k, v))
 	}
-	buffer.WriteString("endbfrange\n")
-	buffer.WriteString(suffix)
-	buffer.WriteString("\n")
-	return &buffer
+	buff.WriteString("endbfrange\n")
+	buff.WriteString(suffix)
+	buff.WriteString("\n")
+
+	length := buff.Len()
+	var streambuff bytes.Buffer
+	streambuff.WriteString("<<\n")
+	streambuff.WriteString(fmt.Sprintf("/Length %d\n", length))
+	streambuff.WriteString(">>\n")
+	streambuff.WriteString("stream\n")
+	streambuff.Write(buff.Bytes())
+	streambuff.WriteString("endstream\n")
+
+	return &streambuff
 }

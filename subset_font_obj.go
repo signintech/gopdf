@@ -69,6 +69,13 @@ func (me *SubsetFontObj) AddChars(txt string) {
 	}
 }
 
+func (me *SubsetFontObj) CharIndex(r rune) (uint64, error) {
+	if index, ok := me.CharacterToGlyphIndex[r]; ok {
+		return index, nil
+	}
+	return 0, ErrCharNotFound
+}
+
 func (me *SubsetFontObj) GetType() string {
 	return "SubsetFont"
 }

@@ -208,9 +208,7 @@ func (me *TTFParser) Parse(fontpath string) error {
 		if err != nil {
 			return err
 		}
-
 		//fmt.Printf("\n\ntag=%s  \nOffset = %d\n", tag, offset)
-
 		var table TableDirectoryEntry
 		table.Offset = uint64(offset)
 		table.CheckSum = checksum

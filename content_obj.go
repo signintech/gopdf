@@ -3,6 +3,7 @@ package gopdf
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"strconv"
 )
 
@@ -37,7 +38,32 @@ func (me *ContentObj) GetObjBuff() *bytes.Buffer {
 }
 
 func (me *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
+	//me.getRoot().Curr.Font_ISubset.CharIndex(r rune)
+	var buff bytes.Buffer
+	for _, r := range text {
+		index, err := me.getRoot().Curr.Font_ISubset.CharIndex(r)
+		if err != nil {
+			log.Fatalf("err:%s", err.Error())
+		}
+		buff.WriteString(fmt.Sprintf("%04X", index))
+	}
+	//me.stream.Write(buff.Bytes())
 
+	fontSize := me.getRoot().Curr.Font_Size
+
+	x := fmt.Sprintf("%0.2f", me.getRoot().Curr.X)
+	y := fmt.Sprintf("%0.2f", me.getRoot().config.PageSize.H-me.getRoot().Curr.Y-(float64(fontSize)*0.7))
+
+	me.stream.WriteString("BT\n")
+	me.stream.WriteString(x + " " + y + " TD\n")
+	me.stream.WriteString("/F" + strconv.Itoa(me.getRoot().Curr.Font_FontCount+1) + " " + strconv.Itoa(fontSize) + " Tf\n")
+	me.stream.WriteString("<" + buff.String() + "> Tj\n")
+	me.stream.WriteString("ET\n")
+	if rectangle == nil {
+		me.getRoot().Curr.X += 10 //TODO fix find real width
+	} else {
+		me.getRoot().Curr.X += rectangle.W
+	}
 }
 
 func (me *ContentObj) AppendStream(rectangle *Rect, text string) {

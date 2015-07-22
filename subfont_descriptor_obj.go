@@ -13,9 +13,8 @@ type SubfontDescriptorObj struct {
 	indexObjPdfDictionary int
 }
 
-func (me *SubfontDescriptorObj) Init(func() *GoPdf) {
+func (me *SubfontDescriptorObj) Init(func() *GoPdf) {}
 
-}
 func (me *SubfontDescriptorObj) GetType() string {
 	return "SubFontDescriptor"
 }

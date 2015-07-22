@@ -76,6 +76,14 @@ func (me *SubsetFontObj) CharIndex(r rune) (uint64, error) {
 	return 0, ErrCharNotFound
 }
 
+func (me *SubsetFontObj) CharWidth(r rune) (uint64, error) {
+	glyphIndex := me.CharacterToGlyphIndex
+	if index, ok := glyphIndex[r]; ok {
+		return me.GlyphIndexToPdfWidth(index), nil
+	}
+	return 0, ErrCharNotFound
+}
+
 func (me *SubsetFontObj) GetType() string {
 	return "SubsetFont"
 }

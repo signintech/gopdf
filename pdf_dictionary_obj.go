@@ -3,7 +3,6 @@ package gopdf
 import (
 	"bytes"
 	"compress/zlib"
-	"fmt"
 	"log"
 	"sort"
 	"strconv"
@@ -196,7 +195,7 @@ func (me *PdfDictionaryObj) makeFont() ([]byte, error) {
 			WriteBytes(&buff, data, 0, len(data))
 			//fmt.Printf(">>>>%#v\n%#v\n\n %d \n %d\n", entry, data, len(data), entry.CheckSum)
 		} else {
-			fmt.Printf("tag=%s offset=%d\n ", tags[idx], int(entry.Offset))
+			//fmt.Printf("tag=%s offset=%d\n ", tags[idx], int(entry.Offset))
 			WriteBytes(&buff, ttfp.FontData(), int(entry.Offset), entry.PaddedLength())
 		}
 		endPosition := buff.Position()

@@ -37,7 +37,7 @@ func (me *SubfontDescriptorObj) Build() {
 		DesignUnitsToPdf(ttfp.YMax(), ttfp.UnitsPerEm()),
 	))
 	me.buffer.WriteString(fmt.Sprintf("/FontFile2 %d 0 R\n", me.indexObjPdfDictionary+1))
-	me.buffer.WriteString(fmt.Sprintf("/FontName %s\n", CreateEmbeddedFontSubsetName(me.PtrToSubsetFontObj.GetFamily())))
+	me.buffer.WriteString(fmt.Sprintf("/FontName /%s\n", CreateEmbeddedFontSubsetName(me.PtrToSubsetFontObj.GetFamily())))
 	me.buffer.WriteString(fmt.Sprintf("/ItalicAngle %d\n", ttfp.ItalicAngle()))
 	me.buffer.WriteString("/StemV 0\n")
 	me.buffer.WriteString(fmt.Sprintf("/XHeight %d\n", DesignUnitsToPdf(ttfp.XHeight(), ttfp.UnitsPerEm())))

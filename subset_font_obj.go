@@ -23,7 +23,7 @@ func (me *SubsetFontObj) Init(funcGetRoot func() *GoPdf) {
 	me.CharacterToGlyphIndex = make(map[rune]uint64)
 }
 
-func (me *SubsetFontObj) Build() {
+func (me *SubsetFontObj) Build() error {
 	//me.AddChars("จ")
 	me.buffer.WriteString("<<\n")
 	me.buffer.WriteString(fmt.Sprintf("/BaseFont /%s\n", CreateEmbeddedFontSubsetName(me.Family)))
@@ -33,6 +33,7 @@ func (me *SubsetFontObj) Build() {
 	me.buffer.WriteString(fmt.Sprintf("/ToUnicode %d 0 R\n", me.indexObjUnicodeMap+1)) //TODO fix
 	me.buffer.WriteString("/Type /Font\n")
 	me.buffer.WriteString(">>\n")
+	return nil
 }
 
 func (me *SubsetFontObj) SetIndexObjCIDFont(index int) {

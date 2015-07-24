@@ -4,30 +4,31 @@ import (
 	"bytes"
 )
 
-type EncodingObj struct{
-	buffer    bytes.Buffer
-	font IFont
+type EncodingObj struct {
+	buffer bytes.Buffer
+	font   IFont
 }
 
-func (me * EncodingObj )Init( funcGetRoot func()(*GoPdf)){
-	
+func (me *EncodingObj) Init(funcGetRoot func() *GoPdf) {
+
 }
-func (me * EncodingObj )GetType() string {
+func (me *EncodingObj) GetType() string {
 	return "Encoding"
 }
-func (me * EncodingObj )GetObjBuff() *bytes.Buffer {
+func (me *EncodingObj) GetObjBuff() *bytes.Buffer {
 	return &me.buffer
 }
-func (me * EncodingObj ) Build(){
+func (me *EncodingObj) Build() error {
 	me.buffer.WriteString("<</Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [")
 	me.buffer.WriteString(me.font.GetDiff())
-	me.buffer.WriteString("]>>\n");
+	me.buffer.WriteString("]>>\n")
+	return nil
 }
 
-func (me * EncodingObj) SetFont(font IFont){
-	me.font  = font
+func (me *EncodingObj) SetFont(font IFont) {
+	me.font = font
 }
 
-func (me * EncodingObj) GetFont() IFont{
+func (me *EncodingObj) GetFont() IFont {
 	return me.font
 }

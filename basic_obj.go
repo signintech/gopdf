@@ -4,16 +4,17 @@ import (
 	"bytes"
 )
 
-type BasicObj struct{
-	buffer    bytes.Buffer
-	Data string
+type BasicObj struct {
+	buffer bytes.Buffer
+	Data   string
 }
 
-func (me *BasicObj) Init(funcGetRoot func()(*GoPdf)) {
+func (me *BasicObj) Init(funcGetRoot func() *GoPdf) {
 }
 
-func (me *BasicObj) Build() {
+func (me *BasicObj) Build() error {
 	me.buffer.WriteString(me.Data)
+	return nil
 }
 
 func (me *BasicObj) GetType() string {
@@ -23,5 +24,3 @@ func (me *BasicObj) GetType() string {
 func (me *BasicObj) GetObjBuff() *bytes.Buffer {
 	return &(me.buffer)
 }
-
-

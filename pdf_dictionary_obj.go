@@ -20,10 +20,11 @@ type PdfDictionaryObj struct {
 func (me *PdfDictionaryObj) Init(funcGetRoot func() *GoPdf) {
 }
 
-func (me *PdfDictionaryObj) Build() {
+func (me *PdfDictionaryObj) Build() error {
 	b, err := me.makeFont()
 	if err != nil {
-		log.Panicf("%s", err.Error())
+		//log.Panicf("%s", err.Error())
+		return err
 	}
 
 	//zipvar buff bytes.Buffer
@@ -31,8 +32,8 @@ func (me *PdfDictionaryObj) Build() {
 	gzipwriter := zlib.NewWriter(&zbuff)
 	_, err = gzipwriter.Write(b)
 	if err != nil {
-		log.Panicf("%s", err.Error())
-		return
+		//log.Panicf("%s", err.Error())
+		return err
 	}
 	gzipwriter.Close()
 
@@ -44,6 +45,7 @@ func (me *PdfDictionaryObj) Build() {
 	me.buffer.WriteString("stream\n")
 	me.buffer.Write(zbuff.Bytes())
 	me.buffer.WriteString("\nendstream\n")
+	return nil
 }
 
 func (me *PdfDictionaryObj) GetType() string {

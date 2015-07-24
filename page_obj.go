@@ -6,21 +6,21 @@ import (
 )
 
 type PageObj struct { //impl IObj
-	buffer   bytes.Buffer
-	Contents string
+	buffer          bytes.Buffer
+	Contents        string
 	ResourcesRelate string
 }
 
-func (me *PageObj) Init(funcGetRoot func()(*GoPdf)) {
+func (me *PageObj) Init(funcGetRoot func() *GoPdf) {
 
 }
 
-func (me *PageObj) Build(){
+func (me *PageObj) Build() error {
 
 	me.buffer.WriteString("<<\n")
 	me.buffer.WriteString("  /Type /" + me.GetType() + "\n")
 	me.buffer.WriteString("  /Parent 2 0 R\n")
-	me.buffer.WriteString("  /Resources "+me.ResourcesRelate+"\n")
+	me.buffer.WriteString("  /Resources " + me.ResourcesRelate + "\n")
 	/*me.buffer.WriteString("    /Font <<\n")
 	i := 0
 	max := len(me.Realtes)
@@ -33,6 +33,7 @@ func (me *PageObj) Build(){
 	//me.buffer.WriteString("  >>\n")
 	me.buffer.WriteString("  /Contents " + me.Contents + "\n") //sample  Contents 8 0 R
 	me.buffer.WriteString(">>\n")
+	return nil
 }
 
 func (me *PageObj) GetType() string {
@@ -42,6 +43,3 @@ func (me *PageObj) GetType() string {
 func (me *PageObj) GetObjBuff() *bytes.Buffer {
 	return &(me.buffer)
 }
-
-
-

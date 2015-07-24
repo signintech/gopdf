@@ -18,7 +18,7 @@ func (me *PagesObj) Init(funcGetRoot func() *GoPdf) {
 	me.getRoot = funcGetRoot
 }
 
-func (me *PagesObj) Build() {
+func (me *PagesObj) Build() error {
 
 	height := fmt.Sprintf("%0.2f", me.getRoot().config.PageSize.H)
 	width := fmt.Sprintf("%0.2f", me.getRoot().config.PageSize.W)
@@ -28,6 +28,7 @@ func (me *PagesObj) Build() {
 	me.buffer.WriteString("  /Count " + strconv.Itoa(me.PageCount) + "\n")
 	me.buffer.WriteString("  /Kids [ " + me.Kids + " ]\n") //sample Kids [ 3 0 R ]
 	me.buffer.WriteString(">>\n")
+	return nil
 }
 
 func (me *PagesObj) GetType() string {

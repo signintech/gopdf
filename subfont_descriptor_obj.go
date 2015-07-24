@@ -22,7 +22,7 @@ func (me *SubfontDescriptorObj) GetObjBuff() *bytes.Buffer {
 	return &me.buffer
 }
 
-func (me *SubfontDescriptorObj) Build() {
+func (me *SubfontDescriptorObj) Build() error {
 	ttfp := me.PtrToSubsetFontObj.GetTTFParser()
 	me.buffer.WriteString("<<\n")
 	me.buffer.WriteString("/Type /FontDescriptor\n")
@@ -42,6 +42,7 @@ func (me *SubfontDescriptorObj) Build() {
 	me.buffer.WriteString("/StemV 0\n")
 	me.buffer.WriteString(fmt.Sprintf("/XHeight %d\n", DesignUnitsToPdf(ttfp.XHeight(), ttfp.UnitsPerEm())))
 	me.buffer.WriteString(">>\n")
+	return nil
 }
 
 func (me *SubfontDescriptorObj) SetIndexObjPdfDictionary(index int) {

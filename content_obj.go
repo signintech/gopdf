@@ -19,7 +19,7 @@ func (me *ContentObj) Init(funcGetRoot func() *GoPdf) {
 	me.getRoot = funcGetRoot
 }
 
-func (me *ContentObj) Build() {
+func (me *ContentObj) Build() error {
 	streamlen := me.stream.Len()
 	me.buffer.WriteString("<<\n")
 	me.buffer.WriteString("/Length " + strconv.Itoa(streamlen) + "\n")
@@ -27,6 +27,7 @@ func (me *ContentObj) Build() {
 	me.buffer.WriteString("stream\n")
 	me.buffer.Write(me.stream.Bytes())
 	me.buffer.WriteString("endstream\n")
+	return nil
 }
 
 func (me *ContentObj) GetType() string {

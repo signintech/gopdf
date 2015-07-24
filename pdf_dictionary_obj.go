@@ -3,7 +3,7 @@ package gopdf
 import (
 	"bytes"
 	"compress/zlib"
-	"log"
+	"errors"
 	"sort"
 	"strconv"
 
@@ -11,6 +11,8 @@ import (
 )
 
 var EntrySelectors = []int{0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}
+
+var ErrNotSupportShortIndexYet = errors.New("not suport none short index yet!")
 
 type PdfDictionaryObj struct {
 	buffer             bytes.Buffer
@@ -178,8 +180,7 @@ func (me *PdfDictionaryObj) makeFont() ([]byte, error) {
 			WriteBytes(&buff, glyphTable, 0, entry.PaddedLength())
 		} else if tags[idx] == "loca" {
 			if !ttfp.IsShortIndex {
-				log.Fatalf("not suport none short index yet!")
-				return nil, nil
+				return nil, ErrNotSupportShortIndexYet
 			}
 			//entry.Offset = 0
 			entry.Length = uint64(len(locaTable) * 2)

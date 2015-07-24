@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	ioutil "io/ioutil"
+	"log"
 	"os"
 	//"container/list"
 	"fmt"
@@ -223,7 +224,7 @@ func (me *GoPdf) WritePdf(pdfPath string) {
 }
 
 //get bytes of pdf file
-func (me *GoPdf) GetBytesPdf() []byte {
+func (me *GoPdf) GetBytesPdfReturnErr() ([]byte, error) {
 	me.prepare()
 	buff := new(bytes.Buffer)
 	i := 0
@@ -233,7 +234,10 @@ func (me *GoPdf) GetBytesPdf() []byte {
 	for i < max {
 		linelens[i] = buff.Len()
 		pdfObj := me.pdfObjs[i]
-		pdfObj.Build()
+		err := pdfObj.Build()
+		if err != nil {
+			return nil, err
+		}
 		buff.WriteString(strconv.Itoa(i+1) + " 0 obj\n")
 		buffbyte := pdfObj.GetObjBuff().Bytes()
 		buff.Write(buffbyte)
@@ -241,7 +245,16 @@ func (me *GoPdf) GetBytesPdf() []byte {
 		i++
 	}
 	me.xref(linelens, buff, &i)
-	return buff.Bytes()
+	return buff.Bytes(), nil
+}
+
+//get bytes of pdf file
+func (me *GoPdf) GetBytesPdf() []byte {
+	b, err := me.GetBytesPdfReturnErr()
+	if err != nil {
+		log.Fatalf("%s", err.Error())
+	}
+	return b
 }
 
 //สร้าง cell ของ text

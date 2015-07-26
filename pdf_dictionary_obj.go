@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/zlib"
 	"errors"
+	"fmt"
 	"sort"
 	"strconv"
 
@@ -84,7 +85,7 @@ func (me *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 	}
 	glyf.Length = uint64(size)
 	//fmt.Printf("size---->%d\n", size)
-
+	fmt.Printf("------------>%d\n", glyf.PaddedLength())
 	glyphTable := make([]byte, glyf.PaddedLength())
 	locaTable := make([]int, numGlyphs+1)
 

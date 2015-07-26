@@ -71,7 +71,7 @@ func (me *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 
 	glyphs := me.completeGlyphClosure(me.PtrToSubsetFontObj.CharacterToGlyphIndex)
 	glyphCount := len(glyphs)
-
+	//fmt.Printf("glyphCount = %d\n", glyphCount)
 	//copy
 	var glyphArray []int
 	for _, v := range me.PtrToSubsetFontObj.CharacterToGlyphIndex {
@@ -84,8 +84,8 @@ func (me *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 		size += me.getGlyphSize(glyphArray[idx])
 	}
 	glyf.Length = uint64(size)
-	//fmt.Printf("size---->%d\n", size)
-	fmt.Printf("------------>%d\n", glyf.PaddedLength())
+	fmt.Printf("size---->%d\n", size)
+
 	glyphTable := make([]byte, glyf.PaddedLength())
 	locaTable := make([]int, numGlyphs+1)
 
@@ -103,6 +103,7 @@ func (me *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 				}
 				glyphOffset += length
 			}
+			//fmt.Printf("------------>numGlyphs = %d\n", numGlyphs)
 		}
 	} //end for
 	locaTable[numGlyphs] = glyphOffset
@@ -111,10 +112,13 @@ func (me *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 }
 
 func (me *PdfDictionaryObj) getGlyphSize(glyph int) int {
+
 	ttfp := me.PtrToSubsetFontObj.GetTTFParser()
 	glyf := ttfp.GetTables()["glyf"]
 	start := int(glyf.Offset + ttfp.LocaTable[glyph])
 	next := int(glyf.Offset + ttfp.LocaTable[glyph+1])
+	//fmt.Printf("\nglyf.Offset = %d, ttfp.LocaTable[%d] = %d  \n", glyf.Offset, glyph, ttfp.LocaTable[glyph])
+	//fmt.Printf("ttfp.LocaTable[%d+1] = %d  \n", glyph, ttfp.LocaTable[glyph+1])
 	return next - start
 }
 
@@ -178,6 +182,7 @@ func (me *PdfDictionaryObj) makeFont() ([]byte, error) {
 		if tags[idx] == "glyf" {
 			entry.Length = uint64(len(glyphTable))
 			entry.CheckSum = CheckSum(glyphTable)
+			//fmt.Printf("\n\n%d , %d\n", len(glyphTable), entry.PaddedLength())
 			WriteBytes(&buff, glyphTable, 0, entry.PaddedLength())
 		} else if tags[idx] == "loca" {
 			if !ttfp.IsShortIndex {
@@ -199,7 +204,16 @@ func (me *PdfDictionaryObj) makeFont() ([]byte, error) {
 			WriteBytes(&buff, data, 0, len(data))
 			//fmt.Printf(">>>>%#v\n%#v\n\n %d \n %d\n", entry, data, len(data), entry.CheckSum)
 		} else {
-			//fmt.Printf("tag=%s offset=%d\n ", tags[idx], int(entry.Offset))
+			//fmt.Printf("tag=%s offset=%d leg=%d\n ", tags[idx], int(entry.Offset), entry.PaddedLength())
+			/*if tags[idx] == "head" {
+				d := ttfp.FontData()
+				for i, v := range d {
+					fmt.Printf("[%d]=%d\n", i, v)
+					if i > 50 {
+						break
+					}
+				}
+			}*/
 			WriteBytes(&buff, ttfp.FontData(), int(entry.Offset), entry.PaddedLength())
 		}
 		endPosition := buff.Position()
@@ -215,7 +229,7 @@ func (me *PdfDictionaryObj) makeFont() ([]byte, error) {
 		tablePosition = endPosition
 		idx++
 	}
-	//DebugSubType(buff.Bytes())
+	DebugSubType(buff.Bytes())
 	//me.buffer.Write(buff.Bytes())
 	return buff.Bytes(), nil
 }

@@ -1,20 +1,6 @@
 package gopdf
 
-import "log"
-
-func DebugSubType(b []byte) {
-	//b := buff.Bytes()
-	var max = len(a)
-	var i = 0
-	for i < max {
-		if b[i] != a[i] {
-			log.Fatalf("line: %d  real = %d  my = %d\n", i, a[i], b[i])
-		}
-		i++
-	}
-}
-
-var a = []byte{
+var th = []byte{
 	0x00,
 	0x01,
 	0x00,

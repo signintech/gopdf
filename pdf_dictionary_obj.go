@@ -249,7 +249,7 @@ func (me *PdfDictionaryObj) makeFont() ([]byte, error) {
 		tablePosition = endPosition
 		idx++
 	}
-	DebugSubType(buff.Bytes())
+	//DebugSubType(buff.Bytes())
 	//me.buffer.Write(buff.Bytes())
 	return buff.Bytes(), nil
 }

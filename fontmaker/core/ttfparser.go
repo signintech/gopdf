@@ -19,13 +19,14 @@ var ERROR_INCORRECT_MAGIC_NUMBER = errors.New("Incorrect magic number")
 var ERROR_POSTSCRIPT_NAME_NOT_FOUND = errors.New("PostScript name not found")
 
 type TTFParser struct {
-	tables     map[string]TableDirectoryEntry
-	unitsPerEm uint64
-	xMin       int64
-	yMin       int64
-	xMax       int64
-	yMax       int64
-
+	tables map[string]TableDirectoryEntry
+	//head
+	unitsPerEm       uint64
+	xMin             int64
+	yMin             int64
+	xMax             int64
+	yMax             int64
+	indexToLocFormat int64
 	//Hhea
 	numberOfHMetrics uint64
 	ascender         int64
@@ -281,25 +282,43 @@ func (me *TTFParser) readFontData(fontpath string) ([]byte, error) {
 
 func (me *TTFParser) ParseLoca(fd *os.File) error {
 
+	me.IsShortIndex = false
+	if me.indexToLocFormat == 0 {
+		me.IsShortIndex = true
+	}
+
+	//fmt.Printf("indexToLocFormat = %d\n", me.indexToLocFormat)
 	err := me.Seek(fd, "loca")
 	if err != nil {
 		return err
 	}
-	table := me.tables["loca"]
-	entries := table.Length / 2
-	//do ShortIndex
 	var locaTable []uint64
-	i := uint64(0)
-	for i < entries {
-		item, err := me.ReadUShort(fd)
-		if err != nil {
-			return err
+	table := me.tables["loca"]
+	if me.IsShortIndex {
+		//do ShortIndex
+		entries := table.Length / 2
+		i := uint64(0)
+		for i < entries {
+			item, err := me.ReadUShort(fd)
+			if err != nil {
+				return err
+			}
+			locaTable = append(locaTable, item*2)
+			i++
 		}
-		locaTable = append(locaTable, item*2)
-		i++
+	} else {
+		entries := table.Length / 4
+		i := uint64(0)
+		for i < entries {
+			item, err := me.ReadULong(fd)
+			if err != nil {
+				return err
+			}
+			locaTable = append(locaTable, item)
+			i++
+		}
 	}
 	me.LocaTable = locaTable
-	me.IsShortIndex = true //hard code
 	return nil
 }
 
@@ -783,6 +802,16 @@ func (me *TTFParser) ParseHead(fd *os.File) error {
 	}
 
 	me.yMax, err = me.ReadShort(fd)
+	if err != nil {
+		return err
+	}
+
+	err = me.Skip(fd, 2*3) //skip macStyle,lowestRecPPEM,fontDirectionHint
+	if err != nil {
+		return err
+	}
+
+	me.indexToLocFormat, err = me.ReadShort(fd)
 	if err != nil {
 		return err
 	}

@@ -117,8 +117,9 @@ func (me *PdfDictionaryObj) getGlyphSize(glyph int) int {
 	glyf := ttfp.GetTables()["glyf"]
 	start := int(glyf.Offset + ttfp.LocaTable[glyph])
 	next := int(glyf.Offset + ttfp.LocaTable[glyph+1])
-	//fmt.Printf("\nglyf.Offset = %d, ttfp.LocaTable[%d] = %d  \n", glyf.Offset, glyph, ttfp.LocaTable[glyph])
-	//fmt.Printf("ttfp.LocaTable[%d+1] = %d  \n", glyph, ttfp.LocaTable[glyph+1])
+	fmt.Printf("\nglyf.Offset = %d, ttfp.LocaTable[%d] = %d  len(ttfp.LocaTable)=%d\n", glyf.Offset, glyph, ttfp.LocaTable[glyph], len(ttfp.LocaTable))
+	fmt.Printf("ttfp.LocaTable[%d+1] = %d  \n", glyph, ttfp.LocaTable[glyph+1])
+	//น่าจะผิดที่ ttfp.LocaTable
 	return next - start
 }
 

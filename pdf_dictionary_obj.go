@@ -186,20 +186,39 @@ func (me *PdfDictionaryObj) makeFont() ([]byte, error) {
 			//fmt.Printf("\n\n%d , %d\n", len(glyphTable), entry.PaddedLength())
 			WriteBytes(&buff, glyphTable, 0, entry.PaddedLength())
 		} else if tags[idx] == "loca" {
-			if !ttfp.IsShortIndex {
+			/*if !ttfp.IsShortIndex {
 				return nil, ErrNotSupportShortIndexYet
-			}
+			}*/
 			//entry.Offset = 0
-			entry.Length = uint64(len(locaTable) * 2)
+			if ttfp.IsShortIndex {
+				entry.Length = uint64(len(locaTable) * 2)
+			} else {
+				entry.Length = uint64(len(locaTable) * 4)
+			}
+
 			data := make([]byte, entry.PaddedLength())
 			length := len(locaTable)
 			byteIdx := 0
-			for idx := 0; idx < length; idx++ {
-				val := locaTable[idx] / 2
-				data[byteIdx] = byte(val >> 8)
-				byteIdx++
-				data[byteIdx] = byte(val)
-				byteIdx++
+			if ttfp.IsShortIndex {
+				for idx := 0; idx < length; idx++ {
+					val := locaTable[idx] / 2
+					data[byteIdx] = byte(val >> 8)
+					byteIdx++
+					data[byteIdx] = byte(val)
+					byteIdx++
+				}
+			} else {
+				for idx := 0; idx < length; idx++ {
+					val := locaTable[idx]
+					data[byteIdx] = byte(val >> 24)
+					byteIdx++
+					data[byteIdx] = byte(val >> 16)
+					byteIdx++
+					data[byteIdx] = byte(val >> 8)
+					byteIdx++
+					data[byteIdx] = byte(val)
+					byteIdx++
+				}
 			}
 			entry.CheckSum = CheckSum(data)
 			WriteBytes(&buff, data, 0, len(data))

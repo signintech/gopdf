@@ -64,6 +64,7 @@ type TTFParser struct {
 	EndCount      []uint64
 	IdRangeOffset []uint64
 	IdDelta       []uint64
+	GlyphIdArray  []uint64
 	symbol        bool
 	//data of font
 	cahceFontData []byte
@@ -581,7 +582,7 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 		return ERROR_NO_UNICODE_ENCODING_FOUND
 	}
 
-	var startCount, endCount, idDelta, idRangeOffset []uint64
+	var startCount, endCount, idDelta, idRangeOffset, glyphIdArray []uint64
 
 	_, err = fd.Seek(int64(me.tables["cmap"].Offset+offset31), 0)
 	if err != nil {
@@ -598,7 +599,13 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 		return ERROR_UNEXPECTED_SUBTABLE_FORMAT
 	}
 
-	err = me.Skip(fd, 2*2) // length, language
+	length, err := me.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+	//fmt.Printf("\nlength=%d\n", length)
+
+	err = me.Skip(fd, 2) // language
 	if err != nil {
 		return err
 	}
@@ -612,6 +619,9 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 	if err != nil {
 		return err
 	}
+
+	glyphCount := (length - (16 + 8*segCount)) / 2
+	//fmt.Printf("\nglyphCount=%d\n", glyphCount)
 
 	for i := 0; i < int(segCount); i++ {
 		tmp, err := me.ReadUShort(fd)
@@ -657,7 +667,16 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 		idRangeOffset = append(idRangeOffset, tmp)
 	}
 	me.IdRangeOffset = idRangeOffset
-	//fmt.Printf("%d\n\n\n", offset)
+	//_ = glyphIdArray
+	for i := 0; i < int(glyphCount); i++ {
+		tmp, err := me.ReadUShort(fd)
+		if err != nil {
+			return err
+		}
+		glyphIdArray = append(glyphIdArray, tmp)
+	}
+	me.GlyphIdArray = glyphIdArray
+
 	me.chars = make(map[int]uint64)
 	for i := 0; i < int(segCount); i++ {
 		c1 := startCount[i]
@@ -696,8 +715,10 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 				me.chars[int(c)] = gid
 			}
 		}
-		//fmt.Printf("%#v\n\n", me.chars)
+
 	}
+	fmt.Printf("len() = %d , me.chars[10] = %d , me.chars[56]  = %d \n", len(me.chars), me.chars[10], me.chars[56])
+	fmt.Printf("len() = %d , me.chars[99] = %d , me.chars[107]  = %d \n\n", len(me.chars), me.chars[99], me.chars[107])
 	return nil
 }
 

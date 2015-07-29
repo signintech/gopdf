@@ -3,7 +3,6 @@ package gopdf
 import (
 	"bytes"
 	"fmt"
-	"log"
 
 	"github.com/signintech/gopdf/fontmaker/core"
 )
@@ -104,7 +103,7 @@ func (me *SubsetFontObj) CharCodeToGlyphIndex(r rune) uint64 {
 		}
 		seg++
 	}
-
+	//fmt.Printf("\ncccc--->%#v\n", me.ttfp.Chars())
 	if value < me.ttfp.StartCount[seg] {
 		return 0
 	}
@@ -112,9 +111,14 @@ func (me *SubsetFontObj) CharCodeToGlyphIndex(r rune) uint64 {
 	if me.ttfp.IdRangeOffset[seg] == 0 {
 		return (value + me.ttfp.IdDelta[seg]) & 0xFFFF
 	}
-	//idx := uint64(ttfp.IdRangeOffset[seg]/2 + (value - ttfp.StartCount[seg]) - (segCount - seg))
-	log.Panic("unsupport yet!")
-	return 0
+	//fmt.Printf("IdRangeOffset=%d\n", me.ttfp.IdRangeOffset[seg])
+	idx := me.ttfp.IdRangeOffset[seg]/2 + (value - me.ttfp.StartCount[seg]) - (segCount - seg)
+
+	if me.ttfp.GlyphIdArray[int(idx)] == uint64(0) {
+		return 0
+	}
+
+	return (me.ttfp.GlyphIdArray[int(idx)] + me.ttfp.IdDelta[seg]) & 0xFFFF
 }
 
 func (me *SubsetFontObj) GlyphIndexToPdfWidth(glyphIndex uint64) uint64 {

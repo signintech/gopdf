@@ -199,6 +199,7 @@ func (me *GoPdf) SetFont(family string, style string, size int) error {
 					if sub.GetFamily() == family {
 						me.Curr.Font_Size = size
 						me.Curr.Font_Style = style
+						me.Curr.Font_FontCount = sub.CountOfFont
 						me.Curr.Font_Type = CURRENT_FONT_TYPE_SUBSET
 						me.Curr.Font_IFont = nil
 						me.Curr.Font_ISubset = sub

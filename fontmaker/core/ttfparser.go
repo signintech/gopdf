@@ -717,8 +717,8 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 		}
 
 	}
-	fmt.Printf("len() = %d , me.chars[10] = %d , me.chars[56]  = %d \n", len(me.chars), me.chars[10], me.chars[56])
-	fmt.Printf("len() = %d , me.chars[99] = %d , me.chars[107]  = %d \n\n", len(me.chars), me.chars[99], me.chars[107])
+	//fmt.Printf("len() = %d , me.chars[10] = %d , me.chars[56]  = %d \n", len(me.chars), me.chars[10], me.chars[56])
+	//fmt.Printf("len() = %d , me.chars[99] = %d , me.chars[107]  = %d \n\n", len(me.chars), me.chars[99], me.chars[107])
 	return nil
 }
 

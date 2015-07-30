@@ -73,6 +73,10 @@ type TTFParser struct {
 var Symbolic = 1 << 2
 var Nonsymbolic = (1 << 5)
 
+func (me *TTFParser) UnderlinePosition() int64 {
+	return me.underlinePosition
+}
+
 func (me *TTFParser) XHeight() int64 {
 	if me.os2Version >= 2 && me.sxHeight != 0 {
 		return me.sxHeight

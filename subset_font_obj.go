@@ -139,3 +139,7 @@ func (me *SubsetFontObj) GlyphIndexToPdfWidth(glyphIndex uint64) uint64 {
 func (me *SubsetFontObj) GetTTFParser() *core.TTFParser {
 	return &me.ttfp
 }
+
+func (me *SubsetFontObj) GetUt() int64 {
+	return me.ttfp.UnderlinePosition()
+}

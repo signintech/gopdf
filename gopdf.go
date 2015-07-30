@@ -167,7 +167,7 @@ func (me *GoPdf) Start(config Config) {
 	me.indexOfProcSet = me.addObj(procset)
 }
 
-//set font
+//set font style support "" or "U"
 func (me *GoPdf) SetFont(family string, style string, size int) error {
 
 	found := false

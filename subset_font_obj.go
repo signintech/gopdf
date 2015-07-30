@@ -141,5 +141,5 @@ func (me *SubsetFontObj) GetTTFParser() *core.TTFParser {
 }
 
 func (me *SubsetFontObj) GetUt() int64 {
-	return me.ttfp.UnderlinePosition()
+	return me.ttfp.UnderlineThickness()
 }

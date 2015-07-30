@@ -102,11 +102,6 @@ func (me *ContentObj) AppendUnderline(startX float64, y float64, endX float64, e
 
 	h := me.getRoot().config.PageSize.H
 	ut := int(0)
-	/*if me.GetType() == "SubsetFont" {
-		ut = int(me.getRoot().Curr.Font_ISubset.GetUt())
-	} else {
-		ut = me.getRoot().Curr.Font_IFont.GetUt()
-	}*/
 	if me.getRoot().Curr.Font_IFont != nil {
 		ut = me.getRoot().Curr.Font_IFont.GetUt()
 	} else if me.getRoot().Curr.Font_ISubset != nil {
@@ -115,13 +110,10 @@ func (me *ContentObj) AppendUnderline(startX float64, y float64, endX float64, e
 		log.Fatal("error AppendUnderline not found font")
 	}
 
-	//up := me.getRoot().Curr.Font_IFont.GetUp()
 	textH := ContentObj_CalTextHeight(me.getRoot().Curr.Font_Size)
 	arg3 := float64(h) - float64(y) - textH - textH*0.07
 	arg4 := (float64(ut) / 1000.00) * float64(me.getRoot().Curr.Font_Size)
 	me.stream.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f -%0.2f re f\n", startX, arg3, endX-startX, arg4))
-
-	//fmt.Printf(" ut : %d  arg4 : -%0.2f", ut,arg4)
 }
 
 func (me *ContentObj) AppendStreamSetLineWidth(w float64) {

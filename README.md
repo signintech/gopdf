@@ -4,8 +4,8 @@ gopdf
 A simple library for generating PDF written in Go lang.
 
 <strike>Use [fpdfGo](https://github.com/signintech/fpdfGo) to generate fonts.</strike><br />
-Use fontmaker to generate fonts.<br />
-Sample code [here](https://github.com/oneplus1000/gopdfusecase) 
+<strike>Use fontmaker to generate fonts.</strike><br />
+Sample code [here](https://github.com/oneplus1000/gopdfusecase)
 
 ####Installation
  ```
@@ -17,36 +17,37 @@ Sample code [here](https://github.com/oneplus1000/gopdfusecase)
   package main
   import (
 	"fmt"
-	iconv "github.com/djimenez/iconv-go"
 	"github.com/signintech/gopdf"
-	"github.com/signintech/gopdf/fonts"
   )
 
   func main() {
 
-	pdf := gopdf.GoPdf{}
-	pdf.Start(gopdf.Config{Unit: "pt", PageSize: gopdf.Rect{W: 595.28, H: 841.89}}) //A4
-	pdf.AddFont("THSarabunPSK",new(fonts.THSarabun),"THSarabun.z")
-	pdf.AddFont("Loma",new(fonts.Loma),"Loma.z")
-	pdf.AddPage()
-	pdf.SetFont("THSarabunPSK","B",14)
-	pdf.Cell(nil,   ToCp874("Hello world  = สวัสดี โลก in thai"))
-	pdf.WritePdf("x.pdf")
-	fmt.Println("Done...")
+    pdf := gopdf.GoPdf{}
+    pdf.Start(gopdf.Config{Unit: "pt", PageSize: gopdf.Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+    pdf.AddPage()
+    var err error
+    err = pdf.AddTTFFont("HDZB_5","/path/wts11.ttf")
+    if err != nil {
+        log.Printf("%s", err.Error())
+        return
+    }
+    err = pdf.SetFont("HDZB_5", "U", 14)
+	if err != nil {
+		log.Printf("ERROR:%s\n", err.Error())
+		return
+	}
+	pdf.Cell(nil, "您好")
+    pdf.WritePdf("result.pdf")
   }
 
-  func ToCp874(str string) string{
-	str, _ = iconv.ConvertString( str, "utf-8", "cp874") 
-	return  str
-  }
-	
+
   ```
 gopdf / fontmaker
 ======
 fontmaker is a font making tool for gopdf.
 
 ####Build fontmaker
-######open terminal 
+######open terminal
   ```
   $ cd {GOPATH}/src/github.com/signintech/gopdf/fontmaker
 
@@ -59,7 +60,7 @@ fontmaker is a font making tool for gopdf.
 ####Example:
 ######run command
   ```
-  fontmaker  cp874  /gopath/github.com/signintech/gopdf/fontmaker/map   ../ttf/Loma.ttf  ./tmp 
+  fontmaker  cp874  /gopath/github.com/signintech/gopdf/fontmaker/map   ../ttf/Loma.ttf  ./tmp
   ```
 ######result  
   ```
@@ -67,4 +68,3 @@ fontmaker is a font making tool for gopdf.
   Save GO file at ./tmp/Loma.font.go.
   Finish.
   ```
-

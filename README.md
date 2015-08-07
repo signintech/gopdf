@@ -1,11 +1,7 @@
-gopdf
-=====
-
 gopdf is a simple library for generating PDF document written in Go lang.
 
 
-
-####Changelogs
+##Changelogs
 
 **2015-08-07**
 
@@ -13,12 +9,12 @@ gopdf is a simple library for generating PDF document written in Go lang.
 - No longer need to create font maps.
 
 
-####Installation
+##Installation
  ```
  go get github.com/signintech/gopdf
  ```
 
-####Sample code
+##Sample code
 
   ```go
   package main

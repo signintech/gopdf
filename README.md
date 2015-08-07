@@ -1,18 +1,25 @@
 gopdf
 =====
 
-A simple library for generating PDF written in Go lang.
+gopdf is a simple library for generating PDF document written in Go lang.
 
-<strike>Use [fpdfGo](https://github.com/signintech/fpdfGo) to generate fonts.</strike><br />
-<strike>Use fontmaker to generate fonts.</strike><br />
-Sample code [here](https://github.com/oneplus1000/gopdfsample)
+
+
+####Changelogs
+
+**2015-08-07**
+
+- Add support for Unicode subfont embedding. (Chinese, Korean and Japanese fonts are now supported.)
+- No longer need to create font maps.
+
 
 ####Installation
  ```
  go get github.com/signintech/gopdf
  ```
 
-####Example
+####Sample code
+
   ```go
   package main
   import (
@@ -25,15 +32,15 @@ Sample code [here](https://github.com/oneplus1000/gopdfsample)
     pdf := gopdf.GoPdf{}
     pdf.Start(gopdf.Config{Unit: "pt", PageSize: gopdf.Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
     pdf.AddPage()
-    var err error
-    err = pdf.AddTTFFont("HDZB_5", "../ttf/wts11.ttf")
+    err := pdf.AddTTFFont("HDZB_5", "../ttf/wts11.ttf")
     if err != nil {
-        log.Printf("%s", err.Error())
+        log.Print(err.Error())
         return
     }
+    
     err = pdf.SetFont("HDZB_5", "", 14)
     if err != nil {
-        log.Printf("ERROR:%s\n", err.Error())
+        log.Print(err.Error())
         return
     }
     pdf.Cell(nil, "您好")
@@ -41,5 +48,6 @@ Sample code [here](https://github.com/oneplus1000/gopdfsample)
 
   }
 
-
   ```
+  
+visit https://github.com/oneplus1000/gopdfsample for more samples.

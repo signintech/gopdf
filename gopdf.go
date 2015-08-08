@@ -12,6 +12,7 @@ import (
 	"strings"
 )
 
+//GoPdf : A simple library for generating PDF written in Go lang
 type GoPdf struct {
 
 	//page Margin
@@ -40,52 +41,58 @@ type GoPdf struct {
 	//IsUnderline bool
 }
 
-/*---public---*/
-//line width
-func (me *GoPdf) SetLineWidth(width float64) {
-	me.getContent().AppendStreamSetLineWidth(width)
+//SetLineWidth : set line width
+func (gp *GoPdf) SetLineWidth(width float64) {
+	gp.getContent().AppendStreamSetLineWidth(width)
 }
 
-//วาดเส้น
-func (me *GoPdf) Line(x1 float64, y1 float64, x2 float64, y2 float64) {
-	me.getContent().AppendStreamLine(x1, y1, x2, y2)
+//Line : draw line
+func (gp *GoPdf) Line(x1 float64, y1 float64, x2 float64, y2 float64) {
+	gp.getContent().AppendStreamLine(x1, y1, x2, y2)
 }
 
-//ขึ้นบรรทัดใหม่
-func (me *GoPdf) Br(h float64) {
-	me.Curr.Y += h
-	me.Curr.X = me.leftMargin
+//Br : new line
+func (gp *GoPdf) Br(h float64) {
+	gp.Curr.Y += h
+	gp.Curr.X = gp.leftMargin
 }
 
-func (me *GoPdf) SetLeftMargin(margin float64) {
-	me.leftMargin = margin
+//SetLeftMargin : set left margin
+func (gp *GoPdf) SetLeftMargin(margin float64) {
+	gp.leftMargin = margin
 }
 
-func (me *GoPdf) SetTopMargin(margin float64) {
-	me.topMargin = margin
+//SetTopMargin : set top margin
+func (gp *GoPdf) SetTopMargin(margin float64) {
+	gp.topMargin = margin
 }
 
-func (me *GoPdf) SetX(x float64) {
-	me.Curr.X = x
+//SetX : set current position X
+func (gp *GoPdf) SetX(x float64) {
+	gp.Curr.X = x
 }
 
-func (me *GoPdf) GetX() float64 {
-	return me.Curr.X
+//GetX : get current position X
+func (gp *GoPdf) GetX() float64 {
+	return gp.Curr.X
 }
 
-func (me *GoPdf) SetY(y float64) {
-	me.Curr.Y = y
+//SetY : set current position y
+func (gp *GoPdf) SetY(y float64) {
+	gp.Curr.Y = y
 }
 
-func (me *GoPdf) GetY() float64 {
-	return me.Curr.Y
+//GetY : get current position y
+func (gp *GoPdf) GetY() float64 {
+	return gp.Curr.Y
 }
 
-func (me *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) {
+//Image : draw image
+func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) {
 
 	//check
 	cacheImageIndex := -1
-	for _, imgcache := range me.Curr.ImgCaches {
+	for _, imgcache := range gp.Curr.ImgCaches {
 		if picPath == imgcache.Path {
 			cacheImageIndex = imgcache.Index
 			break
@@ -95,7 +102,7 @@ func (me *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) {
 	//create img object
 	imgobj := new(ImageObj)
 	imgobj.Init(func() *GoPdf {
-		return me
+		return gp
 	})
 	imgobj.SetImagePath(picPath)
 	if rect == nil {
@@ -104,84 +111,84 @@ func (me *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) {
 
 	if cacheImageIndex == -1 { //new image
 
-		index := me.addObj(imgobj)
-		if me.indexOfProcSet != -1 {
+		index := gp.addObj(imgobj)
+		if gp.indexOfProcSet != -1 {
 			//ยัดรูป
-			procset := me.pdfObjs[me.indexOfProcSet].(*ProcSetObj)
-			me.getContent().AppendStreamImage(me.Curr.CountOfImg, x, y, rect)
+			procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
+			gp.getContent().AppendStreamImage(gp.Curr.CountOfImg, x, y, rect)
 			procset.RealteXobjs = append(procset.RealteXobjs, RealteXobject{IndexOfObj: index})
 			//เก็บข้อมูลรูปเอาไว้
 			var imgcache ImageCache
-			imgcache.Index = me.Curr.CountOfImg
+			imgcache.Index = gp.Curr.CountOfImg
 			imgcache.Path = picPath
-			me.Curr.ImgCaches = append(me.Curr.ImgCaches, imgcache)
-			me.Curr.CountOfImg++
+			gp.Curr.ImgCaches = append(gp.Curr.ImgCaches, imgcache)
+			gp.Curr.CountOfImg++
 		}
 
-	} else { //same img
-		me.getContent().AppendStreamImage(cacheImageIndex, x, y, rect)
+	} else { //sagp img
+		gp.getContent().AppendStreamImage(cacheImageIndex, x, y, rect)
 	}
 
 }
 
-//เพิ่ม page
-func (me *GoPdf) AddPage() {
+//AddPage : add new page
+func (gp *GoPdf) AddPage() {
 	page := new(PageObj)
 	page.Init(func() *GoPdf {
-		return me
+		return gp
 	})
-	page.ResourcesRelate = strconv.Itoa(me.indexOfProcSet+1) + " 0 R"
-	index := me.addObj(page)
-	if me.indexOfFirstPageObj == -1 {
-		me.indexOfFirstPageObj = index
+	page.ResourcesRelate = strconv.Itoa(gp.indexOfProcSet+1) + " 0 R"
+	index := gp.addObj(page)
+	if gp.indexOfFirstPageObj == -1 {
+		gp.indexOfFirstPageObj = index
 	}
-	me.Curr.IndexOfPageObj = index
+	gp.Curr.IndexOfPageObj = index
 
 	//reset
-	me.indexOfContent = -1
-	me.resetCurrXY()
+	gp.indexOfContent = -1
+	gp.resetCurrXY()
 }
 
-//เริ่ม
-func (me *GoPdf) Start(config Config) {
+//Start : init gopdf
+func (gp *GoPdf) Start(config Config) {
 
-	me.config = config
-	me.init()
+	gp.config = config
+	gp.init()
 	//สร้าง obj พื้นฐาน
 	catalog := new(CatalogObj)
 	catalog.Init(func() *GoPdf {
-		return me
+		return gp
 	})
 	pages := new(PagesObj)
 	pages.Init(func() *GoPdf {
-		return me
+		return gp
 	})
-	me.addObj(catalog)
-	me.indexOfPagesObj = me.addObj(pages)
+	gp.addObj(catalog)
+	gp.indexOfPagesObj = gp.addObj(pages)
 
 	//indexOfProcSet
 	procset := new(ProcSetObj)
 	procset.Init(func() *GoPdf {
-		return me
+		return gp
 	})
-	me.indexOfProcSet = me.addObj(procset)
+	gp.indexOfProcSet = gp.addObj(procset)
 }
 
-//set font style support "" or "U"
-func (me *GoPdf) SetFont(family string, style string, size int) error {
+//SetFont : set font style support "" or "U"
+func (gp *GoPdf) SetFont(family string, style string, size int) error {
 
 	found := false
 	i := 0
-	max := len(me.indexEncodingObjFonts)
+	max := len(gp.indexEncodingObjFonts)
 	for i < max {
-		ifont := me.pdfObjs[me.indexEncodingObjFonts[i]].(*EncodingObj).GetFont()
+		ifont := gp.pdfObjs[gp.indexEncodingObjFonts[i]].(*EncodingObj).GetFont()
 		if ifont.GetFamily() == family {
-			me.Curr.Font_Size = size
-			me.Curr.Font_Style = style
-			me.Curr.Font_FontCount = me.pdfObjs[me.indexEncodingObjFonts[i]+4].(*FontObj).CountOfFont
-			me.Curr.Font_Type = CURRENT_FONT_TYPE_IFONT
-			me.Curr.Font_IFont = ifont
-			me.Curr.Font_ISubset = nil
+			gp.Curr.Font_Size = size
+			gp.Curr.Font_Style = style
+			gp.Curr.Font_FontCount = gp.pdfObjs[gp.indexEncodingObjFonts[i]+4].(*FontObj).CountOfFont
+			gp.Curr.Font_Type = CURRENT_FONT_TYPE_IFONT
+			gp.Curr.Font_IFont = ifont
+			gp.Curr.Font_ISubset = nil
 			found = true
 			break
 		}
@@ -190,19 +197,19 @@ func (me *GoPdf) SetFont(family string, style string, size int) error {
 
 	if !found { //find SubsetFont
 		i = 0
-		max = len(me.pdfObjs)
+		max = len(gp.pdfObjs)
 		for i < max {
-			if me.pdfObjs[i].GetType() == "SubsetFont" {
-				obj := me.pdfObjs[i]
+			if gp.pdfObjs[i].GetType() == "SubsetFont" {
+				obj := gp.pdfObjs[i]
 				sub, ok := obj.(*SubsetFontObj)
 				if ok {
 					if sub.GetFamily() == family {
-						me.Curr.Font_Size = size
-						me.Curr.Font_Style = style
-						me.Curr.Font_FontCount = sub.CountOfFont
-						me.Curr.Font_Type = CURRENT_FONT_TYPE_SUBSET
-						me.Curr.Font_IFont = nil
-						me.Curr.Font_ISubset = sub
+						gp.Curr.Font_Size = size
+						gp.Curr.Font_Style = style
+						gp.Curr.Font_FontCount = sub.CountOfFont
+						gp.Curr.Font_Type = CURRENT_FONT_TYPE_SUBSET
+						gp.Curr.Font_IFont = nil
+						gp.Curr.Font_ISubset = sub
 						found = true
 						break
 					}
@@ -219,22 +226,22 @@ func (me *GoPdf) SetFont(family string, style string, size int) error {
 	return nil
 }
 
-//create pdf file
-func (me *GoPdf) WritePdf(pdfPath string) {
-	ioutil.WriteFile(pdfPath, me.GetBytesPdf(), 0644)
+//WritePdf : wirte pdf file
+func (gp *GoPdf) WritePdf(pdfPath string) {
+	ioutil.WriteFile(pdfPath, gp.GetBytesPdf(), 0644)
 }
 
-//get bytes of pdf file
-func (me *GoPdf) GetBytesPdfReturnErr() ([]byte, error) {
-	me.prepare()
+//GetBytesPdfReturnErr : get bytes of pdf file
+func (gp *GoPdf) GetBytesPdfReturnErr() ([]byte, error) {
+	gp.prepare()
 	buff := new(bytes.Buffer)
 	i := 0
-	max := len(me.pdfObjs)
+	max := len(gp.pdfObjs)
 	buff.WriteString("%PDF-1.7\n\n")
 	linelens := make([]int, max)
 	for i < max {
 		linelens[i] = buff.Len()
-		pdfObj := me.pdfObjs[i]
+		pdfObj := gp.pdfObjs[i]
 		err := pdfObj.Build()
 		if err != nil {
 			return nil, err
@@ -245,45 +252,45 @@ func (me *GoPdf) GetBytesPdfReturnErr() ([]byte, error) {
 		buff.WriteString("endobj\n\n")
 		i++
 	}
-	me.xref(linelens, buff, &i)
+	gp.xref(linelens, buff, &i)
 	return buff.Bytes(), nil
 }
 
-//get bytes of pdf file
-func (me *GoPdf) GetBytesPdf() []byte {
-	b, err := me.GetBytesPdfReturnErr()
+//GetBytesPdf : get bytes of pdf file
+func (gp *GoPdf) GetBytesPdf() []byte {
+	b, err := gp.GetBytesPdfReturnErr()
 	if err != nil {
 		log.Fatalf("%s", err.Error())
 	}
 	return b
 }
 
-//สร้าง cell ของ text
+//Cell : create cell of text
 //Note that this has no effect on Rect.H pdf (now). Fix later :-)
-func (me *GoPdf) Cell(rectangle *Rect, text string) {
+func (gp *GoPdf) Cell(rectangle *Rect, text string) {
 
-	//undelineOffset := ContentObj_CalTextHeight(me.Curr.Font_Size) + 1
-	startX := me.Curr.X
-	startY := me.Curr.Y
-	if me.Curr.Font_Type == CURRENT_FONT_TYPE_IFONT {
-		me.getContent().AppendStream(rectangle, text)
-	} else if me.Curr.Font_Type == CURRENT_FONT_TYPE_SUBSET {
-		me.Curr.Font_ISubset.AddChars(text)
-		me.getContent().AppendStreamSubsetFont(rectangle, text)
+	//undelineOffset := ContentObj_CalTextHeight(gp.Curr.Font_Size) + 1
+	startX := gp.Curr.X
+	startY := gp.Curr.Y
+	if gp.Curr.Font_Type == CURRENT_FONT_TYPE_IFONT {
+		gp.getContent().AppendStream(rectangle, text)
+	} else if gp.Curr.Font_Type == CURRENT_FONT_TYPE_SUBSET {
+		gp.Curr.Font_ISubset.AddChars(text)
+		gp.getContent().AppendStreamSubsetFont(rectangle, text)
 	}
-	endX := me.Curr.X
-	endY := me.Curr.Y
+	endX := gp.Curr.X
+	endY := gp.Curr.Y
 
 	//underline
-	if strings.Contains(strings.ToUpper(me.Curr.Font_Style), "U") {
-		//me.Line(x1,y1+undelineOffset,x2,y2+undelineOffset)
-		me.getContent().AppendUnderline(startX, startY, endX, endY, text)
+	if strings.Contains(strings.ToUpper(gp.Curr.Font_Style), "U") {
+		//gp.Line(x1,y1+undelineOffset,x2,y2+undelineOffset)
+		gp.getContent().AppendUnderline(startX, startY, endX, endY, text)
 	}
 
 }
 
-//AddTTFFont font use subtype font
-func (me *GoPdf) AddTTFFont(family string, ttfpath string) error {
+//AddTTFFont : font use subtype font
+func (gp *GoPdf) AddTTFFont(family string, ttfpath string) error {
 
 	if _, err := os.Stat(ttfpath); os.IsNotExist(err) {
 		return err
@@ -291,7 +298,7 @@ func (me *GoPdf) AddTTFFont(family string, ttfpath string) error {
 
 	subsetFont := new(SubsetFontObj)
 	subsetFont.Init(func() *GoPdf {
-		return me
+		return gp
 	})
 	subsetFont.SetFamily(family)
 	err := subsetFont.SetTTFByPath(ttfpath)
@@ -301,94 +308,94 @@ func (me *GoPdf) AddTTFFont(family string, ttfpath string) error {
 
 	unicodemap := new(UnicodeMap)
 	unicodemap.Init(func() *GoPdf {
-		return me
+		return gp
 	})
 	unicodemap.SetPtrToSubsetFontObj(subsetFont)
-	unicodeindex := me.addObj(unicodemap)
+	unicodeindex := gp.addObj(unicodemap)
 
 	pdfdic := new(PdfDictionaryObj)
 	pdfdic.Init(func() *GoPdf {
-		return me
+		return gp
 	})
 	pdfdic.SetPtrToSubsetFontObj(subsetFont)
-	pdfdicindex := me.addObj(pdfdic)
+	pdfdicindex := gp.addObj(pdfdic)
 
 	subfontdesc := new(SubfontDescriptorObj)
 	subfontdesc.Init(func() *GoPdf {
-		return me
+		return gp
 	})
 	subfontdesc.SetPtrToSubsetFontObj(subsetFont)
 	subfontdesc.SetIndexObjPdfDictionary(pdfdicindex)
-	subfontdescindex := me.addObj(subfontdesc)
+	subfontdescindex := gp.addObj(subfontdesc)
 
 	cidfont := new(CIDFontObj)
 	cidfont.Init(func() *GoPdf {
-		return me
+		return gp
 	})
 	cidfont.SetPtrToSubsetFontObj(subsetFont)
 	cidfont.SetIndexObjSubfontDescriptor(subfontdescindex)
-	cidindex := me.addObj(cidfont)
+	cidindex := gp.addObj(cidfont)
 
 	subsetFont.SetIndexObjCIDFont(cidindex)
 	subsetFont.SetIndexObjUnicodeMap(unicodeindex)
-	index := me.addObj(subsetFont) //add หลังสุด
+	index := gp.addObj(subsetFont) //add หลังสุด
 
-	if me.indexOfProcSet != -1 {
-		procset := me.pdfObjs[me.indexOfProcSet].(*ProcSetObj)
+	if gp.indexOfProcSet != -1 {
+		procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
 		if !procset.Realtes.IsContainsFamily(family) {
-			procset.Realtes = append(procset.Realtes, RelateFont{Family: family, IndexOfObj: index, CountOfFont: me.Curr.CountOfFont})
-			subsetFont.CountOfFont = me.Curr.CountOfFont
-			me.Curr.CountOfFont++
+			procset.Realtes = append(procset.Realtes, RelateFont{Family: family, IndexOfObj: index, CountOfFont: gp.Curr.CountOfFont})
+			subsetFont.CountOfFont = gp.Curr.CountOfFont
+			gp.Curr.CountOfFont++
 		}
 	}
 	return nil
 }
 
-//AddFont user embed font in zfont file ( deprecated remove some day )
-func (me *GoPdf) AddFont(family string, ifont IFont, zfontpath string) {
+//AddFont : user embed font in zfont file ( deprecated remove sogp day )
+func (gp *GoPdf) AddFont(family string, ifont IFont, zfontpath string) {
 	encoding := new(EncodingObj)
 	ifont.Init()
 	ifont.SetFamily(family)
 	encoding.SetFont(ifont)
-	me.indexEncodingObjFonts = append(me.indexEncodingObjFonts, me.addObj(encoding))
+	gp.indexEncodingObjFonts = append(gp.indexEncodingObjFonts, gp.addObj(encoding))
 
 	fontWidth := new(BasicObj)
 	fontWidth.Init(func() *GoPdf {
-		return me
+		return gp
 	})
 	fontWidth.Data = "[" + FontConvertHelper_Cw2Str(ifont.GetCw()) + "]\n"
-	me.addObj(fontWidth) //1
+	gp.addObj(fontWidth) //1
 
 	fontDesc := new(FontDescriptorObj)
 	fontDesc.Init(func() *GoPdf {
-		return me
+		return gp
 	})
 	fontDesc.SetFont(ifont)
-	me.addObj(fontDesc) //2
+	gp.addObj(fontDesc) //2
 
 	embedfont := new(EmbedFontObj)
 	embedfont.Init(func() *GoPdf {
-		return me
+		return gp
 	})
 	embedfont.SetFont(ifont, zfontpath)
-	index := me.addObj(embedfont) //3
+	index := gp.addObj(embedfont) //3
 
 	fontDesc.SetFontFileObjRelate(strconv.Itoa(index+1) + " 0 R")
 
 	//start add font obj
 	font := new(FontObj)
 	font.Init(func() *GoPdf {
-		return me
+		return gp
 	})
 	font.Family = family
 	font.Font = ifont
-	index = me.addObj(font) //4
-	if me.indexOfProcSet != -1 {
-		procset := me.pdfObjs[me.indexOfProcSet].(*ProcSetObj)
+	index = gp.addObj(font) //4
+	if gp.indexOfProcSet != -1 {
+		procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
 		if !procset.Realtes.IsContainsFamily(family) {
-			procset.Realtes = append(procset.Realtes, RelateFont{Family: family, IndexOfObj: index, CountOfFont: me.Curr.CountOfFont})
-			font.CountOfFont = me.Curr.CountOfFont
-			me.Curr.CountOfFont++
+			procset.Realtes = append(procset.Realtes, RelateFont{Family: family, IndexOfObj: index, CountOfFont: gp.Curr.CountOfFont})
+			font.CountOfFont = gp.Curr.CountOfFont
+			gp.Curr.CountOfFont++
 		}
 	}
 	//end add font obj
@@ -397,45 +404,45 @@ func (me *GoPdf) AddFont(family string, ifont IFont, zfontpath string) {
 /*---private---*/
 
 //init
-func (me *GoPdf) init() {
+func (gp *GoPdf) init() {
 
 	//default
-	me.leftMargin = 10.0
-	me.topMargin = 10.0
+	gp.leftMargin = 10.0
+	gp.topMargin = 10.0
 
 	//init curr
-	me.resetCurrXY()
-	me.Curr.IndexOfPageObj = -1
-	me.Curr.CountOfFont = 0
-	me.Curr.CountOfL = 0
-	me.Curr.CountOfImg = 0 //img
-	me.Curr.ImgCaches = *new([]ImageCache)
+	gp.resetCurrXY()
+	gp.Curr.IndexOfPageObj = -1
+	gp.Curr.CountOfFont = 0
+	gp.Curr.CountOfL = 0
+	gp.Curr.CountOfImg = 0 //img
+	gp.Curr.ImgCaches = *new([]ImageCache)
 
 	//init index
-	me.indexOfPagesObj = -1
-	me.indexOfFirstPageObj = -1
-	me.indexOfContent = -1
+	gp.indexOfPagesObj = -1
+	gp.indexOfFirstPageObj = -1
+	gp.indexOfContent = -1
 
 	//No underline
-	//me.IsUnderline = false
+	//gp.IsUnderline = false
 
 }
 
-func (me *GoPdf) resetCurrXY() {
-	me.Curr.X = me.leftMargin
-	me.Curr.Y = me.topMargin
+func (gp *GoPdf) resetCurrXY() {
+	gp.Curr.X = gp.leftMargin
+	gp.Curr.Y = gp.topMargin
 }
 
-func (me *GoPdf) prepare() {
+func (gp *GoPdf) prepare() {
 
-	if me.indexOfPagesObj != -1 {
+	if gp.indexOfPagesObj != -1 {
 		indexCurrPage := -1
 		var pagesObj *PagesObj
-		pagesObj = me.pdfObjs[me.indexOfPagesObj].(*PagesObj)
-		i := 0 //me.indexOfFirstPageObj
-		max := len(me.pdfObjs)
+		pagesObj = gp.pdfObjs[gp.indexOfPagesObj].(*PagesObj)
+		i := 0 //gp.indexOfFirstPageObj
+		max := len(gp.pdfObjs)
 		for i < max {
-			objtype := me.pdfObjs[i].GetType()
+			objtype := gp.pdfObjs[i].GetType()
 			//fmt.Printf(" objtype = %s , %d \n", objtype , i)
 			if objtype == "Page" {
 				pagesObj.Kids = fmt.Sprintf("%s %d 0 R ", pagesObj.Kids, i+1)
@@ -443,19 +450,19 @@ func (me *GoPdf) prepare() {
 				indexCurrPage = i
 			} else if objtype == "Content" {
 				if indexCurrPage != -1 {
-					me.pdfObjs[indexCurrPage].(*PageObj).Contents = fmt.Sprintf("%s %d 0 R ", me.pdfObjs[indexCurrPage].(*PageObj).Contents, i+1)
+					gp.pdfObjs[indexCurrPage].(*PageObj).Contents = fmt.Sprintf("%s %d 0 R ", gp.pdfObjs[indexCurrPage].(*PageObj).Contents, i+1)
 				}
 			} else if objtype == "Font" {
-				tmpfont := me.pdfObjs[i].(*FontObj)
+				tmpfont := gp.pdfObjs[i].(*FontObj)
 				j := 0
-				jmax := len(me.indexEncodingObjFonts)
+				jmax := len(gp.indexEncodingObjFonts)
 				for j < jmax {
-					tmpencoding := me.pdfObjs[me.indexEncodingObjFonts[j]].(*EncodingObj).GetFont()
+					tmpencoding := gp.pdfObjs[gp.indexEncodingObjFonts[j]].(*EncodingObj).GetFont()
 					if tmpfont.Family == tmpencoding.GetFamily() { //ใส่ ข้อมูลของ embed font
 						tmpfont.IsEmbedFont = true
-						tmpfont.SetIndexObjEncoding(me.indexEncodingObjFonts[j] + 1)
-						tmpfont.SetIndexObjWidth(me.indexEncodingObjFonts[j] + 2)
-						tmpfont.SetIndexObjFontDescriptor(me.indexEncodingObjFonts[j] + 3)
+						tmpfont.SetIndexObjEncoding(gp.indexEncodingObjFonts[j] + 1)
+						tmpfont.SetIndexObjWidth(gp.indexEncodingObjFonts[j] + 2)
+						tmpfont.SetIndexObjFontDescriptor(gp.indexEncodingObjFonts[j] + 3)
 						break
 					}
 					j++
@@ -466,7 +473,7 @@ func (me *GoPdf) prepare() {
 	}
 }
 
-func (me *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) {
+func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) {
 	buff.WriteString("xref\n")
 	buff.WriteString("0 " + strconv.Itoa((*i)+1) + "\n")
 	buff.WriteString("0000000000 65535 f\n")
@@ -474,7 +481,7 @@ func (me *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) {
 	max := len(linelens)
 	for j < max {
 		linelen := linelens[j]
-		buff.WriteString(me.formatXrefline(linelen) + " 00000 n\n")
+		buff.WriteString(gp.formatXrefline(linelen) + " 00000 n\n")
 		j++
 	}
 	buff.WriteString("trailer\n")
@@ -486,7 +493,7 @@ func (me *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) {
 }
 
 //ปรับ xref ให้เป็น 10 หลัก
-func (me *GoPdf) formatXrefline(n int) string {
+func (gp *GoPdf) formatXrefline(n int) string {
 	str := strconv.Itoa(n)
 	for len(str) < 10 {
 		str = "0" + str
@@ -494,22 +501,22 @@ func (me *GoPdf) formatXrefline(n int) string {
 	return str
 }
 
-func (me *GoPdf) addObj(iobj IObj) int {
-	index := len(me.pdfObjs)
-	me.pdfObjs = append(me.pdfObjs, iobj)
+func (gp *GoPdf) addObj(iobj IObj) int {
+	index := len(gp.pdfObjs)
+	gp.pdfObjs = append(gp.pdfObjs, iobj)
 	return index
 }
 
-func (me *GoPdf) getContent() *ContentObj {
+func (gp *GoPdf) getContent() *ContentObj {
 	var content *ContentObj
-	if me.indexOfContent <= -1 {
+	if gp.indexOfContent <= -1 {
 		content = new(ContentObj)
 		content.Init(func() *GoPdf {
-			return me
+			return gp
 		})
-		me.indexOfContent = me.addObj(content)
+		gp.indexOfContent = gp.addObj(content)
 	} else {
-		content = me.pdfObjs[me.indexOfContent].(*ContentObj)
+		content = gp.pdfObjs[gp.indexOfContent].(*ContentObj)
 	}
 
 	return content

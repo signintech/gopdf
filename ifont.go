@@ -1,37 +1,32 @@
 package gopdf
 
-import (
-	//"fmt"
-	//iconv "github.com/djimenez/iconv-go"
-)
-
-type IFont interface{
+type IFont interface {
 	Init()
 	GetType() string
 	GetName() string
 	GetDesc() []FontDescItem
 	GetUp() int
-	GetUt()  int
+	GetUt() int
 	GetCw() FontCw
 	GetEnc() string
 	GetDiff() string
 	GetOriginalsize() int
-	
+
 	SetFamily(family string)
 	GetFamily() string
 }
 
 type FontCw map[byte]int
 
-type FontDescItem struct{
+type FontDescItem struct {
 	Key string
 	Val string
 }
 
-func Chr(n int) byte{
+func Chr(n int) byte {
 	return byte(n) //ToByte(fmt.Sprintf("%c", n ))
 }
 
-func ToByte(chr string ) byte{
+func ToByte(chr string) byte {
 	return []byte(chr)[0]
 }

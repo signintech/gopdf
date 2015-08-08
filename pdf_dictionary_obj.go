@@ -34,12 +34,10 @@ func (me *PdfDictionaryObj) Build() error {
 	gzipwriter := zlib.NewWriter(&zbuff)
 	_, err = gzipwriter.Write(b)
 	if err != nil {
-		//log.Panicf("%s", err.Error())
 		return err
 	}
 	gzipwriter.Close()
 
-	//fmt.Printf("\n%d\n", len(by))
 	me.buffer.WriteString("<</Length " + strconv.Itoa(zbuff.Len()) + "\n")
 	me.buffer.WriteString("/Filter /FlateDecode\n")
 	me.buffer.WriteString("/Length1 " + strconv.Itoa(len(b)) + "\n")

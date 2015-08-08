@@ -10,7 +10,12 @@ import (
 	"github.com/signintech/gopdf/fontmaker/core"
 )
 
-var EntrySelectors = []int{0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}
+var EntrySelectors = []int{
+	0, 0, 1, 1, 2, 2,
+	2, 2, 3, 3, 3, 3,
+	3, 3, 3, 3, 4, 4,
+	4, 4, 4, 4, 4, 4,
+	4, 4, 4, 4, 4, 4, 4}
 
 var ErrNotSupportShortIndexYet = errors.New("not suport none short index yet!")
 
@@ -267,6 +272,5 @@ func CheckSum(data []byte) uint64 {
 	}
 	//var result uint32
 	result := uint32(byte3<<24) + uint32(byte2<<16) + uint32(byte1<<8) + uint32(byte0)
-	//fmt.Printf(">>>> %d ,%d,%d ,%d %d   ----%d\n", byte3, byte2, byte1, byte0, result, uint32(byte3<<24))
 	return uint64(result)
 }

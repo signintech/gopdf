@@ -124,11 +124,13 @@ func (me *ContentObj) AppendStreamSetLineWidth(w float64) {
 
 //  Set the grayscale fills
 func (me *ContentObj) AppendStreamSetGrayFill(w float64) {
+	w = fixRange10(w)
 	me.stream.WriteString(fmt.Sprintf("%.2f g\n", w))
 }
 
 //  Set the grayscale stroke
 func (me *ContentObj) AppendStreamSetGrayStroke(w float64) {
+	w = fixRange10(w)
 	me.stream.WriteString(fmt.Sprintf("%.2f G\n", w))
 }
 
@@ -141,4 +143,17 @@ func (me *ContentObj) AppendStreamImage(index int, x float64, y float64, rect *R
 //cal text height
 func ContentObj_CalTextHeight(fontsize int) float64 {
 	return (float64(fontsize) * 0.7)
+}
+
+// When setting colour and grayscales the value has to be between 0.00 and 1.00
+// This function takes a float64 and returns 0.0 if it is less than 0.0 and 1.0 if it
+// is more than 1.0
+func fixRange10(val float64) float64 {
+	if val < 0.0 {
+		return 0.0
+	}
+	if val > 1.0 {
+		return 1.0
+	}
+	return val
 }

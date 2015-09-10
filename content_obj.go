@@ -122,7 +122,7 @@ func (me *ContentObj) AppendStreamSetLineWidth(w float64) {
 
 }
 
-//  Set the grayscale fill
+//  Set the grayscale fills
 func (me *ContentObj) AppendStreamSetGrayFill(w float64) {
 	me.stream.WriteString(fmt.Sprintf("%.2f g\n", w))
 }

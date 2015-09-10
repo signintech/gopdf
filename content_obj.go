@@ -122,6 +122,16 @@ func (me *ContentObj) AppendStreamSetLineWidth(w float64) {
 
 }
 
+//  Set the grayscale fill
+func (me *ContentObj) AppendStreamSetGrayFill(w float64) {
+	me.stream.WriteString(fmt.Sprintf("%.2f g\n", w))
+}
+
+//  Set the grayscale stroke
+func (me *ContentObj) AppendStreamSetGrayStroke(w float64) {
+	me.stream.WriteString(fmt.Sprintf("%.2f G\n", w))
+}
+
 func (me *ContentObj) AppendStreamImage(index int, x float64, y float64, rect *Rect) {
 	//fmt.Printf("index = %d",index)
 	h := me.getRoot().config.PageSize.H

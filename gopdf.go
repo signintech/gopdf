@@ -59,13 +59,11 @@ func (gp *GoPdf) Br(h float64) {
 
 // Set the grayscale for the fill, takes a float64 between 0.0 and 1.0
 func (gp *GoPdf) SetGrayFill(grayScale float64) {
-	grayScale = colourValueCheck(grayScale)
 	gp.getContent().AppendStreamSetGrayFill(grayScale)
 }
 
 // Set the grayscale for the stroke, takes a float64 between 0.0 and 1.0
 func (gp *GoPdf) SetGrayStroke(grayScale float64) {
-	grayScale = colourValueCheck(grayScale)
 	gp.getContent().AppendStreamSetGrayStroke(grayScale)
 }
 

@@ -1,36 +1,42 @@
 package gopdf
 
+//Buff
 type Buff struct {
 	position int
 	datas    []byte
 }
 
-func (me *Buff) Write(p []byte) (int, error) {
-	for len(me.datas) < me.position+len(p) {
-		me.datas = append(me.datas, 0)
+//Write : write []byte to buffer
+func (b *Buff) Write(p []byte) (int, error) {
+	for len(b.datas) < b.position+len(p) {
+		b.datas = append(b.datas, 0)
 	}
 	i := 0
 	max := len(p)
 	for i < max {
-		me.datas[i+me.position] = p[i]
+		b.datas[i+b.position] = p[i]
 		i++
 	}
-	me.position += i
+	b.position += i
 	return 0, nil
 }
 
-func (me *Buff) Len() int {
-	return len(me.datas)
+//Len : len of buffer
+func (b *Buff) Len() int {
+	return len(b.datas)
 }
 
-func (me *Buff) Bytes() []byte {
-	return me.datas
+//Bytes : get bytes
+func (b *Buff) Bytes() []byte {
+	return b.datas
 }
 
-func (me *Buff) Position() int {
-	return me.position
+//Position : get current postion
+func (b *Buff) Position() int {
+	return b.position
 }
 
-func (me *Buff) SetPosition(pos int) {
-	me.position = pos
+//SetPosition : set current postion
+func (b *Buff) SetPosition(pos int) {
+	b.position = pos
 }

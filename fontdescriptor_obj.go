@@ -10,49 +10,49 @@ type FontDescriptorObj struct {
 	fontFileObjRelate string
 }
 
-func (me *FontDescriptorObj) Init(funcGetRoot func() *GoPdf) {
+func (f *FontDescriptorObj) Init(funcGetRoot func() *GoPdf) {
 
 }
 
-func (me *FontDescriptorObj) Build() error {
+func (f *FontDescriptorObj) Build() error {
 
-	me.buffer.WriteString("<</Type /FontDescriptor /FontName /" + me.font.GetName() + " ")
-	descs := me.font.GetDesc()
+	f.buffer.WriteString("<</Type /FontDescriptor /FontName /" + f.font.GetName() + " ")
+	descs := f.font.GetDesc()
 	i := 0
 	max := len(descs)
 	for i < max {
-		me.buffer.WriteString("/" + descs[i].Key + " " + descs[i].Val + " ")
+		f.buffer.WriteString("/" + descs[i].Key + " " + descs[i].Val + " ")
 		i++
 	}
 
-	if me.GetType() == "Type1" {
-		me.buffer.WriteString("/FontFile ")
+	if f.GetType() == "Type1" {
+		f.buffer.WriteString("/FontFile ")
 	} else {
-		me.buffer.WriteString("/FontFile2 ")
+		f.buffer.WriteString("/FontFile2 ")
 	}
 
-	me.buffer.WriteString(me.fontFileObjRelate)
-	me.buffer.WriteString(">>\n")
+	f.buffer.WriteString(f.fontFileObjRelate)
+	f.buffer.WriteString(">>\n")
 
 	return nil
 }
 
-func (me *FontDescriptorObj) GetType() string {
+func (f *FontDescriptorObj) GetType() string {
 	return "FontDescriptor"
 }
 
-func (me *FontDescriptorObj) GetObjBuff() *bytes.Buffer {
-	return &(me.buffer)
+func (f *FontDescriptorObj) GetObjBuff() *bytes.Buffer {
+	return &(f.buffer)
 }
 
-func (me *FontDescriptorObj) SetFont(font IFont) {
-	me.font = font
+func (f *FontDescriptorObj) SetFont(font IFont) {
+	f.font = font
 }
 
-func (me *FontDescriptorObj) GetFont() IFont {
-	return me.font
+func (f *FontDescriptorObj) GetFont() IFont {
+	return f.font
 }
 
-func (me *FontDescriptorObj) SetFontFileObjRelate(relate string) {
-	me.fontFileObjRelate = relate
+func (f *FontDescriptorObj) SetFontFileObjRelate(relate string) {
+	f.fontFileObjRelate = relate
 }

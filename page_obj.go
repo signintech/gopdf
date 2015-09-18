@@ -11,16 +11,16 @@ type PageObj struct { //impl IObj
 	ResourcesRelate string
 }
 
-func (me *PageObj) Init(funcGetRoot func() *GoPdf) {
+func (p *PageObj) Init(funcGetRoot func() *GoPdf) {
 
 }
 
-func (me *PageObj) Build() error {
+func (p *PageObj) Build() error {
 
-	me.buffer.WriteString("<<\n")
-	me.buffer.WriteString("  /Type /" + me.GetType() + "\n")
-	me.buffer.WriteString("  /Parent 2 0 R\n")
-	me.buffer.WriteString("  /Resources " + me.ResourcesRelate + "\n")
+	p.buffer.WriteString("<<\n")
+	p.buffer.WriteString("  /Type /" + p.GetType() + "\n")
+	p.buffer.WriteString("  /Parent 2 0 R\n")
+	p.buffer.WriteString("  /Resources " + p.ResourcesRelate + "\n")
 	/*me.buffer.WriteString("    /Font <<\n")
 	i := 0
 	max := len(me.Realtes)
@@ -31,15 +31,15 @@ func (me *PageObj) Build() error {
 	}
 	me.buffer.WriteString("    >>\n")*/
 	//me.buffer.WriteString("  >>\n")
-	me.buffer.WriteString("  /Contents " + me.Contents + "\n") //sample  Contents 8 0 R
-	me.buffer.WriteString(">>\n")
+	p.buffer.WriteString("  /Contents " + p.Contents + "\n") //sample  Contents 8 0 R
+	p.buffer.WriteString(">>\n")
 	return nil
 }
 
-func (me *PageObj) GetType() string {
+func (p *PageObj) GetType() string {
 	return "Page"
 }
 
-func (me *PageObj) GetObjBuff() *bytes.Buffer {
-	return &(me.buffer)
+func (p *PageObj) GetObjBuff() *bytes.Buffer {
+	return &(p.buffer)
 }

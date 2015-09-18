@@ -13,32 +13,32 @@ type PagesObj struct { //impl IObj
 	getRoot   func() *GoPdf
 }
 
-func (me *PagesObj) Init(funcGetRoot func() *GoPdf) {
-	me.PageCount = 0
-	me.getRoot = funcGetRoot
+func (p *PagesObj) Init(funcGetRoot func() *GoPdf) {
+	p.PageCount = 0
+	p.getRoot = funcGetRoot
 }
 
-func (me *PagesObj) Build() error {
+func (p *PagesObj) Build() error {
 
-	height := fmt.Sprintf("%0.2f", me.getRoot().config.PageSize.H)
-	width := fmt.Sprintf("%0.2f", me.getRoot().config.PageSize.W)
-	me.buffer.WriteString("<<\n")
-	me.buffer.WriteString("  /Type /" + me.GetType() + "\n")
-	me.buffer.WriteString("  /MediaBox [ 0 0 " + width + " " + height + " ]\n")
-	me.buffer.WriteString("  /Count " + strconv.Itoa(me.PageCount) + "\n")
-	me.buffer.WriteString("  /Kids [ " + me.Kids + " ]\n") //sample Kids [ 3 0 R ]
-	me.buffer.WriteString(">>\n")
+	height := fmt.Sprintf("%0.2f", p.getRoot().config.PageSize.H)
+	width := fmt.Sprintf("%0.2f", p.getRoot().config.PageSize.W)
+	p.buffer.WriteString("<<\n")
+	p.buffer.WriteString("  /Type /" + p.GetType() + "\n")
+	p.buffer.WriteString("  /MediaBox [ 0 0 " + width + " " + height + " ]\n")
+	p.buffer.WriteString("  /Count " + strconv.Itoa(p.PageCount) + "\n")
+	p.buffer.WriteString("  /Kids [ " + p.Kids + " ]\n") //sample Kids [ 3 0 R ]
+	p.buffer.WriteString(">>\n")
 	return nil
 }
 
-func (me *PagesObj) GetType() string {
+func (p *PagesObj) GetType() string {
 	return "Pages"
 }
 
-func (me *PagesObj) GetObjBuff() *bytes.Buffer {
-	return &(me.buffer)
+func (p *PagesObj) GetObjBuff() *bytes.Buffer {
+	return &(p.buffer)
 }
 
-func (me *PagesObj) Test() {
-	fmt.Print(me.GetType() + "\n")
+func (p *PagesObj) Test() {
+	fmt.Print(p.GetType() + "\n")
 }

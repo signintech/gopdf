@@ -15,13 +15,13 @@ type ImageObj struct {
 	imagepath string
 }
 
-func (me *ImageObj) Init(funcGetRoot func() *GoPdf) {
+func (i *ImageObj) Init(funcGetRoot func() *GoPdf) {
 	//me.getRoot = funcGetRoot
 }
 
-func (me *ImageObj) Build() error {
+func (i *ImageObj) Build() error {
 
-	file, err := os.Open(me.imagepath)
+	file, err := os.Open(i.imagepath)
 	if err != nil {
 		//fmt.Printf("0--%+v\n",err)
 		return err
@@ -34,39 +34,39 @@ func (me *ImageObj) Build() error {
 
 	imageRect := m.Bounds()
 
-	b, _ := ioutil.ReadFile(me.imagepath)
+	b, _ := ioutil.ReadFile(i.imagepath)
 
-	me.buffer.WriteString("<</Type /XObject\n")
-	me.buffer.WriteString("/Subtype /Image\n")
-	me.buffer.WriteString(fmt.Sprintf("/Width %d\n", imageRect.Dx()))  // /Width 675\n"
-	me.buffer.WriteString(fmt.Sprintf("/Height %d\n", imageRect.Dy())) //  /Height 942\n"
-	me.buffer.WriteString("/ColorSpace /DeviceRGB\n")                  //HARD CODE ไว้เป็น RGB
-	me.buffer.WriteString("/BitsPerComponent 8\n")                     //HARD CODE ไว้เป็น 8 bit
-	me.buffer.WriteString("/Filter /DCTDecode\n")
+	i.buffer.WriteString("<</Type /XObject\n")
+	i.buffer.WriteString("/Subtype /Image\n")
+	i.buffer.WriteString(fmt.Sprintf("/Width %d\n", imageRect.Dx()))  // /Width 675\n"
+	i.buffer.WriteString(fmt.Sprintf("/Height %d\n", imageRect.Dy())) //  /Height 942\n"
+	i.buffer.WriteString("/ColorSpace /DeviceRGB\n")                  //HARD CODE ไว้เป็น RGB
+	i.buffer.WriteString("/BitsPerComponent 8\n")                     //HARD CODE ไว้เป็น 8 bit
+	i.buffer.WriteString("/Filter /DCTDecode\n")
 	//me.buffer.WriteString("/Filter /FlateDecode\n")
 	//me.buffer.WriteString("/DecodeParms <</Predictor 15 /Colors 3 /BitsPerComponent 8 /Columns 675>>\n")
-	me.buffer.WriteString(fmt.Sprintf("/Length %d\n>>\n", len(b))) // /Length 62303>>\n
-	me.buffer.WriteString("stream\n")
-	me.buffer.Write(b)
-	me.buffer.WriteString("\nendstream\n")
+	i.buffer.WriteString(fmt.Sprintf("/Length %d\n>>\n", len(b))) // /Length 62303>>\n
+	i.buffer.WriteString("stream\n")
+	i.buffer.Write(b)
+	i.buffer.WriteString("\nendstream\n")
 
 	return nil
 }
 
-func (me *ImageObj) GetType() string {
+func (i *ImageObj) GetType() string {
 	return "Image"
 }
 
-func (me *ImageObj) GetObjBuff() *bytes.Buffer {
-	return &(me.buffer)
+func (i *ImageObj) GetObjBuff() *bytes.Buffer {
+	return &(i.buffer)
 }
 
-func (me *ImageObj) SetImagePath(path string) {
-	me.imagepath = path
+func (i *ImageObj) SetImagePath(path string) {
+	i.imagepath = path
 }
 
-func (me *ImageObj) GetRect() *Rect {
-	file, err := os.Open(me.imagepath)
+func (i *ImageObj) GetRect() *Rect {
+	file, err := os.Open(i.imagepath)
 	m, _, err := image.Decode(file)
 	if err != nil {
 		return nil

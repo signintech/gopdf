@@ -13,33 +13,33 @@ type EmbedFontObj struct {
 	font      IFont
 }
 
-func (me *EmbedFontObj) Init(funcGetRoot func() *GoPdf) {
+func (e *EmbedFontObj) Init(funcGetRoot func() *GoPdf) {
 }
 
-func (me *EmbedFontObj) Build() error {
-	b, err := ioutil.ReadFile(me.zfontpath)
+func (e *EmbedFontObj) Build() error {
+	b, err := ioutil.ReadFile(e.zfontpath)
 	if err != nil {
 		return err
 	}
-	me.buffer.WriteString("<</Length " + strconv.Itoa(len(b)) + "\n")
-	me.buffer.WriteString("/Filter /FlateDecode\n")
-	me.buffer.WriteString("/Length1 " + strconv.Itoa(me.font.GetOriginalsize()) + "\n")
-	me.buffer.WriteString(">>\n")
-	me.buffer.WriteString("stream\n")
-	me.buffer.Write(b)
-	me.buffer.WriteString("\nendstream\n")
+	e.buffer.WriteString("<</Length " + strconv.Itoa(len(b)) + "\n")
+	e.buffer.WriteString("/Filter /FlateDecode\n")
+	e.buffer.WriteString("/Length1 " + strconv.Itoa(e.font.GetOriginalsize()) + "\n")
+	e.buffer.WriteString(">>\n")
+	e.buffer.WriteString("stream\n")
+	e.buffer.Write(b)
+	e.buffer.WriteString("\nendstream\n")
 	return nil
 }
 
-func (me *EmbedFontObj) GetType() string {
+func (e *EmbedFontObj) GetType() string {
 	return "EmbedFont"
 }
 
-func (me *EmbedFontObj) GetObjBuff() *bytes.Buffer {
-	return &(me.buffer)
+func (e *EmbedFontObj) GetObjBuff() *bytes.Buffer {
+	return &(e.buffer)
 }
 
-func (me *EmbedFontObj) SetFont(font IFont, zfontpath string) {
-	me.font = font
-	me.zfontpath = zfontpath
+func (e *EmbedFontObj) SetFont(font IFont, zfontpath string) {
+	e.font = font
+	e.zfontpath = zfontpath
 }

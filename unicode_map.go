@@ -10,28 +10,28 @@ type UnicodeMap struct {
 	PtrToSubsetFontObj *SubsetFontObj
 }
 
-func (me *UnicodeMap) Init(funcGetRoot func() *GoPdf) {}
+func (u *UnicodeMap) Init(funcGetRoot func() *GoPdf) {}
 
-func (me *UnicodeMap) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
-	me.PtrToSubsetFontObj = ptr
+func (u *UnicodeMap) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
+	u.PtrToSubsetFontObj = ptr
 }
 
-func (me *UnicodeMap) Build() error {
-	me.buffer.Write(me.pdfToUnicodeMap().Bytes())
+func (u *UnicodeMap) Build() error {
+	u.buffer.Write(u.pdfToUnicodeMap().Bytes())
 	return nil
 }
 
-func (me *UnicodeMap) GetType() string {
+func (u *UnicodeMap) GetType() string {
 	return "Unicode"
 }
 
-func (me *UnicodeMap) GetObjBuff() *bytes.Buffer {
-	return &me.buffer
+func (u *UnicodeMap) GetObjBuff() *bytes.Buffer {
+	return &u.buffer
 }
 
-func (me *UnicodeMap) pdfToUnicodeMap() *bytes.Buffer {
+func (u *UnicodeMap) pdfToUnicodeMap() *bytes.Buffer {
 	//stream
-	characterToGlyphIndex := me.PtrToSubsetFontObj.CharacterToGlyphIndex
+	characterToGlyphIndex := u.PtrToSubsetFontObj.CharacterToGlyphIndex
 	prefix :=
 		"/CIDInit /ProcSet findresource begin\n" +
 			"12 dict begin\n" +

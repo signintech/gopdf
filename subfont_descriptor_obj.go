@@ -13,44 +13,44 @@ type SubfontDescriptorObj struct {
 	indexObjPdfDictionary int
 }
 
-func (me *SubfontDescriptorObj) Init(func() *GoPdf) {}
+func (s *SubfontDescriptorObj) Init(func() *GoPdf) {}
 
-func (me *SubfontDescriptorObj) GetType() string {
+func (s *SubfontDescriptorObj) GetType() string {
 	return "SubFontDescriptor"
 }
-func (me *SubfontDescriptorObj) GetObjBuff() *bytes.Buffer {
-	return &me.buffer
+func (s *SubfontDescriptorObj) GetObjBuff() *bytes.Buffer {
+	return &s.buffer
 }
 
-func (me *SubfontDescriptorObj) Build() error {
-	ttfp := me.PtrToSubsetFontObj.GetTTFParser()
-	me.buffer.WriteString("<<\n")
-	me.buffer.WriteString("/Type /FontDescriptor\n")
-	me.buffer.WriteString(fmt.Sprintf("/Ascent %d\n", DesignUnitsToPdf(ttfp.Ascender(), ttfp.UnitsPerEm())))
-	me.buffer.WriteString(fmt.Sprintf("/CapHeight %d\n", DesignUnitsToPdf(ttfp.CapHeight(), ttfp.UnitsPerEm())))
-	me.buffer.WriteString(fmt.Sprintf("/Descent %d\n", DesignUnitsToPdf(ttfp.Descender(), ttfp.UnitsPerEm())))
-	me.buffer.WriteString(fmt.Sprintf("/Flags %d\n", ttfp.Flag()))
-	me.buffer.WriteString(fmt.Sprintf("/FontBBox [%d %d %d %d]\n",
+func (s *SubfontDescriptorObj) Build() error {
+	ttfp := s.PtrToSubsetFontObj.GetTTFParser()
+	s.buffer.WriteString("<<\n")
+	s.buffer.WriteString("/Type /FontDescriptor\n")
+	s.buffer.WriteString(fmt.Sprintf("/Ascent %d\n", DesignUnitsToPdf(ttfp.Ascender(), ttfp.UnitsPerEm())))
+	s.buffer.WriteString(fmt.Sprintf("/CapHeight %d\n", DesignUnitsToPdf(ttfp.CapHeight(), ttfp.UnitsPerEm())))
+	s.buffer.WriteString(fmt.Sprintf("/Descent %d\n", DesignUnitsToPdf(ttfp.Descender(), ttfp.UnitsPerEm())))
+	s.buffer.WriteString(fmt.Sprintf("/Flags %d\n", ttfp.Flag()))
+	s.buffer.WriteString(fmt.Sprintf("/FontBBox [%d %d %d %d]\n",
 		DesignUnitsToPdf(ttfp.XMin(), ttfp.UnitsPerEm()),
 		DesignUnitsToPdf(ttfp.YMin(), ttfp.UnitsPerEm()),
 		DesignUnitsToPdf(ttfp.XMax(), ttfp.UnitsPerEm()),
 		DesignUnitsToPdf(ttfp.YMax(), ttfp.UnitsPerEm()),
 	))
-	me.buffer.WriteString(fmt.Sprintf("/FontFile2 %d 0 R\n", me.indexObjPdfDictionary+1))
-	me.buffer.WriteString(fmt.Sprintf("/FontName /%s\n", CreateEmbeddedFontSubsetName(me.PtrToSubsetFontObj.GetFamily())))
-	me.buffer.WriteString(fmt.Sprintf("/ItalicAngle %d\n", ttfp.ItalicAngle()))
-	me.buffer.WriteString("/StemV 0\n")
-	me.buffer.WriteString(fmt.Sprintf("/XHeight %d\n", DesignUnitsToPdf(ttfp.XHeight(), ttfp.UnitsPerEm())))
-	me.buffer.WriteString(">>\n")
+	s.buffer.WriteString(fmt.Sprintf("/FontFile2 %d 0 R\n", s.indexObjPdfDictionary+1))
+	s.buffer.WriteString(fmt.Sprintf("/FontName /%s\n", CreateEmbeddedFontSubsetName(s.PtrToSubsetFontObj.GetFamily())))
+	s.buffer.WriteString(fmt.Sprintf("/ItalicAngle %d\n", ttfp.ItalicAngle()))
+	s.buffer.WriteString("/StemV 0\n")
+	s.buffer.WriteString(fmt.Sprintf("/XHeight %d\n", DesignUnitsToPdf(ttfp.XHeight(), ttfp.UnitsPerEm())))
+	s.buffer.WriteString(">>\n")
 	return nil
 }
 
-func (me *SubfontDescriptorObj) SetIndexObjPdfDictionary(index int) {
-	me.indexObjPdfDictionary = index
+func (s *SubfontDescriptorObj) SetIndexObjPdfDictionary(index int) {
+	s.indexObjPdfDictionary = index
 }
 
-func (me *SubfontDescriptorObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
-	me.PtrToSubsetFontObj = ptr
+func (s *SubfontDescriptorObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
+	s.PtrToSubsetFontObj = ptr
 }
 
 func DesignUnitsToPdf(val int64, unitsPerEm uint64) int64 {

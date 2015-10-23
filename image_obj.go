@@ -26,7 +26,8 @@ func (i *ImageObj) Build() error {
 		//fmt.Printf("0--%+v\n",err)
 		return err
 	}
-
+	defer file.Close()
+	
 	m, _, err := image.Decode(file)
 	if err != nil {
 		return err

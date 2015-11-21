@@ -24,11 +24,11 @@ type PdfDictionaryObj struct {
 	PtrToSubsetFontObj *SubsetFontObj
 }
 
-func (me *PdfDictionaryObj) Init(funcGetRoot func() *GoPdf) {
+func (p *PdfDictionaryObj) Init(funcGetRoot func() *GoPdf) {
 }
 
-func (me *PdfDictionaryObj) Build() error {
-	b, err := me.makeFont()
+func (p *PdfDictionaryObj) Build() error {
+	b, err := p.makeFont()
 	if err != nil {
 		//log.Panicf("%s", err.Error())
 		return err
@@ -43,46 +43,47 @@ func (me *PdfDictionaryObj) Build() error {
 	}
 	gzipwriter.Close()
 
-	me.buffer.WriteString("<</Length " + strconv.Itoa(zbuff.Len()) + "\n")
-	me.buffer.WriteString("/Filter /FlateDecode\n")
-	me.buffer.WriteString("/Length1 " + strconv.Itoa(len(b)) + "\n")
-	me.buffer.WriteString(">>\n")
-	me.buffer.WriteString("stream\n")
-	me.buffer.Write(zbuff.Bytes())
-	me.buffer.WriteString("\nendstream\n")
+	p.buffer.WriteString("<</Length " + strconv.Itoa(zbuff.Len()) + "\n")
+	p.buffer.WriteString("/Filter /FlateDecode\n")
+	p.buffer.WriteString("/Length1 " + strconv.Itoa(len(b)) + "\n")
+	p.buffer.WriteString(">>\n")
+	p.buffer.WriteString("stream\n")
+	p.buffer.Write(zbuff.Bytes())
+	p.buffer.WriteString("\nendstream\n")
 	return nil
 }
 
-func (me *PdfDictionaryObj) GetType() string {
+func (p *PdfDictionaryObj) GetType() string {
 	return "PdfDictionary"
 }
 
-func (me *PdfDictionaryObj) GetObjBuff() *bytes.Buffer {
-	return &me.buffer
+func (p *PdfDictionaryObj) GetObjBuff() *bytes.Buffer {
+	return &p.buffer
 }
 
-func (me *PdfDictionaryObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
-	me.PtrToSubsetFontObj = ptr
+func (p *PdfDictionaryObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
+	p.PtrToSubsetFontObj = ptr
 }
 
-func (me *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
-	ttfp := me.PtrToSubsetFontObj.GetTTFParser()
+func (p *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
+	ttfp := p.PtrToSubsetFontObj.GetTTFParser()
 	var glyf core.TableDirectoryEntry
 
 	numGlyphs := int(ttfp.NumGlyphs())
 
-	glyphs := me.completeGlyphClosure(me.PtrToSubsetFontObj.CharacterToGlyphIndex)
-	glyphCount := len(glyphs)
+	_, glyphArray := p.completeGlyphClosure(p.PtrToSubsetFontObj.CharacterToGlyphIndex)
+	glyphCount := len(glyphArray)
+	/*glyphCount := len(glyphs)
 	//copy
 	var glyphArray []int
-	for _, v := range me.PtrToSubsetFontObj.CharacterToGlyphIndex {
+	for _, v := range p.PtrToSubsetFontObj.CharacterToGlyphIndex {
 		glyphArray = append(glyphArray, int(v))
-	}
+	}*/
 	sort.Ints(glyphArray)
 
 	size := 0
 	for idx := 0; idx < glyphCount; idx++ {
-		size += me.getGlyphSize(glyphArray[idx])
+		size += p.getGlyphSize(glyphArray[idx])
 	}
 	glyf.Length = uint64(size)
 
@@ -95,7 +96,7 @@ func (me *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 		locaTable[idx] = glyphOffset
 		if glyphIndex < glyphCount && glyphArray[glyphIndex] == idx {
 			glyphIndex++
-			bytes := me.getGlyphData(idx)
+			bytes := p.getGlyphData(idx)
 			length := len(bytes)
 			if length > 0 {
 				for i := 0; i < length; i++ {
@@ -109,17 +110,17 @@ func (me *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 	return glyphTable, locaTable, nil
 }
 
-func (me *PdfDictionaryObj) getGlyphSize(glyph int) int {
+func (p *PdfDictionaryObj) getGlyphSize(glyph int) int {
 
-	ttfp := me.PtrToSubsetFontObj.GetTTFParser()
+	ttfp := p.PtrToSubsetFontObj.GetTTFParser()
 	glyf := ttfp.GetTables()["glyf"]
 	start := int(glyf.Offset + ttfp.LocaTable[glyph])
 	next := int(glyf.Offset + ttfp.LocaTable[glyph+1])
 	return next - start
 }
 
-func (me *PdfDictionaryObj) getGlyphData(glyph int) []byte {
-	ttfp := me.PtrToSubsetFontObj.GetTTFParser()
+func (p *PdfDictionaryObj) getGlyphData(glyph int) []byte {
+	ttfp := p.PtrToSubsetFontObj.GetTTFParser()
 	glyf := ttfp.GetTables()["glyf"]
 	start := int(glyf.Offset + ttfp.LocaTable[glyph])
 	next := int(glyf.Offset + ttfp.LocaTable[glyph+1])
@@ -133,9 +134,9 @@ func (me *PdfDictionaryObj) getGlyphData(glyph int) []byte {
 	return data
 }
 
-func (me *PdfDictionaryObj) makeFont() ([]byte, error) {
+func (p *PdfDictionaryObj) makeFont() ([]byte, error) {
 	var buff Buff
-	ttfp := me.PtrToSubsetFontObj.GetTTFParser()
+	ttfp := p.PtrToSubsetFontObj.GetTTFParser()
 	tables := make(map[string]core.TableDirectoryEntry)
 	tables["cvt "] = ttfp.GetTables()["cvt "] //มีช่องว่างด้วยนะ
 	tables["fpgm"] = ttfp.GetTables()["fpgm"]
@@ -149,7 +150,7 @@ func (me *PdfDictionaryObj) makeFont() ([]byte, error) {
 	tableCount := len(tables)
 	selector := EntrySelectors[tableCount]
 
-	glyphTable, locaTable, err := me.makeGlyfAndLocaTable()
+	glyphTable, locaTable, err := p.makeGlyfAndLocaTable()
 	if err != nil {
 		return nil, err
 	}
@@ -230,11 +231,14 @@ func (me *PdfDictionaryObj) makeFont() ([]byte, error) {
 	return buff.Bytes(), nil
 }
 
-func (me *PdfDictionaryObj) completeGlyphClosure(glyphs map[rune]uint64) map[rune]uint64 {
+func (p *PdfDictionaryObj) completeGlyphClosure(glyphs map[rune]uint64) (map[rune]uint64, []int) {
 	//count := len(glyphs)
-	var glyphArray []int
+	//fmt.Printf(">>>>>>%#v\n", glyphs)
+	//runtime.Breakpoint()
+	/*var glyphArray []int
 	isContainZero := false
 	for _, v := range glyphArray {
+		fmt.Printf(">>>>%d\n", v)
 		glyphArray = append(glyphArray, v)
 		if v == 0 {
 			isContainZero = true
@@ -242,13 +246,53 @@ func (me *PdfDictionaryObj) completeGlyphClosure(glyphs map[rune]uint64) map[run
 	}
 
 	if !isContainZero {
-		glyphs[0] = 0
+		glyphs[0] = 0 //ผิด
+		//glyphs = append(glyphs,
+	}*/
+	/*TODO ทำต่อ*/
+	/*for idx := 0; idx < count; idx++ {
+		me.AddCompositeGlyphs(glyphs, glyphArray[idx])
+	}*/
+	var glyphArray []int
+	//copy
+	isContainZero := false
+	for _, v := range glyphs {
+		glyphArray = append(glyphArray, int(v))
+		if v == 0 {
+			isContainZero = true
+		}
 	}
-	/*TODO ทำต่อ
-		for (int idx = 0; idx < count; idx++)
-	        AddCompositeGlyphs(glyphs, glyphArray[idx]);
-	*/
-	return glyphs
+	if !isContainZero {
+		glyphArray = append(glyphArray, 0)
+	}
+
+	i := 0
+	count := len(glyphs)
+	for i < count {
+		p.AddCompositeGlyphs(glyphArray, glyphArray[i])
+		i++
+	}
+
+	//return glyphs, []int{131, 0, 36, 118}
+	return glyphs, glyphArray
+}
+
+func (p *PdfDictionaryObj) AddCompositeGlyphs(glyphArray []int, glyph int) []int {
+	start := p.GetOffset(int(glyph))
+	if start == p.GetOffset(int(glyph)+1) {
+		return glyphArray
+	}
+	//ttfp := p.PtrToSubsetFontObj.GetTTFParser()
+	//fontData := ttfp.FontData()
+	//fmt.Printf("--->%d\n", len(fontData))
+	return glyphArray
+}
+
+func (p *PdfDictionaryObj) GetOffset(glyph int) int {
+	ttfp := p.PtrToSubsetFontObj.GetTTFParser()
+	glyf := ttfp.GetTables()["glyf"]
+	offset := int(glyf.Offset + ttfp.LocaTable[glyph])
+	return offset
 }
 
 func CheckSum(data []byte) uint64 {

@@ -74,12 +74,6 @@ func (p *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 
 	_, glyphArray := p.completeGlyphClosure(p.PtrToSubsetFontObj.CharacterToGlyphIndex)
 	glyphCount := len(glyphArray)
-	/*glyphCount := len(glyphs)
-	//copy
-	var glyphArray []int
-	for _, v := range p.PtrToSubsetFontObj.CharacterToGlyphIndex {
-		glyphArray = append(glyphArray, int(v))
-	}*/
 	sort.Ints(glyphArray)
 
 	size := 0

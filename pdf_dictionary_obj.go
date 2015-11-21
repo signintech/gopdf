@@ -15,7 +15,8 @@ var EntrySelectors = []int{
 	2, 2, 3, 3, 3, 3,
 	3, 3, 3, 3, 4, 4,
 	4, 4, 4, 4, 4, 4,
-	4, 4, 4, 4, 4, 4, 4}
+	4, 4, 4, 4, 4, 4, 4,
+}
 
 var ErrNotSupportShortIndexYet = errors.New("not suport none short index yet!")
 
@@ -232,27 +233,6 @@ func (p *PdfDictionaryObj) makeFont() ([]byte, error) {
 }
 
 func (p *PdfDictionaryObj) completeGlyphClosure(glyphs map[rune]uint64) (map[rune]uint64, []int) {
-	//count := len(glyphs)
-	//fmt.Printf(">>>>>>%#v\n", glyphs)
-	//runtime.Breakpoint()
-	/*var glyphArray []int
-	isContainZero := false
-	for _, v := range glyphArray {
-		fmt.Printf(">>>>%d\n", v)
-		glyphArray = append(glyphArray, v)
-		if v == 0 {
-			isContainZero = true
-		}
-	}
-
-	if !isContainZero {
-		glyphs[0] = 0 //ผิด
-		//glyphs = append(glyphs,
-	}*/
-	/*TODO ทำต่อ*/
-	/*for idx := 0; idx < count; idx++ {
-		me.AddCompositeGlyphs(glyphs, glyphArray[idx])
-	}*/
 	var glyphArray []int
 	//copy
 	isContainZero := false
@@ -269,24 +249,71 @@ func (p *PdfDictionaryObj) completeGlyphClosure(glyphs map[rune]uint64) (map[run
 	i := 0
 	count := len(glyphs)
 	for i < count {
-		p.AddCompositeGlyphs(glyphArray, glyphArray[i])
+		p.AddCompositeGlyphs(&glyphArray, glyphArray[i])
 		i++
 	}
-
-	//return glyphs, []int{131, 0, 36, 118}
 	return glyphs, glyphArray
 }
 
-func (p *PdfDictionaryObj) AddCompositeGlyphs(glyphArray []int, glyph int) []int {
+//add composite glyph
+//composite glyph is a Unicode entity that can be defined as a sequence of one or more other characters.
+func (p *PdfDictionaryObj) AddCompositeGlyphs(glyphArray *[]int, glyph int) {
 	start := p.GetOffset(int(glyph))
 	if start == p.GetOffset(int(glyph)+1) {
-		return glyphArray
+		return
 	}
-	//ttfp := p.PtrToSubsetFontObj.GetTTFParser()
-	//fontData := ttfp.FontData()
-	//fmt.Printf("--->%d\n", len(fontData))
-	return glyphArray
+
+	offset := start
+	ttfp := p.PtrToSubsetFontObj.GetTTFParser()
+	fontData := ttfp.FontData()
+	numContours, step := ReadShortFromByte(fontData, offset)
+	offset += step
+	if numContours >= 0 {
+		return
+	}
+
+	offset += 8
+	for {
+		flags, step1 := ReadUShortFromByte(fontData, offset)
+		offset += step1
+		cGlyph, step2 := ReadUShortFromByte(fontData, offset)
+		offset += step2
+		//check cGlyph is contain in glyphArray?
+		glyphContainsKey := false
+		for _, g := range *glyphArray {
+			if g == int(cGlyph) {
+				glyphContainsKey = true
+				break
+			}
+		}
+		if !glyphContainsKey {
+			*glyphArray = append(*glyphArray, int(cGlyph))
+		}
+
+		if (flags & MORE_COMPONENTS) == 0 {
+			return
+		}
+		offsetAppend := 4
+		if (flags & ARG_1_AND_2_ARE_WORDS) == 0 {
+			offsetAppend = 2
+		}
+		if (flags & WE_HAVE_A_SCALE) != 0 {
+			offsetAppend += 2
+		} else if (flags & WE_HAVE_AN_X_AND_Y_SCALE) != 0 {
+			offsetAppend += 4
+		}
+		if (flags & WE_HAVE_A_TWO_BY_TWO) != 0 {
+			offsetAppend += 8
+		}
+		offset += offsetAppend
+	}
 }
+
+const WE_HAVE_A_SCALE = 8
+const MORE_COMPONENTS = 32
+const ARG_1_AND_2_ARE_WORDS = 1
+const WE_HAVE_AN_X_AND_Y_SCALE = 64
+const WE_HAVE_A_TWO_BY_TWO = 128
 
 func (p *PdfDictionaryObj) GetOffset(glyph int) int {
 	ttfp := p.PtrToSubsetFontObj.GetTTFParser()

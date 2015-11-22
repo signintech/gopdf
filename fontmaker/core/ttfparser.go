@@ -73,45 +73,45 @@ type TTFParser struct {
 var Symbolic = 1 << 2
 var Nonsymbolic = (1 << 5)
 
-func (me *TTFParser) UnderlinePosition() int64 {
-	return me.underlinePosition
+func (t *TTFParser) UnderlinePosition() int64 {
+	return t.underlinePosition
 }
 
-func (me *TTFParser) UnderlineThickness() int64 {
-	return me.underlineThickness
+func (t *TTFParser) UnderlineThickness() int64 {
+	return t.underlineThickness
 }
 
-func (me *TTFParser) XHeight() int64 {
-	if me.os2Version >= 2 && me.sxHeight != 0 {
-		return me.sxHeight
+func (t *TTFParser) XHeight() int64 {
+	if t.os2Version >= 2 && t.sxHeight != 0 {
+		return t.sxHeight
 	} else {
-		return int64((0.66) * float64(me.ascender))
+		return int64((0.66) * float64(t.ascender))
 	}
 }
 
-func (me *TTFParser) XMin() int64 {
-	return me.xMin
+func (t *TTFParser) XMin() int64 {
+	return t.xMin
 }
 
-func (me *TTFParser) YMin() int64 {
-	return me.yMin
+func (t *TTFParser) YMin() int64 {
+	return t.yMin
 }
 
-func (me *TTFParser) XMax() int64 {
-	return me.xMax
+func (t *TTFParser) XMax() int64 {
+	return t.xMax
 }
 
-func (me *TTFParser) YMax() int64 {
-	return me.yMax
+func (t *TTFParser) YMax() int64 {
+	return t.yMax
 }
 
-func (me *TTFParser) ItalicAngle() int64 {
-	return me.italicAngle
+func (t *TTFParser) ItalicAngle() int64 {
+	return t.italicAngle
 }
 
-func (me *TTFParser) Flag() int {
+func (t *TTFParser) Flag() int {
 	flag := 0
-	if me.symbol {
+	if t.symbol {
 		flag |= Symbolic
 	} else {
 		flag |= Nonsymbolic
@@ -119,102 +119,102 @@ func (me *TTFParser) Flag() int {
 	return flag
 }
 
-func (me *TTFParser) Ascender() int64 {
-	if me.typoAscender == 0 {
-		return me.ascender
+func (t *TTFParser) Ascender() int64 {
+	if t.typoAscender == 0 {
+		return t.ascender
 	}
-	return int64(me.usWinAscent)
+	return int64(t.usWinAscent)
 }
 
-func (me *TTFParser) Descender() int64 {
-	if me.typoDescender == 0 {
-		return me.descender
+func (t *TTFParser) Descender() int64 {
+	if t.typoDescender == 0 {
+		return t.descender
 	}
-	descender := int64(me.usWinDescent)
-	if me.descender < 0 {
+	descender := int64(t.usWinDescent)
+	if t.descender < 0 {
 		descender = descender * (-1)
 	}
 	return descender
 }
 
-func (me *TTFParser) TypoAscender() int64 {
-	return me.typoAscender
+func (t *TTFParser) TypoAscender() int64 {
+	return t.typoAscender
 }
 
-func (me *TTFParser) TypoDescender() int64 {
-	return me.typoDescender
+func (t *TTFParser) TypoDescender() int64 {
+	return t.typoDescender
 }
 
-func (me *TTFParser) CapHeight() int64 {
+func (t *TTFParser) CapHeight() int64 {
 	//fmt.Printf("\n\n>>>>>%d\n\n\n", me.capHeight)
-	return me.capHeight
+	return t.capHeight
 }
 
-func (me *TTFParser) NumGlyphs() uint64 {
-	return me.numGlyphs
+func (t *TTFParser) NumGlyphs() uint64 {
+	return t.numGlyphs
 }
 
-func (me *TTFParser) UnitsPerEm() uint64 {
-	return me.unitsPerEm
+func (t *TTFParser) UnitsPerEm() uint64 {
+	return t.unitsPerEm
 }
 
-func (me *TTFParser) NumberOfHMetrics() uint64 {
-	return me.numberOfHMetrics
+func (t *TTFParser) NumberOfHMetrics() uint64 {
+	return t.numberOfHMetrics
 }
 
-func (me *TTFParser) Widths() []uint64 {
-	return me.widths
+func (t *TTFParser) Widths() []uint64 {
+	return t.widths
 }
 
-func (me *TTFParser) Chars() map[int]uint64 {
-	return me.chars
+func (t *TTFParser) Chars() map[int]uint64 {
+	return t.chars
 }
 
-func (me *TTFParser) GetTables() map[string]TableDirectoryEntry {
-	return me.tables
+func (t *TTFParser) GetTables() map[string]TableDirectoryEntry {
+	return t.tables
 }
 
-func (me *TTFParser) Parse(fontpath string) error {
+func (t *TTFParser) Parse(fontpath string) error {
 	//fmt.Printf("\nstart parse\n")
 	fd, err := os.Open(fontpath)
 	if err != nil {
 		return err
 	}
 	defer fd.Close()
-	version, err := me.Read(fd, 4)
+	version, err := t.Read(fd, 4)
 	if err != nil {
 		return err
 	}
-	if !me.CompareBytes(version, []byte{0x00, 0x01, 0x00, 0x00}) {
+	if !t.CompareBytes(version, []byte{0x00, 0x01, 0x00, 0x00}) {
 		return errors.New("Unrecognized file (font) format")
 	}
 
 	i := uint64(0)
-	numTables, err := me.ReadUShort(fd)
+	numTables, err := t.ReadUShort(fd)
 	if err != nil {
 		return err
 	}
-	me.Skip(fd, 3*2) //searchRange, entrySelector, rangeShift
-	me.tables = make(map[string]TableDirectoryEntry)
+	t.Skip(fd, 3*2) //searchRange, entrySelector, rangeShift
+	t.tables = make(map[string]TableDirectoryEntry)
 	for i < numTables {
 
-		tag, err := me.Read(fd, 4)
+		tag, err := t.Read(fd, 4)
 		if err != nil {
 			return err
 		}
 
-		checksum, err := me.ReadULong(fd)
+		checksum, err := t.ReadULong(fd)
 		if err != nil {
 			return err
 		}
 
 		//fmt.Printf("offset\n")
-		offset, err := me.ReadULong(fd)
+		offset, err := t.ReadULong(fd)
 		if err != nil {
 			return err
 		}
 
-		length, err := me.ReadULong(fd)
+		length, err := t.ReadULong(fd)
 		if err != nil {
 			return err
 		}
@@ -224,52 +224,52 @@ func (me *TTFParser) Parse(fontpath string) error {
 		table.CheckSum = checksum
 		table.Length = length
 		//fmt.Printf("\n\ntag=%s  \nOffset = %d\nPaddedLength =%d\n\n ", tag, table.Offset, table.PaddedLength())
-		me.tables[me.BytesToString(tag)] = table
+		t.tables[t.BytesToString(tag)] = table
 		i++
 	}
 
 	//fmt.Printf("%+v\n", me.tables)
 
-	err = me.ParseHead(fd)
+	err = t.ParseHead(fd)
 	if err != nil {
 		return err
 	}
 
-	err = me.ParseHhea(fd)
+	err = t.ParseHhea(fd)
 	if err != nil {
 		return err
 	}
 
-	err = me.ParseMaxp(fd)
+	err = t.ParseMaxp(fd)
 	if err != nil {
 		return err
 	}
-	err = me.ParseHmtx(fd)
+	err = t.ParseHmtx(fd)
 	if err != nil {
 		return err
 	}
-	err = me.ParseCmap(fd)
+	err = t.ParseCmap(fd)
 	if err != nil {
 		return err
 	}
-	err = me.ParseName(fd)
+	err = t.ParseName(fd)
 	if err != nil {
 		return err
 	}
-	err = me.ParseOS2(fd)
+	err = t.ParseOS2(fd)
 	if err != nil {
 		return err
 	}
-	err = me.ParsePost(fd)
+	err = t.ParsePost(fd)
 	if err != nil {
 		return err
 	}
-	err = me.ParseLoca(fd)
+	err = t.ParseLoca(fd)
 	if err != nil {
 		return err
 	}
 	//fmt.Printf("%#v\n", me.widths)
-	me.cahceFontData, err = me.readFontData(fontpath)
+	t.cahceFontData, err = t.readFontData(fontpath)
 	if err != nil {
 		return err
 	}
@@ -277,11 +277,11 @@ func (me *TTFParser) Parse(fontpath string) error {
 	return nil
 }
 
-func (me *TTFParser) FontData() []byte {
-	return me.cahceFontData
+func (t *TTFParser) FontData() []byte {
+	return t.cahceFontData
 }
 
-func (me *TTFParser) readFontData(fontpath string) ([]byte, error) {
+func (t *TTFParser) readFontData(fontpath string) ([]byte, error) {
 	b, err := ioutil.ReadFile(fontpath)
 	if err != nil {
 		return nil, err
@@ -289,26 +289,26 @@ func (me *TTFParser) readFontData(fontpath string) ([]byte, error) {
 	return b, nil
 }
 
-func (me *TTFParser) ParseLoca(fd *os.File) error {
+func (t *TTFParser) ParseLoca(fd *os.File) error {
 
-	me.IsShortIndex = false
-	if me.indexToLocFormat == 0 {
-		me.IsShortIndex = true
+	t.IsShortIndex = false
+	if t.indexToLocFormat == 0 {
+		t.IsShortIndex = true
 	}
 
 	//fmt.Printf("indexToLocFormat = %d\n", me.indexToLocFormat)
-	err := me.Seek(fd, "loca")
+	err := t.Seek(fd, "loca")
 	if err != nil {
 		return err
 	}
 	var locaTable []uint64
-	table := me.tables["loca"]
-	if me.IsShortIndex {
+	table := t.tables["loca"]
+	if t.IsShortIndex {
 		//do ShortIndex
 		entries := table.Length / 2
 		i := uint64(0)
 		for i < entries {
-			item, err := me.ReadUShort(fd)
+			item, err := t.ReadUShort(fd)
 			if err != nil {
 				return err
 			}
@@ -319,7 +319,7 @@ func (me *TTFParser) ParseLoca(fd *os.File) error {
 		entries := table.Length / 4
 		i := uint64(0)
 		for i < entries {
-			item, err := me.ReadULong(fd)
+			item, err := t.ReadULong(fd)
 			if err != nil {
 				return err
 			}
@@ -327,181 +327,181 @@ func (me *TTFParser) ParseLoca(fd *os.File) error {
 			i++
 		}
 	}
-	me.LocaTable = locaTable
+	t.LocaTable = locaTable
 	return nil
 }
 
-func (me *TTFParser) ParsePost(fd *os.File) error {
+func (t *TTFParser) ParsePost(fd *os.File) error {
 
-	err := me.Seek(fd, "post")
+	err := t.Seek(fd, "post")
 	if err != nil {
 		return err
 	}
 
-	err = me.Skip(fd, 4) // version
+	err = t.Skip(fd, 4) // version
 	if err != nil {
 		return err
 	}
 
-	me.italicAngle, err = me.ReadShort(fd)
+	t.italicAngle, err = t.ReadShort(fd)
 	if err != nil {
 		return err
 	}
 
-	err = me.Skip(fd, 2) // Skip decimal part
+	err = t.Skip(fd, 2) // Skip decimal part
 	if err != nil {
 		return err
 	}
 
-	me.underlinePosition, err = me.ReadShort(fd)
+	t.underlinePosition, err = t.ReadShort(fd)
 	if err != nil {
 		return err
 	}
 
 	//fmt.Printf("start>>>>>>>\n")
-	me.underlineThickness, err = me.ReadShort(fd)
+	t.underlineThickness, err = t.ReadShort(fd)
 	if err != nil {
 		return err
 	}
 	//fmt.Printf("end>>>>>>>\n")
 	//fmt.Printf(">>>>>>>%d\n", me.underlineThickness)
 
-	isFixedPitch, err := me.ReadULong(fd)
+	isFixedPitch, err := t.ReadULong(fd)
 	if err != nil {
 		return err
 	}
-	me.isFixedPitch = (isFixedPitch != 0)
+	t.isFixedPitch = (isFixedPitch != 0)
 
 	return nil
 }
 
-func (me *TTFParser) ParseOS2(fd *os.File) error {
-	err := me.Seek(fd, "OS/2")
+func (t *TTFParser) ParseOS2(fd *os.File) error {
+	err := t.Seek(fd, "OS/2")
 	if err != nil {
 		return err
 	}
-	version, err := me.ReadUShort(fd)
+	version, err := t.ReadUShort(fd)
 	if err != nil {
 		return err
 	}
-	me.os2Version = version
+	t.os2Version = version
 
-	err = me.Skip(fd, 3*2) // xAvgCharWidth, usWeightClass, usWidthClass
+	err = t.Skip(fd, 3*2) // xAvgCharWidth, usWeightClass, usWidthClass
 	if err != nil {
 		return err
 	}
-	fsType, err := me.ReadUShort(fd)
+	fsType, err := t.ReadUShort(fd)
 	if err != nil {
 		return err
 	}
-	me.Embeddable = (fsType != 2) && ((fsType & 0x200) == 0)
+	t.Embeddable = (fsType != 2) && ((fsType & 0x200) == 0)
 
-	err = me.Skip(fd, (11*2)+10+(4*4)+4)
+	err = t.Skip(fd, (11*2)+10+(4*4)+4)
 	if err != nil {
 		return err
 	}
-	fsSelection, err := me.ReadUShort(fd)
+	fsSelection, err := t.ReadUShort(fd)
 	if err != nil {
 		return err
 	}
-	me.Bold = ((fsSelection & 32) != 0)
-	err = me.Skip(fd, 2*2) // usFirstCharIndex, usLastCharIndex
+	t.Bold = ((fsSelection & 32) != 0)
+	err = t.Skip(fd, 2*2) // usFirstCharIndex, usLastCharIndex
 	if err != nil {
 		return err
 	}
-	me.typoAscender, err = me.ReadShort(fd)
-	if err != nil {
-		return err
-	}
-
-	me.typoDescender, err = me.ReadShort(fd)
+	t.typoAscender, err = t.ReadShort(fd)
 	if err != nil {
 		return err
 	}
 
-	me.sTypoLineGap, err = me.ReadShort(fd)
+	t.typoDescender, err = t.ReadShort(fd)
 	if err != nil {
 		return err
 	}
 
-	me.usWinAscent, err = me.ReadUShort(fd)
+	t.sTypoLineGap, err = t.ReadShort(fd)
 	if err != nil {
 		return err
 	}
 
-	me.usWinDescent, err = me.ReadUShort(fd)
+	t.usWinAscent, err = t.ReadUShort(fd)
+	if err != nil {
+		return err
+	}
+
+	t.usWinDescent, err = t.ReadUShort(fd)
 	if err != nil {
 		return err
 	}
 
 	if version >= 2 {
 
-		err = me.Skip(fd, 2*4)
+		err = t.Skip(fd, 2*4)
 		if err != nil {
 			return err
 		}
 
-		me.sxHeight, err = me.ReadShort(fd)
+		t.sxHeight, err = t.ReadShort(fd)
 		if err != nil {
 			return err
 		}
 
-		me.capHeight, err = me.ReadShort(fd)
+		t.capHeight, err = t.ReadShort(fd)
 		if err != nil {
 			return err
 		}
 
 	} else {
-		me.capHeight = me.ascender
+		t.capHeight = t.ascender
 	}
 	//fmt.Printf("\n\nme.capHeight=%d , me.usWinAscent=%d,me.usWinDescent=%d\n\n", me.capHeight, me.usWinAscent, me.usWinDescent)
 
 	return nil
 }
 
-func (me *TTFParser) ParseName(fd *os.File) error {
+func (t *TTFParser) ParseName(fd *os.File) error {
 
 	//$this->Seek('name');
-	err := me.Seek(fd, "name")
+	err := t.Seek(fd, "name")
 	if err != nil {
 		return err
 	}
 
-	tableOffset, err := me.FTell(fd)
+	tableOffset, err := t.FTell(fd)
 	if err != nil {
 		return err
 	}
 
-	me.postScriptName = ""
-	err = me.Skip(fd, 2) // format
+	t.postScriptName = ""
+	err = t.Skip(fd, 2) // format
 	if err != nil {
 		return err
 	}
 
-	count, err := me.ReadUShort(fd)
+	count, err := t.ReadUShort(fd)
 	if err != nil {
 		return err
 	}
 
-	stringOffset, err := me.ReadUShort(fd)
+	stringOffset, err := t.ReadUShort(fd)
 	if err != nil {
 		return err
 	}
 
 	for i := 0; i < int(count); i++ {
-		err = me.Skip(fd, 3*2) // platformID, encodingID, languageID
+		err = t.Skip(fd, 3*2) // platformID, encodingID, languageID
 		if err != nil {
 			return err
 		}
-		nameID, err := me.ReadUShort(fd)
+		nameID, err := t.ReadUShort(fd)
 		if err != nil {
 			return err
 		}
-		length, err := me.ReadUShort(fd)
+		length, err := t.ReadUShort(fd)
 		if err != nil {
 			return err
 		}
-		offset, err := me.ReadUShort(fd)
+		offset, err := t.ReadUShort(fd)
 		if err != nil {
 			return err
 		}
@@ -512,7 +512,7 @@ func (me *TTFParser) ParseName(fd *os.File) error {
 				return err
 			}
 
-			stmp, err := me.Read(fd, int(length))
+			stmp, err := t.Read(fd, int(length))
 			if err != nil {
 				return err
 			}
@@ -525,16 +525,16 @@ func (me *TTFParser) ParseName(fd *os.File) error {
 			}
 			s := fmt.Sprintf("%s", string(tmpStmp)) //strings(stmp)
 			s = strings.Replace(s, strconv.Itoa(0), "", -1)
-			s, err = me.PregReplace("|[ \\[\\](){}<>/%]|", "", s)
+			s, err = t.PregReplace("|[ \\[\\](){}<>/%]|", "", s)
 			if err != nil {
 				return err
 			}
-			me.postScriptName = s
+			t.postScriptName = s
 			break
 		}
 	}
 
-	if me.postScriptName == "" {
+	if t.postScriptName == "" {
 		return ERROR_POSTSCRIPT_NAME_NOT_FOUND
 	}
 
@@ -542,7 +542,7 @@ func (me *TTFParser) ParseName(fd *os.File) error {
 	return nil
 }
 
-func (me *TTFParser) PregReplace(pattern string, replacement string, subject string) (string, error) {
+func (t *TTFParser) PregReplace(pattern string, replacement string, subject string) (string, error) {
 
 	reg, err := regexp.Compile(pattern)
 	if err != nil {
@@ -552,33 +552,33 @@ func (me *TTFParser) PregReplace(pattern string, replacement string, subject str
 	return str, nil
 }
 
-func (me *TTFParser) ParseCmap(fd *os.File) error {
-	me.Seek(fd, "cmap")
-	me.Skip(fd, 2) // version
-	numTables, err := me.ReadUShort(fd)
+func (t *TTFParser) ParseCmap(fd *os.File) error {
+	t.Seek(fd, "cmap")
+	t.Skip(fd, 2) // version
+	numTables, err := t.ReadUShort(fd)
 	if err != nil {
 		return err
 	}
 
 	offset31 := uint64(0)
 	for i := 0; i < int(numTables); i++ {
-		platformID, err := me.ReadUShort(fd)
+		platformID, err := t.ReadUShort(fd)
 		if err != nil {
 			return err
 		}
-		encodingID, err := me.ReadUShort(fd)
+		encodingID, err := t.ReadUShort(fd)
 		if err != nil {
 			return err
 		}
-		offset, err := me.ReadULong(fd)
+		offset, err := t.ReadULong(fd)
 		if err != nil {
 			return err
 		}
 
-		me.symbol = false //init
+		t.symbol = false //init
 		if platformID == 3 && encodingID == 1 {
 			if encodingID == 0 {
-				me.symbol = true
+				t.symbol = true
 			}
 			offset31 = offset
 		}
@@ -592,12 +592,12 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 
 	var startCount, endCount, idDelta, idRangeOffset, glyphIdArray []uint64
 
-	_, err = fd.Seek(int64(me.tables["cmap"].Offset+offset31), 0)
+	_, err = fd.Seek(int64(t.tables["cmap"].Offset+offset31), 0)
 	if err != nil {
 		return err
 	}
 
-	format, err := me.ReadUShort(fd)
+	format, err := t.ReadUShort(fd)
 	if err != nil {
 		return err
 	}
@@ -607,23 +607,23 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 		return ERROR_UNEXPECTED_SUBTABLE_FORMAT
 	}
 
-	length, err := me.ReadUShort(fd)
+	length, err := t.ReadUShort(fd)
 	if err != nil {
 		return err
 	}
 	//fmt.Printf("\nlength=%d\n", length)
 
-	err = me.Skip(fd, 2) // language
+	err = t.Skip(fd, 2) // language
 	if err != nil {
 		return err
 	}
-	segCount, err := me.ReadUShort(fd)
+	segCount, err := t.ReadUShort(fd)
 	if err != nil {
 		return err
 	}
 	segCount = segCount / 2
-	me.SegCount = segCount
-	err = me.Skip(fd, 3*2) // searchRange, entrySelector, rangeShift
+	t.SegCount = segCount
+	err = t.Skip(fd, 3*2) // searchRange, entrySelector, rangeShift
 	if err != nil {
 		return err
 	}
@@ -632,60 +632,60 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 	//fmt.Printf("\nglyphCount=%d\n", glyphCount)
 
 	for i := 0; i < int(segCount); i++ {
-		tmp, err := me.ReadUShort(fd)
+		tmp, err := t.ReadUShort(fd)
 		if err != nil {
 			return err
 		}
 		endCount = append(endCount, tmp)
 	}
-	me.EndCount = endCount
+	t.EndCount = endCount
 
-	err = me.Skip(fd, 2) // reservedPad
+	err = t.Skip(fd, 2) // reservedPad
 	if err != nil {
 		return err
 	}
 
 	for i := 0; i < int(segCount); i++ {
-		tmp, err := me.ReadUShort(fd)
+		tmp, err := t.ReadUShort(fd)
 		if err != nil {
 			return err
 		}
 		startCount = append(startCount, tmp)
 	}
-	me.StartCount = startCount
+	t.StartCount = startCount
 
 	for i := 0; i < int(segCount); i++ {
-		tmp, err := me.ReadUShort(fd)
+		tmp, err := t.ReadUShort(fd)
 		if err != nil {
 			return err
 		}
 		idDelta = append(idDelta, tmp)
 	}
-	me.IdDelta = idDelta
+	t.IdDelta = idDelta
 
-	offset, err := me.FTell(fd)
+	offset, err := t.FTell(fd)
 	if err != nil {
 		return err
 	}
 	for i := 0; i < int(segCount); i++ {
-		tmp, err := me.ReadUShort(fd)
+		tmp, err := t.ReadUShort(fd)
 		if err != nil {
 			return err
 		}
 		idRangeOffset = append(idRangeOffset, tmp)
 	}
-	me.IdRangeOffset = idRangeOffset
+	t.IdRangeOffset = idRangeOffset
 	//_ = glyphIdArray
 	for i := 0; i < int(glyphCount); i++ {
-		tmp, err := me.ReadUShort(fd)
+		tmp, err := t.ReadUShort(fd)
 		if err != nil {
 			return err
 		}
 		glyphIdArray = append(glyphIdArray, tmp)
 	}
-	me.GlyphIdArray = glyphIdArray
+	t.GlyphIdArray = glyphIdArray
 
-	me.chars = make(map[int]uint64)
+	t.chars = make(map[int]uint64)
 	for i := 0; i < int(segCount); i++ {
 		c1 := startCount[i]
 		c2 := endCount[i]
@@ -704,7 +704,7 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 				break
 			}
 			if ro > 0 {
-				gid, err = me.ReadUShort(fd)
+				gid, err = t.ReadUShort(fd)
 				if err != nil {
 					return err
 				}
@@ -720,7 +720,7 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 			}
 			if gid > 0 {
 				//fmt.Printf("%d gid = %d, ", int(c), gid)
-				me.chars[int(c)] = gid
+				t.chars[int(c)] = gid
 			}
 		}
 
@@ -730,31 +730,31 @@ func (me *TTFParser) ParseCmap(fd *os.File) error {
 	return nil
 }
 
-func (me *TTFParser) FTell(fd *os.File) (uint64, error) {
+func (t *TTFParser) FTell(fd *os.File) (uint64, error) {
 	offset, err := fd.Seek(0, os.SEEK_CUR)
 	return uint64(offset), err
 }
 
-func (me *TTFParser) ParseHmtx(fd *os.File) error {
+func (t *TTFParser) ParseHmtx(fd *os.File) error {
 
-	me.Seek(fd, "hmtx")
+	t.Seek(fd, "hmtx")
 	i := uint64(0)
-	for i < me.numberOfHMetrics {
-		advanceWidth, err := me.ReadUShort(fd)
+	for i < t.numberOfHMetrics {
+		advanceWidth, err := t.ReadUShort(fd)
 		if err != nil {
 			return err
 		}
-		err = me.Skip(fd, 2)
+		err = t.Skip(fd, 2)
 		if err != nil {
 			return err
 		}
-		me.widths = append(me.widths, advanceWidth)
+		t.widths = append(t.widths, advanceWidth)
 		i++
 	}
-	if me.numberOfHMetrics < me.numGlyphs {
+	if t.numberOfHMetrics < t.numGlyphs {
 		var err error
-		lastWidth := me.widths[me.numberOfHMetrics-1]
-		me.widths, err = me.ArrayPadUint(me.widths, me.numGlyphs, lastWidth)
+		lastWidth := t.widths[t.numberOfHMetrics-1]
+		t.widths, err = t.ArrayPadUint(t.widths, t.numGlyphs, lastWidth)
 		if err != nil {
 			return err
 		}
@@ -763,7 +763,7 @@ func (me *TTFParser) ParseHmtx(fd *os.File) error {
 	return nil
 }
 
-func (me *TTFParser) ArrayPadUint(arr []uint64, size uint64, val uint64) ([]uint64, error) {
+func (t *TTFParser) ArrayPadUint(arr []uint64, size uint64, val uint64) ([]uint64, error) {
 	var result []uint64
 	i := uint64(0)
 	for i < size {
@@ -778,19 +778,19 @@ func (me *TTFParser) ArrayPadUint(arr []uint64, size uint64, val uint64) ([]uint
 	return result, nil
 }
 
-func (me *TTFParser) ParseHead(fd *os.File) error {
+func (t *TTFParser) ParseHead(fd *os.File) error {
 
 	//fmt.Printf("\nParseHead\n")
-	err := me.Seek(fd, "head")
+	err := t.Seek(fd, "head")
 	if err != nil {
 		return err
 	}
 
-	err = me.Skip(fd, 3*4) // version, fontRevision, checkSumAdjustment
+	err = t.Skip(fd, 3*4) // version, fontRevision, checkSumAdjustment
 	if err != nil {
 		return err
 	}
-	magicNumber, err := me.ReadULong(fd)
+	magicNumber, err := t.ReadULong(fd)
 	if err != nil {
 		return err
 	}
@@ -800,47 +800,47 @@ func (me *TTFParser) ParseHead(fd *os.File) error {
 		return ERROR_INCORRECT_MAGIC_NUMBER
 	}
 
-	err = me.Skip(fd, 2)
+	err = t.Skip(fd, 2)
 	if err != nil {
 		return err
 	}
 
-	me.unitsPerEm, err = me.ReadUShort(fd)
+	t.unitsPerEm, err = t.ReadUShort(fd)
 	if err != nil {
 		return err
 	}
 
-	err = me.Skip(fd, 2*8) // created, modified
+	err = t.Skip(fd, 2*8) // created, modified
 	if err != nil {
 		return err
 	}
 
-	me.xMin, err = me.ReadShort(fd)
+	t.xMin, err = t.ReadShort(fd)
 	if err != nil {
 		return err
 	}
 
-	me.yMin, err = me.ReadShort(fd)
+	t.yMin, err = t.ReadShort(fd)
 	if err != nil {
 		return err
 	}
 
-	me.xMax, err = me.ReadShort(fd)
+	t.xMax, err = t.ReadShort(fd)
 	if err != nil {
 		return err
 	}
 
-	me.yMax, err = me.ReadShort(fd)
+	t.yMax, err = t.ReadShort(fd)
 	if err != nil {
 		return err
 	}
 
-	err = me.Skip(fd, 2*3) //skip macStyle,lowestRecPPEM,fontDirectionHint
+	err = t.Skip(fd, 2*3) //skip macStyle,lowestRecPPEM,fontDirectionHint
 	if err != nil {
 		return err
 	}
 
-	me.indexToLocFormat, err = me.ReadShort(fd)
+	t.indexToLocFormat, err = t.ReadShort(fd)
 	if err != nil {
 		return err
 	}
@@ -848,34 +848,34 @@ func (me *TTFParser) ParseHead(fd *os.File) error {
 	return nil
 }
 
-func (me *TTFParser) ParseHhea(fd *os.File) error {
+func (t *TTFParser) ParseHhea(fd *os.File) error {
 
-	err := me.Seek(fd, "hhea")
+	err := t.Seek(fd, "hhea")
 	if err != nil {
 		return err
 	}
 
-	err = me.Skip(fd, 4) //skip version
+	err = t.Skip(fd, 4) //skip version
 	if err != nil {
 		return err
 	}
 
-	me.ascender, err = me.ReadShort(fd)
+	t.ascender, err = t.ReadShort(fd)
 	if err != nil {
 		return err
 	}
 
-	me.descender, err = me.ReadShort(fd)
+	t.descender, err = t.ReadShort(fd)
 	if err != nil {
 		return err
 	}
 
-	err = me.Skip(fd, 13*2)
+	err = t.Skip(fd, 13*2)
 	if err != nil {
 		return err
 	}
 
-	me.numberOfHMetrics, err = me.ReadUShort(fd)
+	t.numberOfHMetrics, err = t.ReadUShort(fd)
 	if err != nil {
 		return err
 	}
@@ -884,24 +884,24 @@ func (me *TTFParser) ParseHhea(fd *os.File) error {
 	return nil
 }
 
-func (me *TTFParser) ParseMaxp(fd *os.File) error {
-	err := me.Seek(fd, "maxp")
+func (t *TTFParser) ParseMaxp(fd *os.File) error {
+	err := t.Seek(fd, "maxp")
 	if err != nil {
 		return err
 	}
-	err = me.Skip(fd, 4)
+	err = t.Skip(fd, 4)
 	if err != nil {
 		return err
 	}
-	me.numGlyphs, err = me.ReadUShort(fd)
+	t.numGlyphs, err = t.ReadUShort(fd)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (me *TTFParser) Seek(fd *os.File, tag string) error {
-	table, ok := me.tables[tag]
+func (t *TTFParser) Seek(fd *os.File, tag string) error {
+	table, ok := t.tables[tag]
 	if !ok {
 		return errors.New("me.tables not contain key=" + tag)
 	}
@@ -913,12 +913,12 @@ func (me *TTFParser) Seek(fd *os.File, tag string) error {
 	return nil
 }
 
-func (me *TTFParser) BytesToString(b []byte) string {
+func (t *TTFParser) BytesToString(b []byte) string {
 	return string(b) //strings.TrimSpace(string(b))
 }
 
-func (me *TTFParser) ReadUShort(fd *os.File) (uint64, error) {
-	buff, err := me.Read(fd, 2)
+func (t *TTFParser) ReadUShort(fd *os.File) (uint64, error) {
+	buff, err := t.Read(fd, 2)
 	if err != nil {
 		return 0, err
 	}
@@ -927,8 +927,8 @@ func (me *TTFParser) ReadUShort(fd *os.File) (uint64, error) {
 	return num.Uint64(), nil
 }
 
-func (me *TTFParser) ReadShort(fd *os.File) (int64, error) {
-	buff, err := me.Read(fd, 2)
+func (t *TTFParser) ReadShort(fd *os.File) (int64, error) {
+	buff, err := t.Read(fd, 2)
 	if err != nil {
 		return 0, err
 	}
@@ -946,8 +946,8 @@ func (me *TTFParser) ReadShort(fd *os.File) (int64, error) {
 	return v, nil
 }
 
-func (me *TTFParser) ReadULong(fd *os.File) (uint64, error) {
-	buff, err := me.Read(fd, 4)
+func (t *TTFParser) ReadULong(fd *os.File) (uint64, error) {
+	buff, err := t.Read(fd, 4)
 	//fmt.Printf("%#v\n", buff)
 	if err != nil {
 		return 0, err
@@ -957,7 +957,7 @@ func (me *TTFParser) ReadULong(fd *os.File) (uint64, error) {
 	return num.Uint64(), nil
 }
 
-func (me *TTFParser) Skip(fd *os.File, length int64) error {
+func (t *TTFParser) Skip(fd *os.File, length int64) error {
 	_, err := fd.Seek(int64(length), 1)
 	if err != nil {
 		return err
@@ -965,7 +965,7 @@ func (me *TTFParser) Skip(fd *os.File, length int64) error {
 	return nil
 }
 
-func (me *TTFParser) Read(fd *os.File, length int) ([]byte, error) {
+func (t *TTFParser) Read(fd *os.File, length int) ([]byte, error) {
 	buff := make([]byte, length)
 	readlength, err := fd.Read(buff)
 	if err != nil {
@@ -978,7 +978,7 @@ func (me *TTFParser) Read(fd *os.File, length int) ([]byte, error) {
 	return buff, nil
 }
 
-func (me *TTFParser) CompareBytes(a []byte, b []byte) bool {
+func (t *TTFParser) CompareBytes(a []byte, b []byte) bool {
 
 	if a == nil && b == nil {
 		return true

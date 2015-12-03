@@ -280,13 +280,25 @@ func (gp *GoPdf) GetBytesPdf() []byte {
 func (gp *GoPdf) Cell(rectangle *Rect, text string) {
 
 	//undelineOffset := ContentObj_CalTextHeight(gp.Curr.Font_Size) + 1
+
 	startX := gp.Curr.X
 	startY := gp.Curr.Y
 	if gp.Curr.Font_Type == CURRENT_FONT_TYPE_IFONT {
-		gp.getContent().AppendStream(rectangle, text)
+		gp.getContent().AppendStream(
+			rectangle, text,
+			gp.Curr.textColor().r,
+			gp.Curr.textColor().g,
+			gp.Curr.textColor().b,
+		)
 	} else if gp.Curr.Font_Type == CURRENT_FONT_TYPE_SUBSET {
 		gp.Curr.Font_ISubset.AddChars(text)
-		gp.getContent().AppendStreamSubsetFont(rectangle, text)
+		gp.getContent().AppendStreamSubsetFont(
+			rectangle,
+			text,
+			gp.Curr.textColor().r,
+			gp.Curr.textColor().g,
+			gp.Curr.textColor().b,
+		)
 	}
 	endX := gp.Curr.X
 	endY := gp.Curr.Y
@@ -409,6 +421,16 @@ func (gp *GoPdf) AddFont(family string, ifont IFont, zfontpath string) {
 		}
 	}
 	//end add font obj
+}
+
+//SetTextColor :  function sets the text color
+func (gp *GoPdf) SetTextColor(r uint8, g uint8, b uint8) {
+	rgb := Rgb{
+		r: r,
+		g: g,
+		b: b,
+	}
+	gp.Curr.setTextColor(rgb)
 }
 
 /*---private---*/

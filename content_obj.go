@@ -38,7 +38,7 @@ func (c *ContentObj) GetObjBuff() *bytes.Buffer {
 	return &(c.buffer)
 }
 
-func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
+func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, r, g, b uint8) {
 
 	sumWidth := uint64(0)
 	var buff bytes.Buffer
@@ -62,6 +62,13 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 	c.stream.WriteString("BT\n")
 	c.stream.WriteString(x + " " + y + " TD\n")
 	c.stream.WriteString("/F" + strconv.Itoa(c.getRoot().Curr.Font_FontCount+1) + " " + strconv.Itoa(fontSize) + " Tf\n")
+	if r + g + b != 0 {
+		rFloat := float64(r) * 0.00392156862745
+		gFloat := float64(g) * 0.00392156862745
+		bFloat := float64(b) * 0.00392156862745
+		rgb := fmt.Sprintf("%0.2f %0.2f %0.2f rg\n",rFloat,gFloat,bFloat)
+		c.stream.WriteString(rgb)
+	}
 	c.stream.WriteString("<" + buff.String() + "> Tj\n")
 	c.stream.WriteString("ET\n")
 	if rectangle == nil {
@@ -72,7 +79,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 	}
 }
 
-func (c *ContentObj) AppendStream(rectangle *Rect, text string) {
+func (c *ContentObj) AppendStream(rectangle *Rect, text string, r, g, b uint8) {
 
 	fontSize := c.getRoot().Curr.Font_Size
 
@@ -82,6 +89,13 @@ func (c *ContentObj) AppendStream(rectangle *Rect, text string) {
 	c.stream.WriteString("BT\n")
 	c.stream.WriteString(x + " " + y + " TD\n")
 	c.stream.WriteString("/F" + strconv.Itoa(c.getRoot().Curr.Font_FontCount+1) + " " + strconv.Itoa(fontSize) + " Tf\n")
+	if r + g + b != 0 {
+		rFloat := float64(r) * 0.00392156862745
+		gFloat := float64(g) * 0.00392156862745
+		bFloat := float64(b) * 0.00392156862745
+		rgb := fmt.Sprintf("%0.2f %0.2f %0.2f rg\n",rFloat,gFloat,bFloat)
+		c.stream.WriteString(rgb)
+	}
 	c.stream.WriteString("(" + text + ") Tj\n")
 	c.stream.WriteString("ET\n")
 	if rectangle == nil {

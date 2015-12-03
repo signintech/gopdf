@@ -277,16 +277,16 @@ func (gp *GoPdf) GetBytesPdf() []byte {
 
 //Cell : create cell of text
 //Note that this has no effect on Rect.H pdf (now). Fix later :-)
-func (gp *GoPdf) Cell(rectangle *Rect, text string) {
+func (gp *GoPdf) Cell(rectangle *Rect, text string, r,g,b uint8) {
 
 	//undelineOffset := ContentObj_CalTextHeight(gp.Curr.Font_Size) + 1
 	startX := gp.Curr.X
 	startY := gp.Curr.Y
 	if gp.Curr.Font_Type == CURRENT_FONT_TYPE_IFONT {
-		gp.getContent().AppendStream(rectangle, text)
+		gp.getContent().AppendStream(rectangle, text, r, g, b)
 	} else if gp.Curr.Font_Type == CURRENT_FONT_TYPE_SUBSET {
 		gp.Curr.Font_ISubset.AddChars(text)
-		gp.getContent().AppendStreamSubsetFont(rectangle, text)
+		gp.getContent().AppendStreamSubsetFont(rectangle, text, r, g, b)
 	}
 	endX := gp.Curr.X
 	endY := gp.Curr.Y

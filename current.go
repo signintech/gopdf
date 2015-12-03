@@ -30,6 +30,11 @@ type Current struct {
 
 	//text color
 	txtColor Rgb
+
+	//text grayscale
+	grayFill float64
+	//draw grayscale
+	grayStroke float64 //fixme grayStroke not use
 }
 
 func (c *Current) setTextColor(rgb Rgb) {

@@ -59,11 +59,13 @@ func (gp *GoPdf) Br(h float64) {
 
 // Set the grayscale for the fill, takes a float64 between 0.0 and 1.0
 func (gp *GoPdf) SetGrayFill(grayScale float64) {
+	gp.Curr.grayFill = grayScale
 	gp.getContent().AppendStreamSetGrayFill(grayScale)
 }
 
 // Set the grayscale for the stroke, takes a float64 between 0.0 and 1.0
 func (gp *GoPdf) SetGrayStroke(grayScale float64) {
+	gp.Curr.grayStroke = grayScale
 	gp.getContent().AppendStreamSetGrayStroke(grayScale)
 }
 
@@ -284,21 +286,10 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) {
 	startX := gp.Curr.X
 	startY := gp.Curr.Y
 	if gp.Curr.Font_Type == CURRENT_FONT_TYPE_IFONT {
-		gp.getContent().AppendStream(
-			rectangle, text,
-			gp.Curr.textColor().r,
-			gp.Curr.textColor().g,
-			gp.Curr.textColor().b,
-		)
+		gp.getContent().AppendStream(rectangle, text)
 	} else if gp.Curr.Font_Type == CURRENT_FONT_TYPE_SUBSET {
 		gp.Curr.Font_ISubset.AddChars(text)
-		gp.getContent().AppendStreamSubsetFont(
-			rectangle,
-			text,
-			gp.Curr.textColor().r,
-			gp.Curr.textColor().g,
-			gp.Curr.textColor().b,
-		)
+		gp.getContent().AppendStreamSubsetFont(rectangle, text)
 	}
 	endX := gp.Curr.X
 	endY := gp.Curr.Y

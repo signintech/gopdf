@@ -27,9 +27,26 @@ type Current struct {
 	CountOfImg int
 	//cache of image in pdf file
 	ImgCaches []ImageCache
+
+	//text color
+	txtColor Rgb
+}
+
+func (c *Current) setTextColor(rgb Rgb) {
+	c.txtColor = rgb
+}
+
+func (c *Current) textColor() Rgb {
+	return c.txtColor
 }
 
 type ImageCache struct {
 	Path  string
 	Index int
+}
+
+type Rgb struct {
+	r uint8
+	g uint8
+	b uint8
 }

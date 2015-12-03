@@ -277,16 +277,28 @@ func (gp *GoPdf) GetBytesPdf() []byte {
 
 //Cell : create cell of text
 //Note that this has no effect on Rect.H pdf (now). Fix later :-)
-func (gp *GoPdf) Cell(rectangle *Rect, text string, r,g,b uint8) {
+func (gp *GoPdf) Cell(rectangle *Rect, text string) {
 
 	//undelineOffset := ContentObj_CalTextHeight(gp.Curr.Font_Size) + 1
+
 	startX := gp.Curr.X
 	startY := gp.Curr.Y
 	if gp.Curr.Font_Type == CURRENT_FONT_TYPE_IFONT {
-		gp.getContent().AppendStream(rectangle, text, r, g, b)
+		gp.getContent().AppendStream(
+			rectangle, text,
+			gp.Curr.textColor().r,
+			gp.Curr.textColor().g,
+			gp.Curr.textColor().b,
+		)
 	} else if gp.Curr.Font_Type == CURRENT_FONT_TYPE_SUBSET {
 		gp.Curr.Font_ISubset.AddChars(text)
-		gp.getContent().AppendStreamSubsetFont(rectangle, text, r, g, b)
+		gp.getContent().AppendStreamSubsetFont(
+			rectangle,
+			text,
+			gp.Curr.textColor().r,
+			gp.Curr.textColor().g,
+			gp.Curr.textColor().b,
+		)
 	}
 	endX := gp.Curr.X
 	endY := gp.Curr.Y
@@ -409,6 +421,16 @@ func (gp *GoPdf) AddFont(family string, ifont IFont, zfontpath string) {
 		}
 	}
 	//end add font obj
+}
+
+//SetTextColor :  function sets the text color
+func (gp *GoPdf) SetTextColor(r uint8, g uint8, b uint8) {
+	rgb := Rgb{
+		r: r,
+		g: g,
+		b: b,
+	}
+	gp.Curr.setTextColor(rgb)
 }
 
 /*---private---*/

@@ -59,11 +59,13 @@ func (gp *GoPdf) Br(h float64) {
 
 // Set the grayscale for the fill, takes a float64 between 0.0 and 1.0
 func (gp *GoPdf) SetGrayFill(grayScale float64) {
+	gp.Curr.grayFill = grayScale
 	gp.getContent().AppendStreamSetGrayFill(grayScale)
 }
 
 // Set the grayscale for the stroke, takes a float64 between 0.0 and 1.0
 func (gp *GoPdf) SetGrayStroke(grayScale float64) {
+	gp.Curr.grayStroke = grayScale
 	gp.getContent().AppendStreamSetGrayStroke(grayScale)
 }
 
@@ -280,6 +282,7 @@ func (gp *GoPdf) GetBytesPdf() []byte {
 func (gp *GoPdf) Cell(rectangle *Rect, text string) {
 
 	//undelineOffset := ContentObj_CalTextHeight(gp.Curr.Font_Size) + 1
+
 	startX := gp.Curr.X
 	startY := gp.Curr.Y
 	if gp.Curr.Font_Type == CURRENT_FONT_TYPE_IFONT {
@@ -409,6 +412,16 @@ func (gp *GoPdf) AddFont(family string, ifont IFont, zfontpath string) {
 		}
 	}
 	//end add font obj
+}
+
+//SetTextColor :  function sets the text color
+func (gp *GoPdf) SetTextColor(r uint8, g uint8, b uint8) {
+	rgb := Rgb{
+		r: r,
+		g: g,
+		b: b,
+	}
+	gp.Curr.setTextColor(rgb)
 }
 
 /*---private---*/

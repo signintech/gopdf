@@ -51,6 +51,11 @@ func (gp *GoPdf) Line(x1 float64, y1 float64, x2 float64, y2 float64) {
 	gp.getContent().AppendStreamLine(x1, y1, x2, y2)
 }
 
+//Oval : draw oval
+func (gp *GoPdf) Oval(x1 float64, y1 float64, x2 float64, y2 float64) {
+	gp.getContent().AppendStreamOval(x1, y1, x2, y2)
+}
+
 //Br : new line
 func (gp *GoPdf) Br(h float64) {
 	gp.Curr.Y += h

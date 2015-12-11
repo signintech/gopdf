@@ -429,6 +429,24 @@ func (gp *GoPdf) SetTextColor(r uint8, g uint8, b uint8) {
 	gp.Curr.setTextColor(rgb)
 }
 
+//MeasureTextWidth : measure Width of text (use current font)
+func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
+
+	fontSize := gp.Curr.Font_Size
+	sfont := gp.Curr.Font_ISubset
+	sumWidth := uint64(0)
+	//sum width of each rune.
+	for _, r := range text {
+		width, err := sfont.CharWidth(r)
+		if err != nil {
+			return 0, err
+		}
+		sumWidth = sumWidth + width
+	}
+	realWidth := float64(sumWidth) * (float64(fontSize) / 1000.0) //convert
+	return realWidth, nil
+}
+
 /*---private---*/
 
 //init

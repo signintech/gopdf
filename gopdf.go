@@ -46,7 +46,7 @@ func (gp *GoPdf) SetLineWidth(width float64) {
 	gp.getContent().AppendStreamSetLineWidth(width)
 }
 
-//SetLineType : set line type
+//SetLineType : set line type  ("dashed" ,"dotted")
 func (gp *GoPdf) SetLineType(linetype string) {
 	gp.getContent().AppendStreamSetLineType(linetype)
 }

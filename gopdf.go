@@ -46,6 +46,11 @@ func (gp *GoPdf) SetLineWidth(width float64) {
 	gp.getContent().AppendStreamSetLineWidth(width)
 }
 
+//SetLineType : set line type
+func (gp *GoPdf) SetLineType(linetype string) {
+	gp.getContent().AppendStreamSetLineType(linetype)
+}
+
 //Line : draw line
 func (gp *GoPdf) Line(x1 float64, y1 float64, x2 float64, y2 float64) {
 	gp.getContent().AppendStreamLine(x1, y1, x2, y2)

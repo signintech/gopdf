@@ -530,6 +530,7 @@ func (gp *GoPdf) prepare() {
 }
 
 func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) {
+	xrefbyteoffset := buff.Len()
 	buff.WriteString("xref\n")
 	buff.WriteString("0 " + strconv.Itoa((*i)+1) + "\n")
 	buff.WriteString("0000000000 65535 f\n")
@@ -545,6 +546,11 @@ func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) {
 	buff.WriteString("/Size " + strconv.Itoa(max+1) + "\n")
 	buff.WriteString("/Root 1 0 R\n")
 	buff.WriteString(">>\n")
+
+	buff.WriteString("startxref\n")
+	buff.WriteString(strconv.Itoa(xrefbyteoffset))
+	buff.WriteString("\n%%EOF\n")
+
 	(*i)++
 }
 

@@ -1,6 +1,6 @@
 package gopdf
 
-//Buff
+//Buff for pdf content
 type Buff struct {
 	position int
 	datas    []byte

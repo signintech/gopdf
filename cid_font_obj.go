@@ -11,46 +11,46 @@ type CIDFontObj struct {
 	indexObjSubfontDescriptor int
 }
 
-func (me *CIDFontObj) Init(funcGetRoot func() *GoPdf) {
+func (ci *CIDFontObj) Init(funcGetRoot func() *GoPdf) {
 }
 
-func (me *CIDFontObj) Build() error {
+func (ci *CIDFontObj) Build() error {
 
-	me.buffer.WriteString("<<\n")
-	me.buffer.WriteString(fmt.Sprintf("/BaseFont /%s\n", CreateEmbeddedFontSubsetName(me.PtrToSubsetFontObj.GetFamily())))
-	me.buffer.WriteString("/CIDSystemInfo\n")
-	me.buffer.WriteString("<<\n")
-	me.buffer.WriteString("  /Ordering (Identity)\n")
-	me.buffer.WriteString("  /Registry (Adobe)\n")
-	me.buffer.WriteString("  /Supplement 0\n")
-	me.buffer.WriteString(">>\n")
-	me.buffer.WriteString(fmt.Sprintf("/FontDescriptor %d 0 R\n", me.indexObjSubfontDescriptor+1)) //TODO fix
-	me.buffer.WriteString("/Subtype /CIDFontType2\n")
-	me.buffer.WriteString("/Type /Font\n")
-	characterToGlyphIndex := me.PtrToSubsetFontObj.CharacterToGlyphIndex
-	me.buffer.WriteString("/W [")
+	ci.buffer.WriteString("<<\n")
+	ci.buffer.WriteString(fmt.Sprintf("/BaseFont /%s\n", CreateEmbeddedFontSubsetName(ci.PtrToSubsetFontObj.GetFamily())))
+	ci.buffer.WriteString("/CIDSystemInfo\n")
+	ci.buffer.WriteString("<<\n")
+	ci.buffer.WriteString("  /Ordering (Identity)\n")
+	ci.buffer.WriteString("  /Registry (Adobe)\n")
+	ci.buffer.WriteString("  /Supplement 0\n")
+	ci.buffer.WriteString(">>\n")
+	ci.buffer.WriteString(fmt.Sprintf("/FontDescriptor %d 0 R\n", ci.indexObjSubfontDescriptor+1)) //TODO fix
+	ci.buffer.WriteString("/Subtype /CIDFontType2\n")
+	ci.buffer.WriteString("/Type /Font\n")
+	characterToGlyphIndex := ci.PtrToSubsetFontObj.CharacterToGlyphIndex
+	ci.buffer.WriteString("/W [")
 	for _, v := range characterToGlyphIndex {
-		width := me.PtrToSubsetFontObj.GlyphIndexToPdfWidth(v)
-		me.buffer.WriteString(fmt.Sprintf("%d[%d]", v, width))
+		width := ci.PtrToSubsetFontObj.GlyphIndexToPdfWidth(v)
+		ci.buffer.WriteString(fmt.Sprintf("%d[%d]", v, width))
 	}
-	me.buffer.WriteString("]\n")
-	me.buffer.WriteString(">>\n")
+	ci.buffer.WriteString("]\n")
+	ci.buffer.WriteString(">>\n")
 	return nil
 }
 
-func (me *CIDFontObj) SetIndexObjSubfontDescriptor(index int) {
-	me.indexObjSubfontDescriptor = index
+func (ci *CIDFontObj) SetIndexObjSubfontDescriptor(index int) {
+	ci.indexObjSubfontDescriptor = index
 }
 
-func (me *CIDFontObj) GetType() string {
+func (ci *CIDFontObj) GetType() string {
 	return "CIDFont"
 }
 
-func (me *CIDFontObj) GetObjBuff() *bytes.Buffer {
+func (ci *CIDFontObj) GetObjBuff() *bytes.Buffer {
 	//fmt.Printf("%s\n", me.buffer.String())
-	return &me.buffer
+	return &ci.buffer
 }
 
-func (me *CIDFontObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
-	me.PtrToSubsetFontObj = ptr
+func (ci *CIDFontObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
+	ci.PtrToSubsetFontObj = ptr
 }

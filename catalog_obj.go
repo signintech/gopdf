@@ -9,22 +9,22 @@ type CatalogObj struct { //impl IObj
 	buffer bytes.Buffer
 }
 
-func (me *CatalogObj) Init(funcGetRoot func() *GoPdf) {
+func (c *CatalogObj) Init(funcGetRoot func() *GoPdf) {
 
 }
 
-func (me *CatalogObj) Build() error {
-	me.buffer.WriteString("<<\n")
-	me.buffer.WriteString("  /Type /" + me.GetType() + "\n")
-	me.buffer.WriteString("  /Pages 2 0 R\n")
-	me.buffer.WriteString(">>\n")
+func (c *CatalogObj) Build() error {
+	c.buffer.WriteString("<<\n")
+	c.buffer.WriteString("  /Type /" + c.GetType() + "\n")
+	c.buffer.WriteString("  /Pages 2 0 R\n")
+	c.buffer.WriteString(">>\n")
 	return nil
 }
 
-func (me *CatalogObj) GetType() string {
+func (c *CatalogObj) GetType() string {
 	return "Catalog"
 }
 
-func (me *CatalogObj) GetObjBuff() *bytes.Buffer {
-	return &(me.buffer)
+func (c *CatalogObj) GetObjBuff() *bytes.Buffer {
+	return &(c.buffer)
 }

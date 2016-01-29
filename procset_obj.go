@@ -13,54 +13,54 @@ type ProcSetObj struct {
 	getRoot     func() *GoPdf
 }
 
-func (me *ProcSetObj) Init(funcGetRoot func() *GoPdf) {
-	me.getRoot = funcGetRoot
+func (pr *ProcSetObj) Init(funcGetRoot func() *GoPdf) {
+	pr.getRoot = funcGetRoot
 }
 
-func (me *ProcSetObj) Build() error {
+func (pr *ProcSetObj) Build() error {
 
-	me.buffer.WriteString("<<\n")
-	me.buffer.WriteString("/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]\n")
-	me.buffer.WriteString("/Font <<\n")
+	pr.buffer.WriteString("<<\n")
+	pr.buffer.WriteString("/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]\n")
+	pr.buffer.WriteString("/Font <<\n")
 	//me.buffer.WriteString("/F1 9 0 R
 	//me.buffer.WriteString("/F2 12 0 R
 	//me.buffer.WriteString("/F3 15 0 R
 	i := 0
-	max := len(me.Realtes)
+	max := len(pr.Realtes)
 	for i < max {
-		realte := me.Realtes[i]
-		me.buffer.WriteString(fmt.Sprintf("      /F%d %d 0 R\n", realte.CountOfFont+1, realte.IndexOfObj+1))
+		realte := pr.Realtes[i]
+		pr.buffer.WriteString(fmt.Sprintf("      /F%d %d 0 R\n", realte.CountOfFont+1, realte.IndexOfObj+1))
 		i++
 	}
-	me.buffer.WriteString(">>\n")
-	me.buffer.WriteString("/XObject <<\n")
+	pr.buffer.WriteString(">>\n")
+	pr.buffer.WriteString("/XObject <<\n")
 	i = 0
-	max = len(me.RealteXobjs)
+	max = len(pr.RealteXobjs)
 	for i < max {
-		me.buffer.WriteString(fmt.Sprintf("/I%d %d 0 R\n", me.getRoot().Curr.CountOfL+1, me.RealteXobjs[i].IndexOfObj+1))
-		me.getRoot().Curr.CountOfL++
+		pr.buffer.WriteString(fmt.Sprintf("/I%d %d 0 R\n", pr.getRoot().Curr.CountOfL+1, pr.RealteXobjs[i].IndexOfObj+1))
+		pr.getRoot().Curr.CountOfL++
 		i++
 	}
-	me.buffer.WriteString(">>\n")
-	me.buffer.WriteString(">>\n")
+	pr.buffer.WriteString(">>\n")
+	pr.buffer.WriteString(">>\n")
 	return nil
 }
 
-func (me *ProcSetObj) GetType() string {
+func (pr *ProcSetObj) GetType() string {
 	return "ProcSet"
 }
 
-func (me *ProcSetObj) GetObjBuff() *bytes.Buffer {
-	return &(me.buffer)
+func (pr *ProcSetObj) GetObjBuff() *bytes.Buffer {
+	return &(pr.buffer)
 }
 
 type RelateFonts []RelateFont
 
-func (me *RelateFonts) IsContainsFamily(family string) bool {
+func (re *RelateFonts) IsContainsFamily(family string) bool {
 	i := 0
-	max := len(*me)
+	max := len(*re)
 	for i < max {
-		if (*me)[i].Family == family {
+		if (*re)[i].Family == family {
 			return true
 		}
 		i++

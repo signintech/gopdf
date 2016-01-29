@@ -10,22 +10,22 @@ type UnicodeMap struct {
 	PtrToSubsetFontObj *SubsetFontObj
 }
 
-func (u *UnicodeMap) Init(funcGetRoot func() *GoPdf) {}
+func (u *UnicodeMap) init(funcGetRoot func() *GoPdf) {}
 
 func (u *UnicodeMap) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 	u.PtrToSubsetFontObj = ptr
 }
 
-func (u *UnicodeMap) Build() error {
+func (u *UnicodeMap) build() error {
 	u.buffer.Write(u.pdfToUnicodeMap().Bytes())
 	return nil
 }
 
-func (u *UnicodeMap) GetType() string {
+func (u *UnicodeMap) getType() string {
 	return "Unicode"
 }
 
-func (u *UnicodeMap) GetObjBuff() *bytes.Buffer {
+func (u *UnicodeMap) getObjBuff() *bytes.Buffer {
 	return &u.buffer
 }
 

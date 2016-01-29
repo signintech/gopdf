@@ -9,16 +9,16 @@ type EncodingObj struct {
 	font   IFont
 }
 
-func (e *EncodingObj) Init(funcGetRoot func() *GoPdf) {
+func (e *EncodingObj) init(funcGetRoot func() *GoPdf) {
 
 }
-func (e *EncodingObj) GetType() string {
+func (e *EncodingObj) getType() string {
 	return "Encoding"
 }
-func (e *EncodingObj) GetObjBuff() *bytes.Buffer {
+func (e *EncodingObj) getObjBuff() *bytes.Buffer {
 	return &e.buffer
 }
-func (e *EncodingObj) Build() error {
+func (e *EncodingObj) build() error {
 	e.buffer.WriteString("<</Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [")
 	e.buffer.WriteString(e.font.GetDiff())
 	e.buffer.WriteString("]>>\n")

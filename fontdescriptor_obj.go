@@ -10,11 +10,11 @@ type FontDescriptorObj struct {
 	fontFileObjRelate string
 }
 
-func (f *FontDescriptorObj) Init(funcGetRoot func() *GoPdf) {
+func (f *FontDescriptorObj) init(funcGetRoot func() *GoPdf) {
 
 }
 
-func (f *FontDescriptorObj) Build() error {
+func (f *FontDescriptorObj) build() error {
 
 	f.buffer.WriteString("<</Type /FontDescriptor /FontName /" + f.font.GetName() + " ")
 	descs := f.font.GetDesc()
@@ -25,7 +25,7 @@ func (f *FontDescriptorObj) Build() error {
 		i++
 	}
 
-	if f.GetType() == "Type1" {
+	if f.getType() == "Type1" {
 		f.buffer.WriteString("/FontFile ")
 	} else {
 		f.buffer.WriteString("/FontFile2 ")
@@ -37,11 +37,11 @@ func (f *FontDescriptorObj) Build() error {
 	return nil
 }
 
-func (f *FontDescriptorObj) GetType() string {
+func (f *FontDescriptorObj) getType() string {
 	return "FontDescriptor"
 }
 
-func (f *FontDescriptorObj) GetObjBuff() *bytes.Buffer {
+func (f *FontDescriptorObj) getObjBuff() *bytes.Buffer {
 	return &(f.buffer)
 }
 

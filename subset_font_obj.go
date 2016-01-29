@@ -18,11 +18,11 @@ type SubsetFontObj struct {
 	indexObjUnicodeMap    int
 }
 
-func (s *SubsetFontObj) Init(funcGetRoot func() *GoPdf) {
+func (s *SubsetFontObj) init(funcGetRoot func() *GoPdf) {
 	s.CharacterToGlyphIndex = make(map[rune]uint64)
 }
 
-func (s *SubsetFontObj) Build() error {
+func (s *SubsetFontObj) build() error {
 	//me.AddChars("จ")
 	s.buffer.WriteString("<<\n")
 	s.buffer.WriteString(fmt.Sprintf("/BaseFont /%s\n", CreateEmbeddedFontSubsetName(s.Family)))
@@ -84,11 +84,11 @@ func (s *SubsetFontObj) CharWidth(r rune) (uint64, error) {
 	return 0, ErrCharNotFound
 }
 
-func (s *SubsetFontObj) GetType() string {
+func (s *SubsetFontObj) getType() string {
 	return "SubsetFont"
 }
 
-func (s *SubsetFontObj) GetObjBuff() *bytes.Buffer {
+func (s *SubsetFontObj) getObjBuff() *bytes.Buffer {
 	//fmt.Printf("%s\n", me.buffer.String())
 	return &s.buffer
 }

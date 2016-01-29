@@ -15,11 +15,11 @@ type ContentObj struct { //impl IObj
 	getRoot func() *GoPdf
 }
 
-func (c *ContentObj) Init(funcGetRoot func() *GoPdf) {
+func (c *ContentObj) init(funcGetRoot func() *GoPdf) {
 	c.getRoot = funcGetRoot
 }
 
-func (c *ContentObj) Build() error {
+func (c *ContentObj) build() error {
 	streamlen := c.stream.Len()
 	c.buffer.WriteString("<<\n")
 	c.buffer.WriteString("/Length " + strconv.Itoa(streamlen) + "\n")
@@ -30,11 +30,11 @@ func (c *ContentObj) Build() error {
 	return nil
 }
 
-func (c *ContentObj) GetType() string {
+func (c *ContentObj) getType() string {
 	return "Content"
 }
 
-func (c *ContentObj) GetObjBuff() *bytes.Buffer {
+func (c *ContentObj) getObjBuff() *bytes.Buffer {
 	return &(c.buffer)
 }
 
@@ -187,7 +187,6 @@ func (c *ContentObj) AppendStreamSetLineType(t string) {
 	default:
 		c.stream.WriteString(fmt.Sprint("[] 0 d\n"))
 	}
-
 
 }
 

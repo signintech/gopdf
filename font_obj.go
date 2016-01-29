@@ -20,12 +20,12 @@ type FontObj struct { //impl IObj
 	CountOfFont int
 }
 
-func (f *FontObj) Init(funcGetRoot func() *GoPdf) {
+func (f *FontObj) init(funcGetRoot func() *GoPdf) {
 	f.IsEmbedFont = false
 	//me.CountOfFont = -1
 }
 
-func (f *FontObj) Build() error {
+func (f *FontObj) build() error {
 
 	baseFont := f.Family
 	if f.Font != nil {
@@ -33,7 +33,7 @@ func (f *FontObj) Build() error {
 	}
 
 	f.buffer.WriteString("<<\n")
-	f.buffer.WriteString("  /Type /" + f.GetType() + "\n")
+	f.buffer.WriteString("  /Type /" + f.getType() + "\n")
 	f.buffer.WriteString("  /Subtype /TrueType\n")
 	f.buffer.WriteString("  /BaseFont /" + baseFont + "\n")
 	if f.IsEmbedFont {
@@ -46,11 +46,11 @@ func (f *FontObj) Build() error {
 	return nil
 }
 
-func (f *FontObj) GetType() string {
+func (f *FontObj) getType() string {
 	return "Font"
 }
 
-func (f *FontObj) GetObjBuff() *bytes.Buffer {
+func (f *FontObj) getObjBuff() *bytes.Buffer {
 	return &(f.buffer)
 }
 

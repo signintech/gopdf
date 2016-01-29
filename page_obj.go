@@ -11,14 +11,14 @@ type PageObj struct { //impl IObj
 	ResourcesRelate string
 }
 
-func (p *PageObj) Init(funcGetRoot func() *GoPdf) {
+func (p *PageObj) init(funcGetRoot func() *GoPdf) {
 
 }
 
-func (p *PageObj) Build() error {
+func (p *PageObj) build() error {
 
 	p.buffer.WriteString("<<\n")
-	p.buffer.WriteString("  /Type /" + p.GetType() + "\n")
+	p.buffer.WriteString("  /Type /" + p.getType() + "\n")
 	p.buffer.WriteString("  /Parent 2 0 R\n")
 	p.buffer.WriteString("  /Resources " + p.ResourcesRelate + "\n")
 	/*me.buffer.WriteString("    /Font <<\n")
@@ -36,10 +36,10 @@ func (p *PageObj) Build() error {
 	return nil
 }
 
-func (p *PageObj) GetType() string {
+func (p *PageObj) getType() string {
 	return "Page"
 }
 
-func (p *PageObj) GetObjBuff() *bytes.Buffer {
+func (p *PageObj) getObjBuff() *bytes.Buffer {
 	return &(p.buffer)
 }

@@ -15,11 +15,11 @@ type ImageObj struct {
 	imagepath string
 }
 
-func (i *ImageObj) Init(funcGetRoot func() *GoPdf) {
+func (i *ImageObj) init(funcGetRoot func() *GoPdf) {
 	//me.getRoot = funcGetRoot
 }
 
-func (i *ImageObj) Build() error {
+func (i *ImageObj) build() error {
 
 	file, err := os.Open(i.imagepath)
 	if err != nil {
@@ -27,7 +27,7 @@ func (i *ImageObj) Build() error {
 		return err
 	}
 	defer file.Close()
-	
+
 	m, _, err := image.Decode(file)
 	if err != nil {
 		return err
@@ -54,11 +54,11 @@ func (i *ImageObj) Build() error {
 	return nil
 }
 
-func (i *ImageObj) GetType() string {
+func (i *ImageObj) getType() string {
 	return "Image"
 }
 
-func (i *ImageObj) GetObjBuff() *bytes.Buffer {
+func (i *ImageObj) getObjBuff() *bytes.Buffer {
 	return &(i.buffer)
 }
 

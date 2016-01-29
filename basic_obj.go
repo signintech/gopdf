@@ -11,21 +11,21 @@ type BasicObj struct {
 }
 
 //Init : init BasicObj
-func (b *BasicObj) Init(funcGetRoot func() *GoPdf) {
+func (b *BasicObj) init(funcGetRoot func() *GoPdf) {
 }
 
 //Build : build buff
-func (b *BasicObj) Build() error {
+func (b *BasicObj) build() error {
 	b.buffer.WriteString(b.Data)
 	return nil
 }
 
 //GetType : type of object
-func (b *BasicObj) GetType() string {
+func (b *BasicObj) getType() string {
 	return "Basic"
 }
 
 //GetObjBuff : get buffer
-func (b *BasicObj) GetObjBuff() *bytes.Buffer {
+func (b *BasicObj) getObjBuff() *bytes.Buffer {
 	return &(b.buffer)
 }

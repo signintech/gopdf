@@ -5,9 +5,9 @@ import (
 )
 
 type IObj interface {
-	Init(func() *GoPdf)
-	GetType() string
-	GetObjBuff() *bytes.Buffer
+	init(func() *GoPdf)
+	getType() string
+	getObjBuff() *bytes.Buffer
 	//สร้าง ข้อมูลใน pdf
-	Build() error
+	build() error
 }

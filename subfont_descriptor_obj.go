@@ -13,16 +13,16 @@ type SubfontDescriptorObj struct {
 	indexObjPdfDictionary int
 }
 
-func (s *SubfontDescriptorObj) Init(func() *GoPdf) {}
+func (s *SubfontDescriptorObj) init(func() *GoPdf) {}
 
-func (s *SubfontDescriptorObj) GetType() string {
+func (s *SubfontDescriptorObj) getType() string {
 	return "SubFontDescriptor"
 }
-func (s *SubfontDescriptorObj) GetObjBuff() *bytes.Buffer {
+func (s *SubfontDescriptorObj) getObjBuff() *bytes.Buffer {
 	return &s.buffer
 }
 
-func (s *SubfontDescriptorObj) Build() error {
+func (s *SubfontDescriptorObj) build() error {
 	ttfp := s.PtrToSubsetFontObj.GetTTFParser()
 	s.buffer.WriteString("<<\n")
 	s.buffer.WriteString("/Type /FontDescriptor\n")

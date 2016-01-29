@@ -11,10 +11,10 @@ type CIDFontObj struct {
 	indexObjSubfontDescriptor int
 }
 
-func (ci *CIDFontObj) Init(funcGetRoot func() *GoPdf) {
+func (ci *CIDFontObj) init(funcGetRoot func() *GoPdf) {
 }
 
-func (ci *CIDFontObj) Build() error {
+func (ci *CIDFontObj) build() error {
 
 	ci.buffer.WriteString("<<\n")
 	ci.buffer.WriteString(fmt.Sprintf("/BaseFont /%s\n", CreateEmbeddedFontSubsetName(ci.PtrToSubsetFontObj.GetFamily())))
@@ -42,11 +42,11 @@ func (ci *CIDFontObj) SetIndexObjSubfontDescriptor(index int) {
 	ci.indexObjSubfontDescriptor = index
 }
 
-func (ci *CIDFontObj) GetType() string {
+func (ci *CIDFontObj) getType() string {
 	return "CIDFont"
 }
 
-func (ci *CIDFontObj) GetObjBuff() *bytes.Buffer {
+func (ci *CIDFontObj) getObjBuff() *bytes.Buffer {
 	//fmt.Printf("%s\n", me.buffer.String())
 	return &ci.buffer
 }

@@ -25,10 +25,10 @@ type PdfDictionaryObj struct {
 	PtrToSubsetFontObj *SubsetFontObj
 }
 
-func (p *PdfDictionaryObj) Init(funcGetRoot func() *GoPdf) {
+func (p *PdfDictionaryObj) init(funcGetRoot func() *GoPdf) {
 }
 
-func (p *PdfDictionaryObj) Build() error {
+func (p *PdfDictionaryObj) build() error {
 	b, err := p.makeFont()
 	if err != nil {
 		//log.Panicf("%s", err.Error())
@@ -54,11 +54,11 @@ func (p *PdfDictionaryObj) Build() error {
 	return nil
 }
 
-func (p *PdfDictionaryObj) GetType() string {
+func (p *PdfDictionaryObj) getType() string {
 	return "PdfDictionary"
 }
 
-func (p *PdfDictionaryObj) GetObjBuff() *bytes.Buffer {
+func (p *PdfDictionaryObj) getObjBuff() *bytes.Buffer {
 	return &p.buffer
 }
 

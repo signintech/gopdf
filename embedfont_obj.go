@@ -13,10 +13,10 @@ type EmbedFontObj struct {
 	font      IFont
 }
 
-func (e *EmbedFontObj) Init(funcGetRoot func() *GoPdf) {
+func (e *EmbedFontObj) init(funcGetRoot func() *GoPdf) {
 }
 
-func (e *EmbedFontObj) Build() error {
+func (e *EmbedFontObj) build() error {
 	b, err := ioutil.ReadFile(e.zfontpath)
 	if err != nil {
 		return err
@@ -31,11 +31,11 @@ func (e *EmbedFontObj) Build() error {
 	return nil
 }
 
-func (e *EmbedFontObj) GetType() string {
+func (e *EmbedFontObj) getType() string {
 	return "EmbedFont"
 }
 
-func (e *EmbedFontObj) GetObjBuff() *bytes.Buffer {
+func (e *EmbedFontObj) getObjBuff() *bytes.Buffer {
 	return &(e.buffer)
 }
 

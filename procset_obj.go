@@ -13,11 +13,11 @@ type ProcSetObj struct {
 	getRoot     func() *GoPdf
 }
 
-func (pr *ProcSetObj) Init(funcGetRoot func() *GoPdf) {
+func (pr *ProcSetObj) init(funcGetRoot func() *GoPdf) {
 	pr.getRoot = funcGetRoot
 }
 
-func (pr *ProcSetObj) Build() error {
+func (pr *ProcSetObj) build() error {
 
 	pr.buffer.WriteString("<<\n")
 	pr.buffer.WriteString("/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]\n")
@@ -46,11 +46,11 @@ func (pr *ProcSetObj) Build() error {
 	return nil
 }
 
-func (pr *ProcSetObj) GetType() string {
+func (pr *ProcSetObj) getType() string {
 	return "ProcSet"
 }
 
-func (pr *ProcSetObj) GetObjBuff() *bytes.Buffer {
+func (pr *ProcSetObj) getObjBuff() *bytes.Buffer {
 	return &(pr.buffer)
 }
 

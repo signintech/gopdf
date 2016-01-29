@@ -128,7 +128,7 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) {
 
 	//create img object
 	imgobj := new(ImageObj)
-	imgobj.Init(func() *GoPdf {
+	imgobj.init(func() *GoPdf {
 		return gp
 	})
 	imgobj.SetImagePath(picPath)
@@ -161,7 +161,7 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) {
 //AddPage : add new page
 func (gp *GoPdf) AddPage() {
 	page := new(PageObj)
-	page.Init(func() *GoPdf {
+	page.init(func() *GoPdf {
 		return gp
 	})
 	page.ResourcesRelate = strconv.Itoa(gp.indexOfProcSet+1) + " 0 R"
@@ -183,11 +183,11 @@ func (gp *GoPdf) Start(config Config) {
 	gp.init()
 	//สร้าง obj พื้นฐาน
 	catalog := new(CatalogObj)
-	catalog.Init(func() *GoPdf {
+	catalog.init(func() *GoPdf {
 		return gp
 	})
 	pages := new(PagesObj)
-	pages.Init(func() *GoPdf {
+	pages.init(func() *GoPdf {
 		return gp
 	})
 	gp.addObj(catalog)
@@ -195,7 +195,7 @@ func (gp *GoPdf) Start(config Config) {
 
 	//indexOfProcSet
 	procset := new(ProcSetObj)
-	procset.Init(func() *GoPdf {
+	procset.init(func() *GoPdf {
 		return gp
 	})
 	gp.indexOfProcSet = gp.addObj(procset)
@@ -226,7 +226,7 @@ func (gp *GoPdf) SetFont(family string, style string, size int) error {
 		i = 0
 		max = len(gp.pdfObjs)
 		for i < max {
-			if gp.pdfObjs[i].GetType() == "SubsetFont" {
+			if gp.pdfObjs[i].getType() == "SubsetFont" {
 				obj := gp.pdfObjs[i]
 				sub, ok := obj.(*SubsetFontObj)
 				if ok {
@@ -269,12 +269,12 @@ func (gp *GoPdf) GetBytesPdfReturnErr() ([]byte, error) {
 	for i < max {
 		linelens[i] = buff.Len()
 		pdfObj := gp.pdfObjs[i]
-		err := pdfObj.Build()
+		err := pdfObj.build()
 		if err != nil {
 			return nil, err
 		}
 		buff.WriteString(strconv.Itoa(i+1) + " 0 obj\n")
-		buffbyte := pdfObj.GetObjBuff().Bytes()
+		buffbyte := pdfObj.getObjBuff().Bytes()
 		buff.Write(buffbyte)
 		buff.WriteString("endobj\n\n")
 		i++
@@ -325,7 +325,7 @@ func (gp *GoPdf) AddTTFFont(family string, ttfpath string) error {
 	}
 
 	subsetFont := new(SubsetFontObj)
-	subsetFont.Init(func() *GoPdf {
+	subsetFont.init(func() *GoPdf {
 		return gp
 	})
 	subsetFont.SetFamily(family)
@@ -335,21 +335,21 @@ func (gp *GoPdf) AddTTFFont(family string, ttfpath string) error {
 	}
 
 	unicodemap := new(UnicodeMap)
-	unicodemap.Init(func() *GoPdf {
+	unicodemap.init(func() *GoPdf {
 		return gp
 	})
 	unicodemap.SetPtrToSubsetFontObj(subsetFont)
 	unicodeindex := gp.addObj(unicodemap)
 
 	pdfdic := new(PdfDictionaryObj)
-	pdfdic.Init(func() *GoPdf {
+	pdfdic.init(func() *GoPdf {
 		return gp
 	})
 	pdfdic.SetPtrToSubsetFontObj(subsetFont)
 	pdfdicindex := gp.addObj(pdfdic)
 
 	subfontdesc := new(SubfontDescriptorObj)
-	subfontdesc.Init(func() *GoPdf {
+	subfontdesc.init(func() *GoPdf {
 		return gp
 	})
 	subfontdesc.SetPtrToSubsetFontObj(subsetFont)
@@ -357,7 +357,7 @@ func (gp *GoPdf) AddTTFFont(family string, ttfpath string) error {
 	subfontdescindex := gp.addObj(subfontdesc)
 
 	cidfont := new(CIDFontObj)
-	cidfont.Init(func() *GoPdf {
+	cidfont.init(func() *GoPdf {
 		return gp
 	})
 	cidfont.SetPtrToSubsetFontObj(subsetFont)
@@ -388,21 +388,21 @@ func (gp *GoPdf) AddFont(family string, ifont IFont, zfontpath string) {
 	gp.indexEncodingObjFonts = append(gp.indexEncodingObjFonts, gp.addObj(encoding))
 
 	fontWidth := new(BasicObj)
-	fontWidth.Init(func() *GoPdf {
+	fontWidth.init(func() *GoPdf {
 		return gp
 	})
 	fontWidth.Data = "[" + FontConvertHelper_Cw2Str(ifont.GetCw()) + "]\n"
 	gp.addObj(fontWidth) //1
 
 	fontDesc := new(FontDescriptorObj)
-	fontDesc.Init(func() *GoPdf {
+	fontDesc.init(func() *GoPdf {
 		return gp
 	})
 	fontDesc.SetFont(ifont)
 	gp.addObj(fontDesc) //2
 
 	embedfont := new(EmbedFontObj)
-	embedfont.Init(func() *GoPdf {
+	embedfont.init(func() *GoPdf {
 		return gp
 	})
 	embedfont.SetFont(ifont, zfontpath)
@@ -412,7 +412,7 @@ func (gp *GoPdf) AddFont(family string, ifont IFont, zfontpath string) {
 
 	//start add font obj
 	font := new(FontObj)
-	font.Init(func() *GoPdf {
+	font.init(func() *GoPdf {
 		return gp
 	})
 	font.Family = family
@@ -500,7 +500,7 @@ func (gp *GoPdf) prepare() {
 		i := 0 //gp.indexOfFirstPageObj
 		max := len(gp.pdfObjs)
 		for i < max {
-			objtype := gp.pdfObjs[i].GetType()
+			objtype := gp.pdfObjs[i].getType()
 			//fmt.Printf(" objtype = %s , %d \n", objtype , i)
 			if objtype == "Page" {
 				pagesObj.Kids = fmt.Sprintf("%s %d 0 R ", pagesObj.Kids, i+1)
@@ -575,7 +575,7 @@ func (gp *GoPdf) getContent() *ContentObj {
 	var content *ContentObj
 	if gp.indexOfContent <= -1 {
 		content = new(ContentObj)
-		content.Init(func() *GoPdf {
+		content.init(func() *GoPdf {
 			return gp
 		})
 		gp.indexOfContent = gp.addObj(content)

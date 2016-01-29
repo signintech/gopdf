@@ -171,13 +171,14 @@ func (c *ContentObj) AppendUnderline(startX float64, y float64, endX float64, en
 	c.stream.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f -%0.2f re f\n", startX, arg3, endX-startX, arg4))
 }
 
+//AppendStreamSetLineType : set line width
 func (c *ContentObj) AppendStreamSetLineWidth(w float64) {
 
 	c.stream.WriteString(fmt.Sprintf("%.2f w\n", w))
 
 }
 
-// AppendStreamSetLineType : Set linetype [solid, dashed, dotted]
+//AppendStreamSetLineType : Set linetype [solid, dashed, dotted]
 func (c *ContentObj) AppendStreamSetLineType(t string) {
 	switch t {
 	case "dashed":
@@ -190,25 +191,26 @@ func (c *ContentObj) AppendStreamSetLineType(t string) {
 
 }
 
-//  Set the grayscale fills
+//AppendStreamSetGrayFill  set the grayscale fills
 func (c *ContentObj) AppendStreamSetGrayFill(w float64) {
 	w = fixRange10(w)
 	c.stream.WriteString(fmt.Sprintf("%.2f g\n", w))
 }
 
-//  Set the grayscale stroke
+//AppendStreamSetGrayStroke  set the grayscale stroke
 func (c *ContentObj) AppendStreamSetGrayStroke(w float64) {
 	w = fixRange10(w)
 	c.stream.WriteString(fmt.Sprintf("%.2f G\n", w))
 }
 
+//AppendStreamImage append image
 func (c *ContentObj) AppendStreamImage(index int, x float64, y float64, rect *Rect) {
 	//fmt.Printf("index = %d",index)
 	h := c.getRoot().config.PageSize.H
 	c.stream.WriteString(fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", rect.W, rect.H, x, h-(y+rect.H), index+1))
 }
 
-//cal text height
+//ContentObj_CalTextHeight calculate height of text
 func ContentObj_CalTextHeight(fontsize int) float64 {
 	return (float64(fontsize) * 0.7)
 }

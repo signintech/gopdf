@@ -1,6 +1,9 @@
 package gopdf
 
+//CURRENT_FONT_TYPE_IFONT this font add by Gopdf.AddFont(...)
 const CURRENT_FONT_TYPE_IFONT = 0
+
+//CURRENT_FONT_TYPE_SUBSET this font add by Gopdf.AddTTFFont(...)
 const CURRENT_FONT_TYPE_SUBSET = 1
 
 type Current struct {

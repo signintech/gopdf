@@ -37,7 +37,7 @@ type Current struct {
 	//text grayscale
 	grayFill float64
 	//draw grayscale
-	grayStroke float64 //fixme grayStroke not use
+	grayStroke float64
 }
 
 func (c *Current) setTextColor(rgb Rgb) {

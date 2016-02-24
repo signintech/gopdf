@@ -439,6 +439,13 @@ func (gp *GoPdf) SetTextColor(r uint8, g uint8, b uint8) {
 	gp.Curr.setTextColor(rgb)
 }
 
+//SetStrokeColor set the color for the stroke
+func (gp *GoPdf) SetStrokeColor(r uint8, g uint8, b uint8) {
+	//TODO ทำ
+	//gp.Curr.grayStroke = grayScale
+	gp.getContent().AppendStreamSetColorStroke(r, g, b)
+}
+
 //MeasureTextWidth : measure Width of text (use current font)
 func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 

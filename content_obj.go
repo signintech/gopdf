@@ -203,6 +203,15 @@ func (c *ContentObj) AppendStreamSetGrayStroke(w float64) {
 	c.stream.WriteString(fmt.Sprintf("%.2f G\n", w))
 }
 
+//AppendStreamSetColorStroke  set the color stroke
+func (c *ContentObj) AppendStreamSetColorStroke(r uint8, g uint8, b uint8) {
+	//w = fixRange10(w)
+	rFloat := float64(r) * 0.00392156862745
+	gFloat := float64(g) * 0.00392156862745
+	bFloat := float64(b) * 0.00392156862745
+	c.stream.WriteString(fmt.Sprintf("%.2f %.2f %.2f RG\n", rFloat, gFloat, bFloat))
+}
+
 //AppendStreamImage append image
 func (c *ContentObj) AppendStreamImage(index int, x float64, y float64, rect *Rect) {
 	//fmt.Printf("index = %d",index)

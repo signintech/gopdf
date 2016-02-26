@@ -441,8 +441,6 @@ func (gp *GoPdf) SetTextColor(r uint8, g uint8, b uint8) {
 
 //SetStrokeColor set the color for the stroke
 func (gp *GoPdf) SetStrokeColor(r uint8, g uint8, b uint8) {
-	//TODO ทำ
-	//gp.Curr.grayStroke = grayScale
 	gp.getContent().AppendStreamSetColorStroke(r, g, b)
 }
 

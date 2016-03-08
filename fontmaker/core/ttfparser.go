@@ -66,6 +66,10 @@ type TTFParser struct {
 	IdDelta       []uint64
 	GlyphIdArray  []uint64
 	symbol        bool
+
+	//cmap format 12
+	groupingTables []CmapFormat12GroupingTable
+
 	//data of font
 	cahceFontData []byte
 }
@@ -73,10 +77,17 @@ type TTFParser struct {
 var Symbolic = 1 << 2
 var Nonsymbolic = (1 << 5)
 
+//UnderlinePosition postion of underline
 func (t *TTFParser) UnderlinePosition() int64 {
 	return t.underlinePosition
 }
 
+//GroupingTables get cmap format12 grouping table
+func (t *TTFParser) GroupingTables() []CmapFormat12GroupingTable {
+	return t.groupingTables
+}
+
+//UnderlineThickness thickness of underline
 func (t *TTFParser) UnderlineThickness() int64 {
 	return t.underlineThickness
 }
@@ -727,6 +738,13 @@ func (t *TTFParser) ParseCmap(fd *os.File) error {
 	}
 	//fmt.Printf("len() = %d , me.chars[10] = %d , me.chars[56]  = %d \n", len(me.chars), me.chars[10], me.chars[56])
 	//fmt.Printf("len() = %d , me.chars[99] = %d , me.chars[107]  = %d \n\n", len(me.chars), me.chars[99], me.chars[107])
+
+	//test
+	err = t.ParseCmapFormat12(fd)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

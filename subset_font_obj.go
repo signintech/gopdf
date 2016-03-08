@@ -2,6 +2,7 @@ package gopdf
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 
 	"github.com/signintech/gopdf/fontmaker/core"
@@ -93,9 +94,33 @@ func (s *SubsetFontObj) getObjBuff() *bytes.Buffer {
 	return &s.buffer
 }
 
-func (s *SubsetFontObj) CharCodeToGlyphIndex(r rune) uint64 {
-	seg := uint64(0)
+func (s *SubsetFontObj) charCodeToGlyphIndexFormat12(r rune) (uint64, error) {
+
 	value := uint64(r)
+	gTbs := s.ttfp.GroupingTables()
+	for _, gTb := range gTbs {
+		if value >= gTb.StartCharCode && value < gTb.EndCharCode {
+			gIndex := (value - gTb.StartCharCode) + gTb.GlyphID
+			return gIndex, nil
+		}
+	}
+
+	return uint64(0), errors.New("not found glyph")
+}
+
+//CharCodeToGlyphIndex get glyph index from char code
+func (s *SubsetFontObj) CharCodeToGlyphIndex(r rune) uint64 {
+
+	value := uint64(r)
+	if value > 0xFFFF {
+		gIndex, err := s.charCodeToGlyphIndexFormat12(r)
+		if err != nil {
+			panic(err) //TODO change CharCodeToGlyphIndex for return error
+		}
+		return gIndex
+	}
+
+	seg := uint64(0)
 	segCount := s.ttfp.SegCount
 	for seg < segCount {
 		if value <= s.ttfp.EndCount[seg] {

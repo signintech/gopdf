@@ -2,33 +2,32 @@ package core
 
 import (
 	"errors"
-	"fmt"
 	"os"
 )
 
-//ParseCmapFormat12 cmap format 12
-func (t *TTFParser) ParseCmapFormat12(fd *os.File) error {
+//ParseCmapFormat12 parse cmap table format 12 https://www.microsoft.com/typography/otspec/cmap.htm
+func (t *TTFParser) ParseCmapFormat12(fd *os.File) (bool, error) {
 
 	t.Seek(fd, "cmap")
-	t.Skip(fd, 2) // version
+	t.Skip(fd, 2) //skip version
 	numTables, err := t.ReadUShort(fd)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	var cEncodingSubtables []cmapFormat12EncodingSubtable
 	for i := 0; i < int(numTables); i++ {
 		platformID, err := t.ReadUShort(fd)
 		if err != nil {
-			return err
+			return false, err
 		}
 		encodingID, err := t.ReadUShort(fd)
 		if err != nil {
-			return err
+			return false, err
 		}
 		offset, err := t.ReadULong(fd)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		var ce cmapFormat12EncodingSubtable
@@ -49,64 +48,62 @@ func (t *TTFParser) ParseCmapFormat12(fd *os.File) error {
 	}
 
 	if !isFound {
-		return errors.New("not found Encoding Identifiers Unicode UCS-4")
+		return false, nil
 	}
 
 	_, err = fd.Seek(int64(t.tables["cmap"].Offset+offset), 0)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	format, err := t.ReadUShort(fd)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if format != 12 {
-		return errors.New("format != 12")
+		return false, errors.New("format != 12")
 	}
 
 	reserved, err := t.ReadUShort(fd)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if reserved != 0 {
-		return errors.New("reserved != 0")
+		return false, errors.New("reserved != 0")
 	}
 
-	length, err := t.ReadULong(fd)
+	err = t.Skip(fd, 4) //skip length
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	err = t.Skip(fd, 4)
+	err = t.Skip(fd, 4) //skip language
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	nGroups, err := t.ReadULong(fd)
 	if err != nil {
-		return err
+		return false, err
 	}
-
-	fmt.Printf("length = %d , nGroups = %d\n", length, nGroups)
 
 	g := uint64(0)
 	for g < nGroups {
 		startCharCode, err := t.ReadULong(fd)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		endCharCode, err := t.ReadULong(fd)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		glyphID, err := t.ReadULong(fd)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		var gTb CmapFormat12GroupingTable
@@ -117,7 +114,7 @@ func (t *TTFParser) ParseCmapFormat12(fd *os.File) error {
 		g++
 	}
 
-	return nil
+	return true, nil
 }
 
 type cmapFormat12EncodingSubtable struct {

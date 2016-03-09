@@ -27,10 +27,10 @@ func (s *SubsetFontObj) build() error {
 	//me.AddChars("จ")
 	s.buffer.WriteString("<<\n")
 	s.buffer.WriteString(fmt.Sprintf("/BaseFont /%s\n", CreateEmbeddedFontSubsetName(s.Family)))
-	s.buffer.WriteString(fmt.Sprintf("/DescendantFonts [%d 0 R]\n", s.indexObjCIDFont+1)) //TODO fix
+	s.buffer.WriteString(fmt.Sprintf("/DescendantFonts [%d 0 R]\n", s.indexObjCIDFont+1))
 	s.buffer.WriteString("/Encoding /Identity-H\n")
 	s.buffer.WriteString("/Subtype /Type0\n")
-	s.buffer.WriteString(fmt.Sprintf("/ToUnicode %d 0 R\n", s.indexObjUnicodeMap+1)) //TODO fix
+	s.buffer.WriteString(fmt.Sprintf("/ToUnicode %d 0 R\n", s.indexObjUnicodeMap+1))
 	s.buffer.WriteString("/Type /Font\n")
 	s.buffer.WriteString(">>\n")
 	return nil
@@ -60,14 +60,19 @@ func (s *SubsetFontObj) SetTTFByPath(ttfpath string) error {
 	return nil
 }
 
-func (s *SubsetFontObj) AddChars(txt string) {
+//AddChars add char to map CharacterToGlyphIndex
+func (s *SubsetFontObj) AddChars(txt string) error {
 	for _, runeValue := range txt {
 		if _, ok := s.CharacterToGlyphIndex[runeValue]; ok {
 			continue
 		}
-		glyphIndex := s.CharCodeToGlyphIndex(runeValue)
+		glyphIndex, err := s.CharCodeToGlyphIndex(runeValue)
+		if err != nil {
+			return err
+		}
 		s.CharacterToGlyphIndex[runeValue] = glyphIndex
 	}
+	return nil
 }
 
 func (s *SubsetFontObj) CharIndex(r rune) (uint64, error) {
@@ -90,7 +95,6 @@ func (s *SubsetFontObj) getType() string {
 }
 
 func (s *SubsetFontObj) getObjBuff() *bytes.Buffer {
-	//fmt.Printf("%s\n", me.buffer.String())
 	return &s.buffer
 }
 
@@ -108,18 +112,8 @@ func (s *SubsetFontObj) charCodeToGlyphIndexFormat12(r rune) (uint64, error) {
 	return uint64(0), errors.New("not found glyph")
 }
 
-//CharCodeToGlyphIndex get glyph index from char code
-func (s *SubsetFontObj) CharCodeToGlyphIndex(r rune) uint64 {
-
+func (s *SubsetFontObj) charCodeToGlyphIndexFormat4(r rune) (uint64, error) {
 	value := uint64(r)
-	if value > 0xFFFF {
-		gIndex, err := s.charCodeToGlyphIndexFormat12(r)
-		if err != nil {
-			panic(err) //TODO change CharCodeToGlyphIndex for return error
-		}
-		return gIndex
-	}
-
 	seg := uint64(0)
 	segCount := s.ttfp.SegCount
 	for seg < segCount {
@@ -130,20 +124,40 @@ func (s *SubsetFontObj) CharCodeToGlyphIndex(r rune) uint64 {
 	}
 	//fmt.Printf("\ncccc--->%#v\n", me.ttfp.Chars())
 	if value < s.ttfp.StartCount[seg] {
-		return 0
+		return 0, nil
 	}
 
 	if s.ttfp.IdRangeOffset[seg] == 0 {
-		return (value + s.ttfp.IdDelta[seg]) & 0xFFFF
+		return (value + s.ttfp.IdDelta[seg]) & 0xFFFF, nil
 	}
 	//fmt.Printf("IdRangeOffset=%d\n", me.ttfp.IdRangeOffset[seg])
 	idx := s.ttfp.IdRangeOffset[seg]/2 + (value - s.ttfp.StartCount[seg]) - (segCount - seg)
 
 	if s.ttfp.GlyphIdArray[int(idx)] == uint64(0) {
-		return 0
+		return 0, nil
 	}
 
-	return (s.ttfp.GlyphIdArray[int(idx)] + s.ttfp.IdDelta[seg]) & 0xFFFF
+	return (s.ttfp.GlyphIdArray[int(idx)] + s.ttfp.IdDelta[seg]) & 0xFFFF, nil
+}
+
+//CharCodeToGlyphIndex get glyph index from char code
+func (s *SubsetFontObj) CharCodeToGlyphIndex(r rune) (uint64, error) {
+
+	value := uint64(r)
+	if value <= 0xFFFF {
+		gIndex, err := s.charCodeToGlyphIndexFormat4(r)
+		if err != nil {
+			return 0, err
+		}
+		return gIndex, nil
+	} else {
+		gIndex, err := s.charCodeToGlyphIndexFormat12(r)
+		if err != nil {
+			return 0, err
+		}
+		return gIndex, nil
+	}
+
 }
 
 func (s *SubsetFontObj) GlyphIndexToPdfWidth(glyphIndex uint64) uint64 {

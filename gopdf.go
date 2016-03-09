@@ -294,7 +294,7 @@ func (gp *GoPdf) GetBytesPdf() []byte {
 
 //Cell : create cell of text
 //Note that this has no effect on Rect.H pdf (now). Fix later :-)
-func (gp *GoPdf) Cell(rectangle *Rect, text string) {
+func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 
 	//undelineOffset := ContentObj_CalTextHeight(gp.Curr.Font_Size) + 1
 
@@ -303,7 +303,10 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) {
 	if gp.Curr.Font_Type == CURRENT_FONT_TYPE_IFONT {
 		gp.getContent().AppendStream(rectangle, text)
 	} else if gp.Curr.Font_Type == CURRENT_FONT_TYPE_SUBSET {
-		gp.Curr.Font_ISubset.AddChars(text)
+		err := gp.Curr.Font_ISubset.AddChars(text)
+		if err != nil {
+			return err
+		}
 		gp.getContent().AppendStreamSubsetFont(rectangle, text)
 	}
 	endX := gp.Curr.X
@@ -314,7 +317,7 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) {
 		//gp.Line(x1,y1+undelineOffset,x2,y2+undelineOffset)
 		gp.getContent().AppendUnderline(startX, startY, endX, endY, text)
 	}
-
+	return nil
 }
 
 //AddTTFFont : font use subtype font
@@ -449,7 +452,10 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 
 	fontSize := gp.Curr.Font_Size
 	sfont := gp.Curr.Font_ISubset
-	sfont.AddChars(text) //AddChars for create CharacterToGlyphIndex
+	err := sfont.AddChars(text) //AddChars for create CharacterToGlyphIndex
+	if err != nil {
+		return 0, err
+	}
 
 	sumWidth := uint64(0)
 	//sum width of each rune.

@@ -18,6 +18,7 @@ var ERROR_UNEXPECTED_SUBTABLE_FORMAT = errors.New("Unexpected subtable format")
 var ERROR_INCORRECT_MAGIC_NUMBER = errors.New("Incorrect magic number")
 var ERROR_POSTSCRIPT_NAME_NOT_FOUND = errors.New("PostScript name not found")
 
+//TTFParser true type font parser
 type TTFParser struct {
 	tables map[string]TableDirectoryEntry
 	//head
@@ -156,11 +157,12 @@ func (t *TTFParser) TypoDescender() int64 {
 	return t.typoDescender
 }
 
+//CapHeight https://en.wikipedia.org/wiki/Cap_height
 func (t *TTFParser) CapHeight() int64 {
-	//fmt.Printf("\n\n>>>>>%d\n\n\n", me.capHeight)
 	return t.capHeight
 }
 
+//NumGlyphs number of glyph
 func (t *TTFParser) NumGlyphs() uint64 {
 	return t.numGlyphs
 }
@@ -185,6 +187,7 @@ func (t *TTFParser) GetTables() map[string]TableDirectoryEntry {
 	return t.tables
 }
 
+//Parse parse
 func (t *TTFParser) Parse(fontpath string) error {
 	//fmt.Printf("\nstart parse\n")
 	fd, err := os.Open(fontpath)
@@ -300,6 +303,7 @@ func (t *TTFParser) readFontData(fontpath string) ([]byte, error) {
 	return b, nil
 }
 
+//ParseLoca parse loca table https://www.microsoft.com/typography/otspec/loca.htm
 func (t *TTFParser) ParseLoca(fd *os.File) error {
 
 	t.IsShortIndex = false
@@ -342,6 +346,7 @@ func (t *TTFParser) ParseLoca(fd *os.File) error {
 	return nil
 }
 
+//ParsePost parse post table https://www.microsoft.com/typography/otspec/post.htm
 func (t *TTFParser) ParsePost(fd *os.File) error {
 
 	err := t.Seek(fd, "post")
@@ -386,6 +391,7 @@ func (t *TTFParser) ParsePost(fd *os.File) error {
 	return nil
 }
 
+//ParseOS2 parse OS2 table https://www.microsoft.com/typography/otspec/OS2.htm
 func (t *TTFParser) ParseOS2(fd *os.File) error {
 	err := t.Seek(fd, "OS/2")
 	if err != nil {
@@ -465,11 +471,11 @@ func (t *TTFParser) ParseOS2(fd *os.File) error {
 	} else {
 		t.capHeight = t.ascender
 	}
-	//fmt.Printf("\n\nme.capHeight=%d , me.usWinAscent=%d,me.usWinDescent=%d\n\n", me.capHeight, me.usWinAscent, me.usWinDescent)
 
 	return nil
 }
 
+//ParseName parse name table https://www.microsoft.com/typography/otspec/name.htm
 func (t *TTFParser) ParseName(fd *os.File) error {
 
 	//$this->Seek('name');
@@ -563,6 +569,7 @@ func (t *TTFParser) PregReplace(pattern string, replacement string, subject stri
 	return str, nil
 }
 
+//ParseCmap parse cmap table format 4 https://www.microsoft.com/typography/otspec/cmap.htm
 func (t *TTFParser) ParseCmap(fd *os.File) error {
 	t.Seek(fd, "cmap")
 	t.Skip(fd, 2) // version
@@ -601,7 +608,7 @@ func (t *TTFParser) ParseCmap(fd *os.File) error {
 		return ERROR_NO_UNICODE_ENCODING_FOUND
 	}
 
-	var startCount, endCount, idDelta, idRangeOffset, glyphIdArray []uint64
+	var startCount, endCount, idDelta, idRangeOffset, glyphIDArray []uint64
 
 	_, err = fd.Seek(int64(t.tables["cmap"].Offset+offset31), 0)
 	if err != nil {
@@ -692,9 +699,9 @@ func (t *TTFParser) ParseCmap(fd *os.File) error {
 		if err != nil {
 			return err
 		}
-		glyphIdArray = append(glyphIdArray, tmp)
+		glyphIDArray = append(glyphIDArray, tmp)
 	}
-	t.GlyphIdArray = glyphIdArray
+	t.GlyphIdArray = glyphIDArray
 
 	t.chars = make(map[int]uint64)
 	for i := 0; i < int(segCount); i++ {
@@ -736,11 +743,8 @@ func (t *TTFParser) ParseCmap(fd *os.File) error {
 		}
 
 	}
-	//fmt.Printf("len() = %d , me.chars[10] = %d , me.chars[56]  = %d \n", len(me.chars), me.chars[10], me.chars[56])
-	//fmt.Printf("len() = %d , me.chars[99] = %d , me.chars[107]  = %d \n\n", len(me.chars), me.chars[99], me.chars[107])
 
-	//test
-	err = t.ParseCmapFormat12(fd)
+	_, err = t.ParseCmapFormat12(fd)
 	if err != nil {
 		return err
 	}
@@ -753,6 +757,7 @@ func (t *TTFParser) FTell(fd *os.File) (uint64, error) {
 	return uint64(offset), err
 }
 
+//ParseHead parse hmtx table  https://www.microsoft.com/typography/otspec/hmtx.htm
 func (t *TTFParser) ParseHmtx(fd *os.File) error {
 
 	t.Seek(fd, "hmtx")
@@ -796,6 +801,7 @@ func (t *TTFParser) ArrayPadUint(arr []uint64, size uint64, val uint64) ([]uint6
 	return result, nil
 }
 
+//ParseHead parse head table  https://www.microsoft.com/typography/otspec/Head.htm
 func (t *TTFParser) ParseHead(fd *os.File) error {
 
 	//fmt.Printf("\nParseHead\n")
@@ -866,6 +872,7 @@ func (t *TTFParser) ParseHead(fd *os.File) error {
 	return nil
 }
 
+//ParseHhea parse hhea table  https://www.microsoft.com/typography/otspec/hhea.htm
 func (t *TTFParser) ParseHhea(fd *os.File) error {
 
 	err := t.Seek(fd, "hhea")
@@ -898,10 +905,10 @@ func (t *TTFParser) ParseHhea(fd *os.File) error {
 		return err
 	}
 
-	//fmt.Printf("---------me.numberOfHMetrics=%d,me.ascender=%d,me.descender = %d\n\n", me.numberOfHMetrics, me.ascender, me.descender)
 	return nil
 }
 
+//ParseHhea parse maxp table  https://www.microsoft.com/typography/otspec/Maxp.htm
 func (t *TTFParser) ParseMaxp(fd *os.File) error {
 	err := t.Seek(fd, "maxp")
 	if err != nil {

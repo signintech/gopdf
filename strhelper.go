@@ -2,6 +2,7 @@ package gopdf
 
 import "math/big"
 
+//StrHelperGetStringWidth get string width
 func StrHelperGetStringWidth(str string, fontSize int, ifont IFont) float64 {
 	w := 0
 	bs := []byte(str)
@@ -14,11 +15,13 @@ func StrHelperGetStringWidth(str string, fontSize int, ifont IFont) float64 {
 	return float64(w) * (float64(fontSize) / 1000.0)
 }
 
+//CreateEmbeddedFontSubsetName create Embedded font (subset font) name
 func CreateEmbeddedFontSubsetName(name string) string {
 	//TODO ทำด้วย  :-)
 	return name
 }
 
+//ReadShortFromByte read short from byte array
 func ReadShortFromByte(data []byte, offset int) (int64, int) {
 	buff := data[offset : offset+2]
 	num := big.NewInt(0)
@@ -33,6 +36,7 @@ func ReadShortFromByte(data []byte, offset int) (int64, int) {
 	return v, 2
 }
 
+//ReadUShortFromByte read ushort from byte array
 func ReadUShortFromByte(data []byte, offset int) (uint64, int) {
 	buff := data[offset : offset+2]
 	num := big.NewInt(0)

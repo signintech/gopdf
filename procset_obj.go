@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+//ProcSetObj pdf procSet object
 type ProcSetObj struct {
 	buffer bytes.Buffer
 	//Font

@@ -8,7 +8,7 @@ import (
 	"github.com/signintech/gopdf/fontmaker/core"
 )
 
-//PdfType0 Font
+//SubsetFontObj pdf subsetFont object
 type SubsetFontObj struct {
 	buffer                bytes.Buffer
 	ttfp                  core.TTFParser
@@ -44,10 +44,12 @@ func (s *SubsetFontObj) SetIndexObjUnicodeMap(index int) {
 	s.indexObjUnicodeMap = index
 }
 
+//SetFamily set font family name
 func (s *SubsetFontObj) SetFamily(familyname string) {
 	s.Family = familyname
 }
 
+//GetFamily get font family name
 func (s *SubsetFontObj) GetFamily() string {
 	return s.Family
 }

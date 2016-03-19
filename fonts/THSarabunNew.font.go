@@ -4,6 +4,7 @@ import (
 	"github.com/signintech/gopdf"
 )
 
+//THSarabunNew deprecated remove some day
 type THSarabunNew struct {
 	family   string
 	fonttype string

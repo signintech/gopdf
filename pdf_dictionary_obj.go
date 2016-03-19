@@ -10,6 +10,7 @@ import (
 	"github.com/signintech/gopdf/fontmaker/core"
 )
 
+//EntrySelectors entry selectors
 var EntrySelectors = []int{
 	0, 0, 1, 1, 2, 2,
 	2, 2, 3, 3, 3, 3,
@@ -18,8 +19,10 @@ var EntrySelectors = []int{
 	4, 4, 4, 4, 4, 4, 4,
 }
 
-var ErrNotSupportShortIndexYet = errors.New("not suport none short index yet!")
+//ErrNotSupportShortIndexYet not suport none short index yet
+var ErrNotSupportShortIndexYet = errors.New("not suport none short index yet")
 
+//PdfDictionaryObj pdf dictionary object
 type PdfDictionaryObj struct {
 	buffer             bytes.Buffer
 	PtrToSubsetFontObj *SubsetFontObj
@@ -62,6 +65,7 @@ func (p *PdfDictionaryObj) getObjBuff() *bytes.Buffer {
 	return &p.buffer
 }
 
+//SetPtrToSubsetFontObj set subsetFontObj pointer
 func (p *PdfDictionaryObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 	p.PtrToSubsetFontObj = ptr
 }
@@ -157,7 +161,7 @@ func (p *PdfDictionaryObj) makeFont() ([]byte, error) {
 	WriteUInt16(&buff, (uint(tableCount)-(1<<uint(selector)))*16)
 
 	var tags []string
-	for tag, _ := range tables {
+	for tag := range tables {
 		tags = append(tags, tag) //copy all tag
 	}
 	sort.Strings(tags) //order
@@ -249,7 +253,7 @@ func (p *PdfDictionaryObj) completeGlyphClosure(glyphs map[rune]uint64) (map[run
 	return glyphs, glyphArray
 }
 
-//add composite glyph
+//AddCompositeGlyphs add composite glyph
 //composite glyph is a Unicode entity that can be defined as a sequence of one or more other characters.
 func (p *PdfDictionaryObj) AddCompositeGlyphs(glyphArray *[]int, glyph int) {
 	start := p.GetOffset(int(glyph))
@@ -309,6 +313,7 @@ const ARG_1_AND_2_ARE_WORDS = 1
 const WE_HAVE_AN_X_AND_Y_SCALE = 64
 const WE_HAVE_A_TWO_BY_TWO = 128
 
+//GetOffset get offset from glyf table
 func (p *PdfDictionaryObj) GetOffset(glyph int) int {
 	ttfp := p.PtrToSubsetFontObj.GetTTFParser()
 	glyf := ttfp.GetTables()["glyf"]
@@ -316,6 +321,7 @@ func (p *PdfDictionaryObj) GetOffset(glyph int) int {
 	return offset
 }
 
+//CheckSum check sum
 func CheckSum(data []byte) uint64 {
 
 	var byte3, byte2, byte1, byte0 uint64

@@ -3,6 +3,7 @@ import (
 	"github.com/signintech/gopdf"
 )
 
+//Loma deprecated remove some day
 type Loma struct {
 	family   string
 	fonttype string

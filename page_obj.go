@@ -5,6 +5,7 @@ import (
 	//"fmt"
 )
 
+//PageObj pdf page object
 type PageObj struct { //impl IObj
 	buffer          bytes.Buffer
 	Contents        string

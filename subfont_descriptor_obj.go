@@ -7,6 +7,7 @@ import (
 	"github.com/signintech/gopdf/fontmaker/core"
 )
 
+//SubfontDescriptorObj pdf subfont descriptorObj object
 type SubfontDescriptorObj struct {
 	buffer                bytes.Buffer
 	PtrToSubsetFontObj    *SubsetFontObj
@@ -45,10 +46,12 @@ func (s *SubfontDescriptorObj) build() error {
 	return nil
 }
 
+//SetIndexObjPdfDictionary set PdfDictionary pointer
 func (s *SubfontDescriptorObj) SetIndexObjPdfDictionary(index int) {
 	s.indexObjPdfDictionary = index
 }
 
+//SetPtrToSubsetFontObj set SubsetFont pointer
 func (s *SubfontDescriptorObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 	s.PtrToSubsetFontObj = ptr
 }

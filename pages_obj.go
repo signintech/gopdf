@@ -6,6 +6,7 @@ import (
 	"strconv"
 )
 
+//PagesObj pdf pages object
 type PagesObj struct { //impl IObj
 	buffer    bytes.Buffer
 	PageCount int
@@ -39,6 +40,6 @@ func (p *PagesObj) getObjBuff() *bytes.Buffer {
 	return &(p.buffer)
 }
 
-func (p *PagesObj) Test() {
+func (p *PagesObj) test() {
 	fmt.Print(p.getType() + "\n")
 }

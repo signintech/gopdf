@@ -470,6 +470,17 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 	return realWidth, nil
 }
 
+//Curve Draws a Bézier curve (the Bézier curve is tangent to the line between the control points at either end of the curve)
+// Parameters:
+// - x0, y0: Start point
+// - x1, y1: Control point 1
+// - x2, y2: Control point 2
+// - x3, y3: End point
+// - style: Style of rectangule (draw and/or fill: D, F, DF, FD)
+func (gp *GoPdf) Curve(x0 float64, y0 float64, x1 float64, y1 float64, x2 float64, y2 float64, x3 float64, y3 float64, style string) {
+	//TODO ทำตรงนี้
+}
+
 /*---private---*/
 
 //init

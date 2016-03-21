@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 )
 
 type ContentObj struct { //impl IObj
@@ -153,6 +154,31 @@ func (c *ContentObj) AppendStreamOval(x1 float64, y1 float64, x2 float64, y2 flo
 	))
 }
 
+//AppendStreamCurve draw curve
+// - x0, y0: Start point
+// - x1, y1: Control point 1
+// - x2, y2: Control point 2
+// - x3, y3: End point
+// - style: Style of rectangule (draw and/or fill: D, F, DF, FD)
+func (c *ContentObj) AppendStreamCurve(x0 float64, y0 float64, x1 float64, y1 float64, x2 float64, y2 float64, x3 float64, y3 float64, style string) {
+	h := c.getRoot().config.PageSize.H
+	//cp := 0.55228
+	c.stream.WriteString(fmt.Sprintf("%0.2f %0.2f m\n", x0, h-y0))
+	c.stream.WriteString(fmt.Sprintf(
+		"%0.2f %0.2f %0.2f %0.2f %0.2f %0.2f c",
+		x1, h-y1, x2, h-y2, x3, h-y3,
+	))
+
+	style = strings.TrimSpace(style)
+	op := "S"
+	if style == "F" {
+		op = "f"
+	} else if style == "FD" || style == "DF" {
+		op = "B"
+	}
+	c.stream.WriteString(fmt.Sprintf(" %s\n", op))
+}
+
 func (c *ContentObj) AppendUnderline(startX float64, y float64, endX float64, endY float64, text string) {
 
 	h := c.getRoot().config.PageSize.H
@@ -171,7 +197,7 @@ func (c *ContentObj) AppendUnderline(startX float64, y float64, endX float64, en
 	c.stream.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f -%0.2f re f\n", startX, arg3, endX-startX, arg4))
 }
 
-//AppendStreamSetLineType : set line width
+//AppendStreamSetLineWidth : set line width
 func (c *ContentObj) AppendStreamSetLineWidth(w float64) {
 
 	c.stream.WriteString(fmt.Sprintf("%.2f w\n", w))

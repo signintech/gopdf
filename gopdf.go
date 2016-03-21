@@ -478,7 +478,7 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 // - x3, y3: End point
 // - style: Style of rectangule (draw and/or fill: D, F, DF, FD)
 func (gp *GoPdf) Curve(x0 float64, y0 float64, x1 float64, y1 float64, x2 float64, y2 float64, x3 float64, y3 float64, style string) {
-	//TODO ทำตรงนี้
+	gp.getContent().AppendStreamCurve(x0, y0, x1, y1, x2, y2, x3, y3, style)
 }
 
 /*---private---*/

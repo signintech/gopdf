@@ -14,7 +14,6 @@ func (t *TTFParser) ParseCmapFormat12(fd *os.File) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
 	var cEncodingSubtables []cmapFormat12EncodingSubtable
 	for i := 0; i < int(numTables); i++ {
 		platformID, err := t.ReadUShort(fd)

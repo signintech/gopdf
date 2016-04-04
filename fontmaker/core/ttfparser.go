@@ -908,7 +908,13 @@ func (t *TTFParser) ParseHhea(fd *os.File) error {
 	return nil
 }
 
-//ParseHhea parse maxp table  https://www.microsoft.com/typography/otspec/Maxp.htm
+//Parsekern parse kerning table  https://www.microsoft.com/typography/otspec/kern.htm
+func (t *TTFParser) Parsekern(fd *os.File) error {
+	//TODO ทำ kerning
+	return nil
+}
+
+//ParseMaxp parse maxp table  https://www.microsoft.com/typography/otspec/Maxp.htm
 func (t *TTFParser) ParseMaxp(fd *os.File) error {
 	err := t.Seek(fd, "maxp")
 	if err != nil {
@@ -925,6 +931,7 @@ func (t *TTFParser) ParseMaxp(fd *os.File) error {
 	return nil
 }
 
+//Seek seek by tag
 func (t *TTFParser) Seek(fd *os.File, tag string) error {
 	table, ok := t.tables[tag]
 	if !ok {
@@ -938,10 +945,12 @@ func (t *TTFParser) Seek(fd *os.File, tag string) error {
 	return nil
 }
 
+//BytesToString convert bytes to string
 func (t *TTFParser) BytesToString(b []byte) string {
 	return string(b) //strings.TrimSpace(string(b))
 }
 
+//ReadUShort read ushort
 func (t *TTFParser) ReadUShort(fd *os.File) (uint64, error) {
 	buff, err := t.Read(fd, 2)
 	if err != nil {
@@ -952,6 +961,7 @@ func (t *TTFParser) ReadUShort(fd *os.File) (uint64, error) {
 	return num.Uint64(), nil
 }
 
+//ReadShort read short
 func (t *TTFParser) ReadShort(fd *os.File) (int64, error) {
 	buff, err := t.Read(fd, 2)
 	if err != nil {
@@ -971,6 +981,7 @@ func (t *TTFParser) ReadShort(fd *os.File) (int64, error) {
 	return v, nil
 }
 
+//ReadULong read ulong
 func (t *TTFParser) ReadULong(fd *os.File) (uint64, error) {
 	buff, err := t.Read(fd, 4)
 	//fmt.Printf("%#v\n", buff)
@@ -982,6 +993,7 @@ func (t *TTFParser) ReadULong(fd *os.File) (uint64, error) {
 	return num.Uint64(), nil
 }
 
+//Skip skip
 func (t *TTFParser) Skip(fd *os.File, length int64) error {
 	_, err := fd.Seek(int64(length), 1)
 	if err != nil {
@@ -990,6 +1002,7 @@ func (t *TTFParser) Skip(fd *os.File, length int64) error {
 	return nil
 }
 
+//Read read
 func (t *TTFParser) Read(fd *os.File, length int) ([]byte, error) {
 	buff := make([]byte, length)
 	readlength, err := fd.Read(buff)
@@ -1003,6 +1016,7 @@ func (t *TTFParser) Read(fd *os.File, length int) ([]byte, error) {
 	return buff, nil
 }
 
+//CompareBytes compare a and b
 func (t *TTFParser) CompareBytes(a []byte, b []byte) bool {
 
 	if a == nil && b == nil {

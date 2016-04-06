@@ -73,6 +73,9 @@ type TTFParser struct {
 
 	//data of font
 	cahceFontData []byte
+
+	//kerning
+	kern *KernTable
 }
 
 var Symbolic = 1 << 2
@@ -282,6 +285,11 @@ func (t *TTFParser) Parse(fontpath string) error {
 	if err != nil {
 		return err
 	}
+	err = t.Parsekern(fd)
+	if err != nil {
+		return err
+	}
+
 	//fmt.Printf("%#v\n", me.widths)
 	t.cahceFontData, err = t.readFontData(fontpath)
 	if err != nil {
@@ -908,12 +916,6 @@ func (t *TTFParser) ParseHhea(fd *os.File) error {
 	return nil
 }
 
-//Parsekern parse kerning table  https://www.microsoft.com/typography/otspec/kern.htm
-func (t *TTFParser) Parsekern(fd *os.File) error {
-	//TODO ทำ kerning
-	return nil
-}
-
 //ParseMaxp parse maxp table  https://www.microsoft.com/typography/otspec/Maxp.htm
 func (t *TTFParser) ParseMaxp(fd *os.File) error {
 	err := t.Seek(fd, "maxp")
@@ -931,11 +933,13 @@ func (t *TTFParser) ParseMaxp(fd *os.File) error {
 	return nil
 }
 
+var ErrTableNotFound = errors.New("table not found")
+
 //Seek seek by tag
 func (t *TTFParser) Seek(fd *os.File, tag string) error {
 	table, ok := t.tables[tag]
 	if !ok {
-		return errors.New("me.tables not contain key=" + tag)
+		return ErrTableNotFound
 	}
 	val := table.Offset
 	_, err := fd.Seek(int64(val), 0)

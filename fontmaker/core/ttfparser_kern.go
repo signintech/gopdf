@@ -32,57 +32,46 @@ func (t *TTFParser) Parsekern(fd *os.File) error {
 
 	i := uint64(0)
 	for i < nTables {
-		var subtable KernSubTable
-		err = t.parsekernSubTable(fd, &subtable)
+		err = t.parsekernSubTable(fd)
 		if err != nil {
 			return err
 		}
-		t.kern.Subtables = append(t.kern.Subtables, subtable)
 		i++
 	}
+
+	fmt.Printf("%s\n", t.kern.debug())
 
 	return nil
 }
 
-func (t *TTFParser) parsekernSubTable(fd *os.File, subtable *KernSubTable) error {
+func (t *TTFParser) parsekernSubTable(fd *os.File) error {
 
-	ver, err := t.ReadUShort(fd)
-	if err != nil {
-		return err
-	}
-
-	length, err := t.ReadUShort(fd)
-	if err != nil {
-		return err
-	}
+	t.Skip(fd, 2+2) //skip version and length
 
 	coverage, err := t.ReadUShort(fd)
 	if err != nil {
 		return err
 	}
 
-	format := subtable.Coverage & 0xf0
-	//debug
-	fmt.Printf("format = %d\n", format)
+	format := coverage & 0xf0
+	fmt.Printf("format = %d\n", format) //debug
+	t.kern.Kerning = make(KernMap)      //init
 	if format == 0 {
-		t.parsekernSubTableFormat0(fd, subtable)
+		t.parsekernSubTableFormat0(fd)
 	} else {
 		//not support other format yet
 		return fmt.Errorf("not support kerning format %d", format)
 	}
 
-	subtable.Version = ver
-	subtable.Length = length
-	subtable.Coverage = coverage
 	return nil
 }
 
-func (t *TTFParser) parsekernSubTableFormat0(fd *os.File, subtable *KernSubTable) error {
+func (t *TTFParser) parsekernSubTableFormat0(fd *os.File) error {
 	nPairs, err := t.ReadUShort(fd)
 	if err != nil {
 		return err
 	}
-	t.Skip(fd, 2+2+2)
+	t.Skip(fd, 2+2+2) //skip searchRange , entrySelector , rangeShift
 
 	i := uint64(0)
 	for i < nPairs {
@@ -101,8 +90,15 @@ func (t *TTFParser) parsekernSubTableFormat0(fd *os.File, subtable *KernSubTable
 			return err
 		}
 
+		if _, ok := t.kern.Kerning[left]; !ok {
+			kval := make(KernValue)
+			kval[right] = value
+			t.kern.Kerning[left] = kval
+		} else {
+			(t.kern.Kerning[left])[right] = value
+		}
 		//debug
-		_ = fmt.Sprintf("nPairs %d left %d right %d value %d\n", nPairs, left, right, value)
+		//_ = fmt.Sprintf("nPairs %d left %d right %d value %d\n", nPairs, left, right, value)
 		i++
 	}
 	return nil

@@ -382,7 +382,7 @@ func (gp *GoPdf) AddTTFFont(family string, ttfpath string) error {
 	return nil
 }
 
-//AddFont : user embed font in zfont file ( deprecated remove sogp day )
+//AddFont : user embed font in zfont file ( deprecated remove some day )
 func (gp *GoPdf) AddFont(family string, ifont IFont, zfontpath string) {
 	encoding := new(EncodingObj)
 	ifont.Init()

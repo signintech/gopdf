@@ -54,8 +54,8 @@ func (t *TTFParser) parsekernSubTable(fd *os.File) error {
 	}
 
 	format := coverage & 0xf0
-	fmt.Printf("format = %d\n", format) //debug
-	t.kern.Kerning = make(KernMap)      //init
+	//fmt.Printf("format = %d\n", format) //debug
+	t.kern.Kerning = make(KernMap) //init
 	if format == 0 {
 		t.parsekernSubTableFormat0(fd)
 	} else {
@@ -97,8 +97,7 @@ func (t *TTFParser) parsekernSubTableFormat0(fd *os.File) error {
 		} else {
 			(t.kern.Kerning[left])[right] = value
 		}
-		//debug
-		//_ = fmt.Sprintf("nPairs %d left %d right %d value %d\n", nPairs, left, right, value)
+		//_ = fmt.Sprintf("nPairs %d left %d right %d value %d\n", nPairs, left, right, value) //debug
 		i++
 	}
 	return nil

@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+//ContentObj content object
 type ContentObj struct { //impl IObj
 	buffer bytes.Buffer
 	stream bytes.Buffer
@@ -39,6 +40,7 @@ func (c *ContentObj) getObjBuff() *bytes.Buffer {
 	return &(c.buffer)
 }
 
+//AppendStreamSubsetFont add stream of text
 func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 
 	r := c.getRoot().Curr.textColor().r
@@ -88,6 +90,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 	}
 }
 
+//AppendStream add stream of text
 func (c *ContentObj) AppendStream(rectangle *Rect, text string) {
 
 	fontSize := c.getRoot().Curr.Font_Size
@@ -121,12 +124,14 @@ func (c *ContentObj) AppendStream(rectangle *Rect, text string) {
 
 }
 
+//AppendStreamLine append line
 func (c *ContentObj) AppendStreamLine(x1 float64, y1 float64, x2 float64, y2 float64) {
 
 	h := c.getRoot().config.PageSize.H
 	c.stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", x1, h-y1, x2, h-y2))
 }
 
+//AppendStreamOval append oval
 func (c *ContentObj) AppendStreamOval(x1 float64, y1 float64, x2 float64, y2 float64) {
 	h := c.getRoot().config.PageSize.H
 	cp := 0.55228                              // Magnification of the control point
@@ -179,6 +184,7 @@ func (c *ContentObj) AppendStreamCurve(x0 float64, y0 float64, x1 float64, y1 fl
 	c.stream.WriteString(fmt.Sprintf(" %s\n", op))
 }
 
+//AppendUnderline append underline
 func (c *ContentObj) AppendUnderline(startX float64, y float64, endX float64, endY float64, text string) {
 
 	h := c.getRoot().config.PageSize.H

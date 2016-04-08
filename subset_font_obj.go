@@ -17,6 +17,7 @@ type SubsetFontObj struct {
 	CountOfFont           int
 	indexObjCIDFont       int
 	indexObjUnicodeMap    int
+	ttfFontOption         TtfFontOption
 }
 
 func (s *SubsetFontObj) init(funcGetRoot func() *GoPdf) {
@@ -54,7 +55,15 @@ func (s *SubsetFontObj) GetFamily() string {
 	return s.Family
 }
 
+//SetTtfFontOption set TtfFontOption must set before SetTTFByPath
+func (s *SubsetFontObj) SetTtfFontOption(option TtfFontOption) {
+	s.ttfFontOption = option
+}
+
+//SetTTFByPath set ttf
 func (s *SubsetFontObj) SetTTFByPath(ttfpath string) error {
+	useKerning := s.ttfFontOption.UseKerning
+	s.ttfp.SetUseKerning(useKerning)
 	err := s.ttfp.Parse(ttfpath)
 	if err != nil {
 		return err

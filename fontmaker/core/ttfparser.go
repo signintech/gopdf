@@ -75,7 +75,8 @@ type TTFParser struct {
 	cahceFontData []byte
 
 	//kerning
-	kern *KernTable
+	useKerning bool //user config for use or not use kerning
+	kern       *KernTable
 }
 
 var Symbolic = 1 << 2
@@ -190,6 +191,11 @@ func (t *TTFParser) GetTables() map[string]TableDirectoryEntry {
 	return t.tables
 }
 
+//SetUseKerning set useKerning must set before Parse
+func (t *TTFParser) SetUseKerning(use bool) {
+	t.useKerning = use
+}
+
 //Parse parse
 func (t *TTFParser) Parse(fontpath string) error {
 	//fmt.Printf("\nstart parse\n")
@@ -285,9 +291,12 @@ func (t *TTFParser) Parse(fontpath string) error {
 	if err != nil {
 		return err
 	}
-	err = t.Parsekern(fd)
-	if err != nil {
-		return err
+
+	if t.useKerning {
+		err = t.Parsekern(fd)
+		if err != nil {
+			return err
+		}
 	}
 
 	//fmt.Printf("%#v\n", me.widths)

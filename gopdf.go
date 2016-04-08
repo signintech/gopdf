@@ -320,8 +320,8 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 	return nil
 }
 
-//AddTTFFont : font use subtype font
-func (gp *GoPdf) AddTTFFont(family string, ttfpath string) error {
+//AddTTFFontWithOption : add font file
+func (gp *GoPdf) AddTTFFontWithOption(family string, ttfpath string, option TtfFontOption) error {
 
 	if _, err := os.Stat(ttfpath); os.IsNotExist(err) {
 		return err
@@ -331,6 +331,7 @@ func (gp *GoPdf) AddTTFFont(family string, ttfpath string) error {
 	subsetFont.init(func() *GoPdf {
 		return gp
 	})
+	subsetFont.SetTtfFontOption(option)
 	subsetFont.SetFamily(family)
 	err := subsetFont.SetTTFByPath(ttfpath)
 	if err != nil {
@@ -380,6 +381,11 @@ func (gp *GoPdf) AddTTFFont(family string, ttfpath string) error {
 		}
 	}
 	return nil
+}
+
+//AddTTFFont : add font file
+func (gp *GoPdf) AddTTFFont(family string, ttfpath string) error {
+	return gp.AddTTFFontWithOption(family, ttfpath, defaultTtfFontOption())
 }
 
 //AddFont : user embed font in zfont file ( deprecated remove some day )

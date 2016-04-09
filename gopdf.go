@@ -152,7 +152,7 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) {
 			gp.Curr.CountOfImg++
 		}
 
-	} else { //sagp img
+	} else { //same img
 		gp.getContent().AppendStreamImage(cacheImageIndex, x, y, rect)
 	}
 

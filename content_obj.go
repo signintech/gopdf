@@ -50,17 +50,34 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 
 	sumWidth := uint64(0)
 	var buff bytes.Buffer
-	for _, r := range text {
+	var prevIndex = uint64(0)
+	//var prevRune rune
+	//fmt.Printf("text=%s\n", text)
+	for i, r := range text {
 		index, err := c.getRoot().Curr.Font_ISubset.CharIndex(r)
 		if err != nil {
 			log.Fatalf("err:%s", err.Error())
 		}
+
+		//find kern
+		if i > 0 {
+			if ok, kval := c.getRoot().Curr.Font_ISubset.KernValueByLeft(prevIndex); ok {
+				//fmt.Printf("prevRune=%d r=%c\n%s\n", prevIndex, r, kval.Debug())
+				if ok, val := kval.ValueByRight(index); ok {
+					//fmt.Printf("left=%c  right =%c  v=%d\n", prevRune, r, val)
+					buff.WriteString(fmt.Sprintf(">%d<", (-1)*val))
+				}
+			}
+		}
+
 		buff.WriteString(fmt.Sprintf("%04X", index))
 		width, err := c.getRoot().Curr.Font_ISubset.CharWidth(r)
 		if err != nil {
 			log.Fatalf("err:%s", err.Error())
 		}
 		sumWidth += width
+		prevIndex = index
+		//prevRune = r
 	}
 
 	fontSize := c.getRoot().Curr.Font_Size
@@ -80,7 +97,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 		c.AppendStreamSetGrayFill(grayFill)
 	}
 
-	c.stream.WriteString("<" + buff.String() + "> Tj\n")
+	c.stream.WriteString("[<" + buff.String() + ">] TJ\n")
 	c.stream.WriteString("ET\n")
 	if rectangle == nil {
 		fontSize := c.getRoot().Curr.Font_Size

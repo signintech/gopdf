@@ -21,6 +21,7 @@ type FontMaker struct {
 	results []string
 }
 
+//GetResults get result
 func (f *FontMaker) GetResults() []string {
 	return f.results
 }

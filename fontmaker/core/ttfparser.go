@@ -82,6 +82,11 @@ type TTFParser struct {
 var Symbolic = 1 << 2
 var Nonsymbolic = (1 << 5)
 
+//Kern get KernTable
+func (t *TTFParser) Kern() *KernTable {
+	return t.kern
+}
+
 //UnderlinePosition postion of underline
 func (t *TTFParser) UnderlinePosition() int64 {
 	return t.underlinePosition

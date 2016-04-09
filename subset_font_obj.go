@@ -60,6 +60,25 @@ func (s *SubsetFontObj) SetTtfFontOption(option TtfFontOption) {
 	s.ttfFontOption = option
 }
 
+//KernValueByLeft find kern value from kern table by left
+func (s *SubsetFontObj) KernValueByLeft(left uint64) (bool, *core.KernValue) {
+
+	if !s.ttfFontOption.UseKerning {
+		return false, nil
+	}
+
+	k := s.ttfp.Kern()
+	if k == nil {
+		return false, nil
+	}
+
+	if kval, ok := k.Kerning[left]; ok {
+		return true, &kval
+	}
+
+	return false, nil
+}
+
 //SetTTFByPath set ttf
 func (s *SubsetFontObj) SetTTFByPath(ttfpath string) error {
 	useKerning := s.ttfFontOption.UseKerning

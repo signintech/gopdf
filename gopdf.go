@@ -388,7 +388,8 @@ func (gp *GoPdf) AddTTFFont(family string, ttfpath string) error {
 	return gp.AddTTFFontWithOption(family, ttfpath, defaultTtfFontOption())
 }
 
-//AddFont : user embed font in zfont file ( deprecated remove some day )
+// Deprecated: use AddTTFFontWithOption or AddTTFFont
+//AddFont : user embed font in zfont file
 func (gp *GoPdf) AddFont(family string, ifont IFont, zfontpath string) {
 	encoding := new(EncodingObj)
 	ifont.Init()

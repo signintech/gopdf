@@ -5,7 +5,8 @@ import (
 	"strconv"
 )
 
-type FontObj struct { //impl IObj
+//FontObj font obj
+type FontObj struct {
 	buffer bytes.Buffer
 	Family string
 	//Style string

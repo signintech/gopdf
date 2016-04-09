@@ -3,8 +3,9 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/signintech/gopdf/fontmaker/core"
 	"os"
+
+	"github.com/signintech/gopdf/fontmaker/core"
 	//"runtime/debug"
 )
 
@@ -15,7 +16,7 @@ func main() {
 		echoUsage()
 		return
 	}
-
+	fmt.Println("Deprecated: No longer need to create font maps.")
 	i := 1
 	encoding := os.Args[i+0]
 	mappath := os.Args[i+1]

@@ -6,6 +6,7 @@ const CURRENT_FONT_TYPE_IFONT = 0
 //CURRENT_FONT_TYPE_SUBSET this font add by Gopdf.AddTTFFont(...)
 const CURRENT_FONT_TYPE_SUBSET = 1
 
+//Current current state
 type Current struct {
 	X float64
 	Y float64
@@ -20,8 +21,8 @@ type Current struct {
 	Font_FontCount int
 	Font_Type      int // CURRENT_FONT_TYPE_IFONT or  CURRENT_FONT_TYPE_SUBSET
 
-	Font_IFont   IFont   // depend on Font_Type
-	Font_ISubset ISubset // depend on Font_Type
+	Font_IFont   IFont          // Font_Type == CURRENT_FONT_TYPE_IFONT Deprecated
+	Font_ISubset *SubsetFontObj // Font_Type == CURRENT_FONT_TYPE_SUBSET
 
 	//page
 	IndexOfPageObj int

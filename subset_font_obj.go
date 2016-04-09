@@ -8,6 +8,9 @@ import (
 	"github.com/signintech/gopdf/fontmaker/core"
 )
 
+//ErrCharNotFound char not found
+var ErrCharNotFound = errors.New("char not found")
+
 //SubsetFontObj pdf subsetFont object
 type SubsetFontObj struct {
 	buffer                bytes.Buffer

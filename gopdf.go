@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+const subsetFont = "SubsetFont"
+
 //GoPdf : A simple library for generating PDF written in Go lang
 type GoPdf struct {
 
@@ -226,7 +228,7 @@ func (gp *GoPdf) SetFont(family string, style string, size int) error {
 		i = 0
 		max = len(gp.pdfObjs)
 		for i < max {
-			if gp.pdfObjs[i].getType() == "SubsetFont" {
+			if gp.pdfObjs[i].getType() == subsetFont {
 				obj := gp.pdfObjs[i]
 				sub, ok := obj.(*SubsetFontObj)
 				if ok {
@@ -386,6 +388,26 @@ func (gp *GoPdf) AddTTFFontWithOption(family string, ttfpath string, option TtfF
 //AddTTFFont : add font file
 func (gp *GoPdf) AddTTFFont(family string, ttfpath string) error {
 	return gp.AddTTFFontWithOption(family, ttfpath, defaultTtfFontOption())
+}
+
+//KernOverride override kern value
+func (gp *GoPdf) KernOverride(family string, fn FuncKernOverride) error {
+	i := 0
+	max := len(gp.pdfObjs)
+	for i < max {
+		if gp.pdfObjs[i].getType() == subsetFont {
+			obj := gp.pdfObjs[i]
+			sub, ok := obj.(*SubsetFontObj)
+			if ok {
+				if sub.GetFamily() == family {
+					sub.funcKernOverride = fn
+					return nil
+				}
+			}
+		}
+		i++
+	}
+	return errors.New("font family not found")
 }
 
 // Deprecated: use AddTTFFontWithOption or AddTTFFont

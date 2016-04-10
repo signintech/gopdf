@@ -21,10 +21,12 @@ type SubsetFontObj struct {
 	indexObjCIDFont       int
 	indexObjUnicodeMap    int
 	ttfFontOption         TtfFontOption
+	funcKernOverride      FuncKernOverride
 }
 
 func (s *SubsetFontObj) init(funcGetRoot func() *GoPdf) {
 	s.CharacterToGlyphIndex = make(map[rune]uint64)
+	s.funcKernOverride = nil
 }
 
 func (s *SubsetFontObj) build() error {

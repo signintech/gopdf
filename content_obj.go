@@ -50,10 +50,12 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 
 	sumWidth := uint64(0)
 	var buff bytes.Buffer
-	var prevIndex = uint64(0)
+	var leftIndex = uint64(0)
+	var leftRune rune
 	//var prevRune rune
 	//fmt.Printf("text=%s\n", text)
 	for i, r := range text {
+
 		index, err := c.getRoot().Curr.Font_ISubset.CharIndex(r)
 		if err != nil {
 			log.Fatalf("err:%s", err.Error())
@@ -61,12 +63,9 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 
 		//find kern
 		if i > 0 {
-			if ok, kval := c.getRoot().Curr.Font_ISubset.KernValueByLeft(prevIndex); ok {
-				//fmt.Printf("prevRune=%d r=%c\n%s\n", prevIndex, r, kval.Debug())
-				if ok, val := kval.ValueByRight(index); ok {
-					//fmt.Printf("left=%c  right =%c  v=%d\n", prevRune, r, val)
-					buff.WriteString(fmt.Sprintf(">%d<", (-1)*val))
-				}
+			val := c.kern(leftRune, r, leftIndex, index)
+			if val != 0 {
+				buff.WriteString(fmt.Sprintf(">%d<", (-1)*val))
 			}
 		}
 
@@ -76,8 +75,8 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 			log.Fatalf("err:%s", err.Error())
 		}
 		sumWidth += width
-		prevIndex = index
-		//prevRune = r
+		leftIndex = index
+		leftRune = r
 	}
 
 	fontSize := c.getRoot().Curr.Font_Size
@@ -105,6 +104,28 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 	} else {
 		c.getRoot().Curr.X += rectangle.W
 	}
+}
+
+func (c *ContentObj) kern(leftRune rune, rightRune rune, leftIndex uint64, rightIndex uint64) int64 {
+	val := int64(0)
+	if ok, kval := c.getRoot().Curr.Font_ISubset.KernValueByLeft(leftIndex); ok {
+		//fmt.Printf("prevRune=%d r=%c\n%s\n", prevIndex, r, kval.Debug())
+		if ok, v := kval.ValueByRight(rightIndex); ok {
+			//fmt.Printf("left=%c  right =%c  v=%d\n", prevRune, r, val)
+			val = v
+
+		}
+	}
+	if c.getRoot().Curr.Font_ISubset.funcKernOverride != nil {
+		val = c.getRoot().Curr.Font_ISubset.funcKernOverride(
+			leftRune,
+			rightRune,
+			leftIndex,
+			rightIndex,
+			val,
+		)
+	}
+	return val
 }
 
 //AppendStream add stream of text

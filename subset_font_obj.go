@@ -20,7 +20,7 @@ type SubsetFontObj struct {
 	CountOfFont           int
 	indexObjCIDFont       int
 	indexObjUnicodeMap    int
-	ttfFontOption         TtfFontOption
+	ttfFontOption         TtfOption
 	funcKernOverride      FuncKernOverride
 }
 
@@ -60,8 +60,8 @@ func (s *SubsetFontObj) GetFamily() string {
 	return s.Family
 }
 
-//SetTtfFontOption set TtfFontOption must set before SetTTFByPath
-func (s *SubsetFontObj) SetTtfFontOption(option TtfFontOption) {
+//SetTtfFontOption set TtfOption must set before SetTTFByPath
+func (s *SubsetFontObj) SetTtfFontOption(option TtfOption) {
 	s.ttfFontOption = option
 }
 

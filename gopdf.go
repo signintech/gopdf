@@ -323,7 +323,7 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 }
 
 //AddTTFFontWithOption : add font file
-func (gp *GoPdf) AddTTFFontWithOption(family string, ttfpath string, option TtfFontOption) error {
+func (gp *GoPdf) AddTTFFontWithOption(family string, ttfpath string, option TtfOption) error {
 
 	if _, err := os.Stat(ttfpath); os.IsNotExist(err) {
 		return err

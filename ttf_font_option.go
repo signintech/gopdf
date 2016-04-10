@@ -1,12 +1,12 @@
 package gopdf
 
-//TtfFontOption  font option
-type TtfFontOption struct {
+//TtfOption  font option
+type TtfOption struct {
 	UseKerning bool
 }
 
-func defaultTtfFontOption() TtfFontOption {
-	var defa TtfFontOption
+func defaultTtfFontOption() TtfOption {
+	var defa TtfOption
 	defa.UseKerning = false
 	return defa
 }

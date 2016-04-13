@@ -16,7 +16,7 @@ type SubsetFontObj struct {
 	buffer                bytes.Buffer
 	ttfp                  core.TTFParser
 	Family                string
-	CharacterToGlyphIndex map[rune]uint64
+	CharacterToGlyphIndex map[rune]uint
 	CountOfFont           int
 	indexObjCIDFont       int
 	indexObjUnicodeMap    int
@@ -25,7 +25,7 @@ type SubsetFontObj struct {
 }
 
 func (s *SubsetFontObj) init(funcGetRoot func() *GoPdf) {
-	s.CharacterToGlyphIndex = make(map[rune]uint64)
+	s.CharacterToGlyphIndex = make(map[rune]uint)
 	s.funcKernOverride = nil
 }
 
@@ -66,7 +66,7 @@ func (s *SubsetFontObj) SetTtfFontOption(option TtfOption) {
 }
 
 //KernValueByLeft find kern value from kern table by left
-func (s *SubsetFontObj) KernValueByLeft(left uint64) (bool, *core.KernValue) {
+func (s *SubsetFontObj) KernValueByLeft(left uint) (bool, *core.KernValue) {
 
 	if !s.ttfFontOption.UseKerning {
 		return false, nil
@@ -110,14 +110,14 @@ func (s *SubsetFontObj) AddChars(txt string) error {
 	return nil
 }
 
-func (s *SubsetFontObj) CharIndex(r rune) (uint64, error) {
+func (s *SubsetFontObj) CharIndex(r rune) (uint, error) {
 	if index, ok := s.CharacterToGlyphIndex[r]; ok {
 		return index, nil
 	}
 	return 0, ErrCharNotFound
 }
 
-func (s *SubsetFontObj) CharWidth(r rune) (uint64, error) {
+func (s *SubsetFontObj) CharWidth(r rune) (uint, error) {
 	glyphIndex := s.CharacterToGlyphIndex
 	if index, ok := glyphIndex[r]; ok {
 		return s.GlyphIndexToPdfWidth(index), nil
@@ -133,9 +133,9 @@ func (s *SubsetFontObj) getObjBuff() *bytes.Buffer {
 	return &s.buffer
 }
 
-func (s *SubsetFontObj) charCodeToGlyphIndexFormat12(r rune) (uint64, error) {
+func (s *SubsetFontObj) charCodeToGlyphIndexFormat12(r rune) (uint, error) {
 
-	value := uint64(r)
+	value := uint(r)
 	gTbs := s.ttfp.GroupingTables()
 	for _, gTb := range gTbs {
 		if value >= gTb.StartCharCode && value < gTb.EndCharCode {
@@ -144,12 +144,12 @@ func (s *SubsetFontObj) charCodeToGlyphIndexFormat12(r rune) (uint64, error) {
 		}
 	}
 
-	return uint64(0), errors.New("not found glyph")
+	return uint(0), errors.New("not found glyph")
 }
 
-func (s *SubsetFontObj) charCodeToGlyphIndexFormat4(r rune) (uint64, error) {
-	value := uint64(r)
-	seg := uint64(0)
+func (s *SubsetFontObj) charCodeToGlyphIndexFormat4(r rune) (uint, error) {
+	value := uint(r)
+	seg := uint(0)
 	segCount := s.ttfp.SegCount
 	for seg < segCount {
 		if value <= s.ttfp.EndCount[seg] {
@@ -168,7 +168,7 @@ func (s *SubsetFontObj) charCodeToGlyphIndexFormat4(r rune) (uint64, error) {
 	//fmt.Printf("IdRangeOffset=%d\n", me.ttfp.IdRangeOffset[seg])
 	idx := s.ttfp.IdRangeOffset[seg]/2 + (value - s.ttfp.StartCount[seg]) - (segCount - seg)
 
-	if s.ttfp.GlyphIdArray[int(idx)] == uint64(0) {
+	if s.ttfp.GlyphIdArray[int(idx)] == uint(0) {
 		return 0, nil
 	}
 
@@ -176,7 +176,7 @@ func (s *SubsetFontObj) charCodeToGlyphIndexFormat4(r rune) (uint64, error) {
 }
 
 //CharCodeToGlyphIndex get glyph index from char code
-func (s *SubsetFontObj) CharCodeToGlyphIndex(r rune) (uint64, error) {
+func (s *SubsetFontObj) CharCodeToGlyphIndex(r rune) (uint, error) {
 
 	value := uint64(r)
 	if value <= 0xFFFF {
@@ -195,7 +195,7 @@ func (s *SubsetFontObj) CharCodeToGlyphIndex(r rune) (uint64, error) {
 
 }
 
-func (s *SubsetFontObj) GlyphIndexToPdfWidth(glyphIndex uint64) uint64 {
+func (s *SubsetFontObj) GlyphIndexToPdfWidth(glyphIndex uint) uint {
 
 	numberOfHMetrics := s.ttfp.NumberOfHMetrics()
 	unitsPerEm := s.ttfp.UnitsPerEm()
@@ -214,6 +214,6 @@ func (s *SubsetFontObj) GetTTFParser() *core.TTFParser {
 	return &s.ttfp
 }
 
-func (s *SubsetFontObj) GetUt() int64 {
+func (s *SubsetFontObj) GetUt() int {
 	return s.ttfp.UnderlineThickness()
 }

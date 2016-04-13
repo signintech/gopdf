@@ -1,9 +1,9 @@
 package core
 
 type TableDirectoryEntry struct {
-	CheckSum uint64
-	Offset   uint64
-	Length   uint64
+	CheckSum uint
+	Offset   uint
+	Length   uint
 }
 
 func (t TableDirectoryEntry) PaddedLength() int {

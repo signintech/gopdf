@@ -56,6 +56,6 @@ func (s *SubfontDescriptorObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 	s.PtrToSubsetFontObj = ptr
 }
 
-func DesignUnitsToPdf(val int64, unitsPerEm uint64) int64 {
+func DesignUnitsToPdf(val int, unitsPerEm uint) int {
 	return core.Round(float64(float64(val) * 1000.00 / float64(unitsPerEm)))
 }

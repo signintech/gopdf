@@ -48,9 +48,9 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 	b := c.getRoot().Curr.textColor().b
 	grayFill := c.getRoot().Curr.grayFill
 
-	sumWidth := uint64(0)
+	sumWidth := uint(0)
 	var buff bytes.Buffer
-	var leftIndex = uint64(0)
+	var leftIndex = uint(0)
 	var leftRune rune
 	//var prevRune rune
 	//fmt.Printf("text=%s\n", text)
@@ -106,8 +106,8 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 	}
 }
 
-func (c *ContentObj) kern(leftRune rune, rightRune rune, leftIndex uint64, rightIndex uint64) int64 {
-	val := int64(0)
+func (c *ContentObj) kern(leftRune rune, rightRune rune, leftIndex uint, rightIndex uint) int {
+	val := int(0)
 	if ok, kval := c.getRoot().Curr.Font_ISubset.KernValueByLeft(leftIndex); ok {
 		//fmt.Printf("prevRune=%d r=%c\n%s\n", prevIndex, r, kval.Debug())
 		if ok, v := kval.ValueByRight(rightIndex); ok {

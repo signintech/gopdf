@@ -21,7 +21,11 @@ func (me TtfInfo) PushInt64(key string, val int64) {
 	me[key] = val
 }
 
-func (me TtfInfo) PushUInt64(key string, val uint64) {
+func (me TtfInfo) PushInt(key string, val int) {
+	me[key] = val
+}
+
+func (me TtfInfo) PushUInt64(key string, val uint) {
 	me[key] = val
 }
 
@@ -29,11 +33,11 @@ func (me TtfInfo) PushBool(key string, val bool) {
 	me[key] = val
 }
 
-func (me TtfInfo) PushInt64s(key string, val []int64) {
+func (me TtfInfo) PushInt64s(key string, val []int) {
 	me[key] = val
 }
 
-func (me TtfInfo) PushMapIntInt64(key string, val map[int]int64) {
+func (me TtfInfo) PushMapIntInt64(key string, val map[int]int) {
 	me[key] = val
 }
 
@@ -65,10 +69,10 @@ func (me TtfInfo) GetString(key string) (string, error) {
 	}
 }
 
-func (me TtfInfo) GetInt64(key string) (int64, error) {
+func (me TtfInfo) GetInt64(key string) (int, error) {
 	if val, ok := me[key]; ok {
 
-		if m, ok := val.(int64); ok {
+		if m, ok := val.(int); ok {
 			/* act on str */
 			return m, nil
 		} else {
@@ -79,10 +83,10 @@ func (me TtfInfo) GetInt64(key string) (int64, error) {
 	}
 }
 
-func (me TtfInfo) GetInt64s(key string) ([]int64, error) {
+func (me TtfInfo) GetInt64s(key string) ([]int, error) {
 	if val, ok := me[key]; ok {
 
-		if m, ok := val.([]int64); ok {
+		if m, ok := val.([]int); ok {
 			/* act on str */
 			return m, nil
 		} else {
@@ -93,10 +97,10 @@ func (me TtfInfo) GetInt64s(key string) ([]int64, error) {
 	}
 }
 
-func (me TtfInfo) GetMapIntInt64(key string) (map[int]int64, error) {
+func (me TtfInfo) GetMapIntInt64(key string) (map[int]int, error) {
 	if val, ok := me[key]; ok {
 
-		if m, ok := val.(map[int]int64); ok {
+		if m, ok := val.(map[int]int); ok {
 			/* act on str */
 			return m, nil
 		} else {

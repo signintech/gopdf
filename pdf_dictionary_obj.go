@@ -84,7 +84,7 @@ func (p *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 	for idx := 0; idx < glyphCount; idx++ {
 		size += p.getGlyphSize(glyphArray[idx])
 	}
-	glyf.Length = uint64(size)
+	glyf.Length = uint(size)
 
 	glyphTable := make([]byte, glyf.PaddedLength())
 	locaTable := make([]int, numGlyphs+1)
@@ -173,14 +173,14 @@ func (p *PdfDictionaryObj) makeFont() ([]byte, error) {
 		offset := uint64(tablePosition)
 		buff.SetPosition(tablePosition)
 		if tags[idx] == "glyf" {
-			entry.Length = uint64(len(glyphTable))
+			entry.Length = uint(len(glyphTable))
 			entry.CheckSum = CheckSum(glyphTable)
 			WriteBytes(&buff, glyphTable, 0, entry.PaddedLength())
 		} else if tags[idx] == "loca" {
 			if ttfp.IsShortIndex {
-				entry.Length = uint64(len(locaTable) * 2)
+				entry.Length = uint(len(locaTable) * 2)
 			} else {
-				entry.Length = uint64(len(locaTable) * 4)
+				entry.Length = uint(len(locaTable) * 4)
 			}
 
 			data := make([]byte, entry.PaddedLength())
@@ -230,7 +230,7 @@ func (p *PdfDictionaryObj) makeFont() ([]byte, error) {
 	return buff.Bytes(), nil
 }
 
-func (p *PdfDictionaryObj) completeGlyphClosure(glyphs map[rune]uint64) (map[rune]uint64, []int) {
+func (p *PdfDictionaryObj) completeGlyphClosure(glyphs map[rune]uint) (map[rune]uint, []int) {
 	var glyphArray []int
 	//copy
 	isContainZero := false
@@ -322,7 +322,7 @@ func (p *PdfDictionaryObj) GetOffset(glyph int) int {
 }
 
 //CheckSum check sum
-func CheckSum(data []byte) uint64 {
+func CheckSum(data []byte) uint {
 
 	var byte3, byte2, byte1, byte0 uint64
 	byte3 = 0
@@ -343,5 +343,5 @@ func CheckSum(data []byte) uint64 {
 	}
 	//var result uint32
 	result := uint32(byte3<<24) + uint32(byte2<<16) + uint32(byte1<<8) + uint32(byte0)
-	return uint64(result)
+	return uint(result)
 }

@@ -37,7 +37,7 @@ func (t *TTFParser) ParseCmapFormat12(fd *os.File) (bool, error) {
 	}
 
 	isFound := false
-	offset := uint64(0)
+	offset := uint(0)
 	for _, ce := range cEncodingSubtables {
 		if ce.platformID == 3 && ce.encodingID == 10 {
 			offset = ce.offset
@@ -88,7 +88,7 @@ func (t *TTFParser) ParseCmapFormat12(fd *os.File) (bool, error) {
 		return false, err
 	}
 
-	g := uint64(0)
+	g := uint(0)
 	for g < nGroups {
 		startCharCode, err := t.ReadULong(fd)
 		if err != nil {
@@ -117,11 +117,11 @@ func (t *TTFParser) ParseCmapFormat12(fd *os.File) (bool, error) {
 }
 
 type cmapFormat12EncodingSubtable struct {
-	platformID uint64
-	encodingID uint64
-	offset     uint64
+	platformID uint
+	encodingID uint
+	offset     uint
 }
 
 type CmapFormat12GroupingTable struct {
-	StartCharCode, EndCharCode, GlyphID uint64
+	StartCharCode, EndCharCode, GlyphID uint
 }

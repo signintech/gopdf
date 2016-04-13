@@ -30,7 +30,7 @@ func (t *TTFParser) Parsekern(fd *os.File) error {
 	}
 	t.kern.NTables = nTables
 
-	i := uint64(0)
+	i := uint(0)
 	for i < nTables {
 		err = t.parsekernSubTable(fd)
 		if err != nil {
@@ -73,7 +73,7 @@ func (t *TTFParser) parsekernSubTableFormat0(fd *os.File) error {
 	}
 	t.Skip(fd, 2+2+2) //skip searchRange , entrySelector , rangeShift
 
-	i := uint64(0)
+	i := uint(0)
 	for i < nPairs {
 		left, err := t.ReadUShort(fd)
 		if err != nil {

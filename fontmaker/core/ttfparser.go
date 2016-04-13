@@ -3,10 +3,10 @@ package core
 import (
 	//"encoding/binary"
 	//"encoding/hex"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"math/big"
 	"os"
 	"regexp"
 	"strconv"
@@ -22,50 +22,50 @@ var ERROR_POSTSCRIPT_NAME_NOT_FOUND = errors.New("PostScript name not found")
 type TTFParser struct {
 	tables map[string]TableDirectoryEntry
 	//head
-	unitsPerEm       uint64
-	xMin             int64
-	yMin             int64
-	xMax             int64
-	yMax             int64
-	indexToLocFormat int64
+	unitsPerEm       uint
+	xMin             int
+	yMin             int
+	xMax             int
+	yMax             int
+	indexToLocFormat int
 	//Hhea
-	numberOfHMetrics uint64
-	ascender         int64
-	descender        int64
+	numberOfHMetrics uint
+	ascender         int
+	descender        int
 	//end Hhea
 
-	numGlyphs      uint64
-	widths         []uint64
-	chars          map[int]uint64
+	numGlyphs      uint
+	widths         []uint
+	chars          map[int]uint
 	postScriptName string
 
 	//os2
-	os2Version    uint64
+	os2Version    uint
 	Embeddable    bool
 	Bold          bool
-	typoAscender  int64
-	typoDescender int64
-	capHeight     int64
-	sxHeight      int64
+	typoAscender  int
+	typoDescender int
+	capHeight     int
+	sxHeight      int
 
 	//post
-	italicAngle        int64
-	underlinePosition  int64
-	underlineThickness int64
+	italicAngle        int
+	underlinePosition  int
+	underlineThickness int
 	isFixedPitch       bool
-	sTypoLineGap       int64
-	usWinAscent        uint64
-	usWinDescent       uint64
+	sTypoLineGap       int
+	usWinAscent        uint
+	usWinDescent       uint
 
 	//cmap
 	IsShortIndex  bool
-	LocaTable     []uint64
-	SegCount      uint64
-	StartCount    []uint64
-	EndCount      []uint64
-	IdRangeOffset []uint64
-	IdDelta       []uint64
-	GlyphIdArray  []uint64
+	LocaTable     []uint
+	SegCount      uint
+	StartCount    []uint
+	EndCount      []uint
+	IdRangeOffset []uint
+	IdDelta       []uint
+	GlyphIdArray  []uint
 	symbol        bool
 
 	//cmap format 12
@@ -88,7 +88,7 @@ func (t *TTFParser) Kern() *KernTable {
 }
 
 //UnderlinePosition postion of underline
-func (t *TTFParser) UnderlinePosition() int64 {
+func (t *TTFParser) UnderlinePosition() int {
 	return t.underlinePosition
 }
 
@@ -98,35 +98,35 @@ func (t *TTFParser) GroupingTables() []CmapFormat12GroupingTable {
 }
 
 //UnderlineThickness thickness of underline
-func (t *TTFParser) UnderlineThickness() int64 {
+func (t *TTFParser) UnderlineThickness() int {
 	return t.underlineThickness
 }
 
-func (t *TTFParser) XHeight() int64 {
+func (t *TTFParser) XHeight() int {
 	if t.os2Version >= 2 && t.sxHeight != 0 {
 		return t.sxHeight
 	} else {
-		return int64((0.66) * float64(t.ascender))
+		return int((0.66) * float64(t.ascender))
 	}
 }
 
-func (t *TTFParser) XMin() int64 {
+func (t *TTFParser) XMin() int {
 	return t.xMin
 }
 
-func (t *TTFParser) YMin() int64 {
+func (t *TTFParser) YMin() int {
 	return t.yMin
 }
 
-func (t *TTFParser) XMax() int64 {
+func (t *TTFParser) XMax() int {
 	return t.xMax
 }
 
-func (t *TTFParser) YMax() int64 {
+func (t *TTFParser) YMax() int {
 	return t.yMax
 }
 
-func (t *TTFParser) ItalicAngle() int64 {
+func (t *TTFParser) ItalicAngle() int {
 	return t.italicAngle
 }
 
@@ -140,55 +140,55 @@ func (t *TTFParser) Flag() int {
 	return flag
 }
 
-func (t *TTFParser) Ascender() int64 {
+func (t *TTFParser) Ascender() int {
 	if t.typoAscender == 0 {
 		return t.ascender
 	}
-	return int64(t.usWinAscent)
+	return int(t.usWinAscent)
 }
 
-func (t *TTFParser) Descender() int64 {
+func (t *TTFParser) Descender() int {
 	if t.typoDescender == 0 {
 		return t.descender
 	}
-	descender := int64(t.usWinDescent)
+	descender := int(t.usWinDescent)
 	if t.descender < 0 {
 		descender = descender * (-1)
 	}
 	return descender
 }
 
-func (t *TTFParser) TypoAscender() int64 {
+func (t *TTFParser) TypoAscender() int {
 	return t.typoAscender
 }
 
-func (t *TTFParser) TypoDescender() int64 {
+func (t *TTFParser) TypoDescender() int {
 	return t.typoDescender
 }
 
 //CapHeight https://en.wikipedia.org/wiki/Cap_height
-func (t *TTFParser) CapHeight() int64 {
+func (t *TTFParser) CapHeight() int {
 	return t.capHeight
 }
 
 //NumGlyphs number of glyph
-func (t *TTFParser) NumGlyphs() uint64 {
+func (t *TTFParser) NumGlyphs() uint {
 	return t.numGlyphs
 }
 
-func (t *TTFParser) UnitsPerEm() uint64 {
+func (t *TTFParser) UnitsPerEm() uint {
 	return t.unitsPerEm
 }
 
-func (t *TTFParser) NumberOfHMetrics() uint64 {
+func (t *TTFParser) NumberOfHMetrics() uint {
 	return t.numberOfHMetrics
 }
 
-func (t *TTFParser) Widths() []uint64 {
+func (t *TTFParser) Widths() []uint {
 	return t.widths
 }
 
-func (t *TTFParser) Chars() map[int]uint64 {
+func (t *TTFParser) Chars() map[int]uint {
 	return t.chars
 }
 
@@ -217,7 +217,7 @@ func (t *TTFParser) Parse(fontpath string) error {
 		return errors.New("Unrecognized file (font) format")
 	}
 
-	i := uint64(0)
+	i := uint(0)
 	numTables, err := t.ReadUShort(fd)
 	if err != nil {
 		return err
@@ -248,7 +248,7 @@ func (t *TTFParser) Parse(fontpath string) error {
 		}
 		//fmt.Printf("\n\ntag=%s  \nOffset = %d\n", tag, offset)
 		var table TableDirectoryEntry
-		table.Offset = uint64(offset)
+		table.Offset = uint(offset)
 		table.CheckSum = checksum
 		table.Length = length
 		//fmt.Printf("\n\ntag=%s  \nOffset = %d\nPaddedLength =%d\n\n ", tag, table.Offset, table.PaddedLength())
@@ -338,12 +338,12 @@ func (t *TTFParser) ParseLoca(fd *os.File) error {
 	if err != nil {
 		return err
 	}
-	var locaTable []uint64
+	var locaTable []uint
 	table := t.tables["loca"]
 	if t.IsShortIndex {
 		//do ShortIndex
 		entries := table.Length / 2
-		i := uint64(0)
+		i := uint(0)
 		for i < entries {
 			item, err := t.ReadUShort(fd)
 			if err != nil {
@@ -354,7 +354,7 @@ func (t *TTFParser) ParseLoca(fd *os.File) error {
 		}
 	} else {
 		entries := table.Length / 4
-		i := uint64(0)
+		i := uint(0)
 		for i < entries {
 			item, err := t.ReadULong(fd)
 			if err != nil {
@@ -600,7 +600,7 @@ func (t *TTFParser) ParseCmap(fd *os.File) error {
 		return err
 	}
 
-	offset31 := uint64(0)
+	offset31 := uint(0)
 	for i := 0; i < int(numTables); i++ {
 		platformID, err := t.ReadUShort(fd)
 		if err != nil {
@@ -630,7 +630,7 @@ func (t *TTFParser) ParseCmap(fd *os.File) error {
 		return ERROR_NO_UNICODE_ENCODING_FOUND
 	}
 
-	var startCount, endCount, idDelta, idRangeOffset, glyphIDArray []uint64
+	var startCount, endCount, idDelta, idRangeOffset, glyphIDArray []uint
 
 	_, err = fd.Seek(int64(t.tables["cmap"].Offset+offset31), 0)
 	if err != nil {
@@ -725,21 +725,21 @@ func (t *TTFParser) ParseCmap(fd *os.File) error {
 	}
 	t.GlyphIdArray = glyphIDArray
 
-	t.chars = make(map[int]uint64)
+	t.chars = make(map[int]uint)
 	for i := 0; i < int(segCount); i++ {
 		c1 := startCount[i]
 		c2 := endCount[i]
 		d := idDelta[i]
 		ro := idRangeOffset[i]
 		if ro > 0 {
-			_, err = fd.Seek(int64(offset+uint64(2*i)+ro), 0)
+			_, err = fd.Seek(int64(offset+uint(2*i)+ro), 0)
 			if err != nil {
 				return err
 			}
 		}
 
 		for c := c1; c <= c2; c++ {
-			var gid uint64
+			var gid uint
 			if c == 0xFFFF {
 				break
 			}
@@ -774,16 +774,16 @@ func (t *TTFParser) ParseCmap(fd *os.File) error {
 	return nil
 }
 
-func (t *TTFParser) FTell(fd *os.File) (uint64, error) {
+func (t *TTFParser) FTell(fd *os.File) (uint, error) {
 	offset, err := fd.Seek(0, os.SEEK_CUR)
-	return uint64(offset), err
+	return uint(offset), err
 }
 
 //ParseHead parse hmtx table  https://www.microsoft.com/typography/otspec/hmtx.htm
 func (t *TTFParser) ParseHmtx(fd *os.File) error {
 
 	t.Seek(fd, "hmtx")
-	i := uint64(0)
+	i := uint(0)
 	for i < t.numberOfHMetrics {
 		advanceWidth, err := t.ReadUShort(fd)
 		if err != nil {
@@ -808,9 +808,9 @@ func (t *TTFParser) ParseHmtx(fd *os.File) error {
 	return nil
 }
 
-func (t *TTFParser) ArrayPadUint(arr []uint64, size uint64, val uint64) ([]uint64, error) {
-	var result []uint64
-	i := uint64(0)
+func (t *TTFParser) ArrayPadUint(arr []uint, size uint, val uint) ([]uint, error) {
+	var result []uint
+	i := uint(0)
 	for i < size {
 		if int(i) < len(arr) {
 			result = append(result, arr[i])
@@ -969,50 +969,45 @@ func (t *TTFParser) BytesToString(b []byte) string {
 }
 
 //ReadUShort read ushort
-func (t *TTFParser) ReadUShort(fd *os.File) (uint64, error) {
+func (t *TTFParser) ReadUShort(fd *os.File) (uint, error) {
 	buff, err := t.Read(fd, 2)
 	if err != nil {
 		return 0, err
 	}
-	num := big.NewInt(0)
-	num.SetBytes(buff)
-	return num.Uint64(), nil
+	n := binary.BigEndian.Uint16(buff)
+	return uint(n), nil
 }
 
 //ReadShort read short
-func (t *TTFParser) ReadShort(fd *os.File) (int64, error) {
-	buff, err := t.Read(fd, 2)
+func (t *TTFParser) ReadShort(fd *os.File) (int, error) {
+	u, err := t.ReadUShort(fd)
 	if err != nil {
 		return 0, err
 	}
-	num := big.NewInt(0)
-	num.SetBytes(buff)
-	u := num.Uint64()
 
 	//fmt.Printf("%#v\n", buff)
-	var v int64
+	var v int
 	if u >= 0x8000 {
-		v = int64(u) - 65536
+		v = int(u) - 65536
 	} else {
-		v = int64(u)
+		v = int(u)
 	}
 	return v, nil
 }
 
 //ReadULong read ulong
-func (t *TTFParser) ReadULong(fd *os.File) (uint64, error) {
+func (t *TTFParser) ReadULong(fd *os.File) (uint, error) {
 	buff, err := t.Read(fd, 4)
 	//fmt.Printf("%#v\n", buff)
 	if err != nil {
 		return 0, err
 	}
-	num := big.NewInt(0)
-	num.SetBytes(buff)
-	return num.Uint64(), nil
+	n := binary.BigEndian.Uint32(buff)
+	return uint(n), nil
 }
 
 //Skip skip
-func (t *TTFParser) Skip(fd *os.File, length int64) error {
+func (t *TTFParser) Skip(fd *os.File, length int) error {
 	_, err := fd.Seek(int64(length), 1)
 	if err != nil {
 		return err

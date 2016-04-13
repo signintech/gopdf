@@ -282,7 +282,7 @@ func (f *FontMaker) MakeFontDescriptor(info TtfInfo) (string, error) {
 		return "", err
 	}
 
-	stemv := int64(0)
+	stemv := int(0)
 	if issetStdVW {
 		stemv = stdVW
 	} else if bold {
@@ -322,7 +322,7 @@ func (f *FontMaker) MakeFontEncoding(mappath string, fontmaps []FontMap) (string
 	return strings.TrimSpace(s), nil
 }
 
-func (f *FontMaker) MakeWidthArray(widths map[int]int64) (string, error) {
+func (f *FontMaker) MakeWidthArray(widths map[int]int) (string, error) {
 
 	str := "\tme.cw = make(gopdf.FontCw)\n"
 	for c := 0; c <= 255; c++ {
@@ -387,24 +387,24 @@ func (f *FontMaker) GetInfoFromTrueType(fontpath string, fontmaps []FontMap) (Tt
 	k := float64(1000.0 / float64(parser.unitsPerEm))
 	info.PushString("FontName", parser.postScriptName)
 	info.PushBool("Bold", parser.Bold)
-	info.PushInt64("ItalicAngle", parser.italicAngle)
+	info.PushInt("ItalicAngle", parser.italicAngle)
 	info.PushBool("IsFixedPitch", parser.isFixedPitch)
-	info.PushInt64("Ascender", f.MultiplyAndRound(k, parser.typoAscender))
-	info.PushInt64("Descender", f.MultiplyAndRound(k, parser.typoDescender))
-	info.PushInt64("UnderlineThickness", f.MultiplyAndRound(k, parser.underlineThickness))
-	info.PushInt64("UnderlinePosition", f.MultiplyAndRound(k, parser.underlinePosition))
-	fontBBoxs := []int64{
+	info.PushInt("Ascender", f.MultiplyAndRound(k, parser.typoAscender))
+	info.PushInt("Descender", f.MultiplyAndRound(k, parser.typoDescender))
+	info.PushInt("UnderlineThickness", f.MultiplyAndRound(k, parser.underlineThickness))
+	info.PushInt("UnderlinePosition", f.MultiplyAndRound(k, parser.underlinePosition))
+	fontBBoxs := []int{
 		f.MultiplyAndRound(k, parser.xMin),
 		f.MultiplyAndRound(k, parser.yMin),
 		f.MultiplyAndRound(k, parser.xMax),
 		f.MultiplyAndRound(k, parser.yMax),
 	}
 	info.PushInt64s("FontBBox", fontBBoxs)
-	info.PushInt64("CapHeight", f.MultiplyAndRound(k, parser.capHeight))
+	info.PushInt("CapHeight", f.MultiplyAndRound(k, parser.capHeight))
 	missingWidth := f.MultiplyAndRoundWithUInt64(k, parser.widths[0])
-	info.PushInt64("MissingWidth", missingWidth)
+	info.PushInt("MissingWidth", missingWidth)
 
-	widths := make(map[int]int64)
+	widths := make(map[int]int)
 	max := 256
 	c := 0
 	for c < max {
@@ -430,17 +430,17 @@ func (f *FontMaker) GetInfoFromTrueType(fontpath string, fontmaps []FontMap) (Tt
 	return info, nil
 }
 
-func (f *FontMaker) MultiplyAndRoundWithUInt64(k float64, v uint64) int64 {
+func (f *FontMaker) MultiplyAndRoundWithUInt64(k float64, v uint) int {
 	r := k * float64(v)
 	return f.Round(r)
 }
 
-func (f *FontMaker) MultiplyAndRound(k float64, v int64) int64 {
+func (f *FontMaker) MultiplyAndRound(k float64, v int) int {
 	r := k * float64(v)
 	return f.Round(r)
 }
 
-func (f *FontMaker) Round(value float64) int64 {
+func (f *FontMaker) Round(value float64) int {
 	return Round(value)
 }
 

@@ -486,7 +486,7 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 		return 0, err
 	}
 
-	sumWidth := uint64(0)
+	sumWidth := uint(0)
 	//sum width of each rune.
 	for _, r := range text {
 		width, err := sfont.CharWidth(r)

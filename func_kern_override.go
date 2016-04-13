@@ -4,7 +4,7 @@ package gopdf
 type FuncKernOverride func(
 	leftRune rune,
 	rightRune rune,
-	leftPair uint64,
-	rightPair uint64,
-	pairVal int64,
-) int64
+	leftPair uint,
+	rightPair uint,
+	pairVal int,
+) int

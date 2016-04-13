@@ -7,8 +7,8 @@ import (
 
 //KernTable https://www.microsoft.com/typography/otspec/kern.htm
 type KernTable struct {
-	Version uint64 //for debug
-	NTables uint64 //for debug
+	Version uint //for debug
+	NTables uint //for debug
 	Kerning KernMap
 }
 
@@ -24,10 +24,10 @@ func (k KernTable) debug() string {
 }
 
 //KernMap kerning map   map[left]KernValue
-type KernMap map[uint64]KernValue
+type KernMap map[uint]KernValue
 
 //KernValue kerning values  map[right]value
-type KernValue map[uint64]int64
+type KernValue map[uint]int
 
 /*
 func (k KernValue) Debug() string {
@@ -40,8 +40,8 @@ func (k KernValue) Debug() string {
 */
 
 //ValueByRight  get value by right
-func (k KernValue) ValueByRight(right uint64) (bool, int64) {
-	if val, ok := k[uint64(right)]; ok {
+func (k KernValue) ValueByRight(right uint) (bool, int) {
+	if val, ok := k[uint(right)]; ok {
 		return true, val
 	}
 	return false, 0

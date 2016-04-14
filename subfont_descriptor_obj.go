@@ -24,7 +24,9 @@ func (s *SubfontDescriptorObj) getObjBuff() *bytes.Buffer {
 }
 
 func (s *SubfontDescriptorObj) build() error {
+
 	ttfp := s.PtrToSubsetFontObj.GetTTFParser()
+	//fmt.Printf("-->%d\n", ttfp.UnitsPerEm())
 	s.buffer.WriteString("<<\n")
 	s.buffer.WriteString("/Type /FontDescriptor\n")
 	s.buffer.WriteString(fmt.Sprintf("/Ascent %d\n", DesignUnitsToPdf(ttfp.Ascender(), ttfp.UnitsPerEm())))

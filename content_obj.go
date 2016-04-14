@@ -52,19 +52,15 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 	var buff bytes.Buffer
 	var leftIndex = uint(0)
 	var leftRune rune
-	//var prevRune rune
-	//fmt.Printf("text=%s\n", text)
 	for i, r := range text {
-
 		index, err := c.getRoot().Curr.Font_ISubset.CharIndex(r)
 		if err != nil {
 			log.Fatalf("err:%s", err.Error())
 		}
-
 		//find kern
 		if i > 0 {
 			val := c.kern(leftRune, r, leftIndex, index)
-			val = convertTTFUnit2PDFUnit(val, int(c.getRoot().Curr.Font_ISubset.ttfp.UnitsPerEm()))
+			val = convertTTFUnit2PDFUnit(val, int(c.getRoot().Curr.Font_ISubset.ttfp.UnitsPerEm())) //convert unit
 			if val != 0 {
 				buff.WriteString(fmt.Sprintf(">%d<", (-1)*val))
 			}

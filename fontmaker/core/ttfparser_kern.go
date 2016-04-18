@@ -85,7 +85,7 @@ func (t *TTFParser) parsekernSubTableFormat0(fd *os.File) error {
 			return err
 		}
 
-		value, err := t.ReadShort(fd)
+		value, err := t.ReadShortInt16(fd)
 		if err != nil {
 			return err
 		}

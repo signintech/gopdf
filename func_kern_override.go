@@ -6,5 +6,5 @@ type FuncKernOverride func(
 	rightRune rune,
 	leftPair uint,
 	rightPair uint,
-	pairVal int,
-) int
+	pairVal int16,
+) int16

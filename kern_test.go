@@ -71,8 +71,8 @@ func kern01(font string, prefix string, leftRune rune, rightRune rune) (int, err
 			for right, val := range kval {
 				if right == gindexrightRune {
 					//fmt.Printf("left=%d right= %d  val=%d\n", left, right, val)
-					val = convertTTFUnit2PDFUnit(val, int(pdf.Curr.Font_ISubset.ttfp.UnitsPerEm()))
-					return val, nil
+					valPdfUnit := convertTTFUnit2PDFUnit(int(val), int(pdf.Curr.Font_ISubset.ttfp.UnitsPerEm()))
+					return valPdfUnit, nil
 				}
 			}
 			break

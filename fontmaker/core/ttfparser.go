@@ -995,6 +995,15 @@ func (t *TTFParser) ReadShort(fd *os.File) (int, error) {
 	return v, nil
 }
 
+//ReadShortInt16 read short return int16
+func (t *TTFParser) ReadShortInt16(fd *os.File) (int16, error) {
+	n, err := t.ReadShort(fd)
+	if err != nil {
+		return 0, err
+	}
+	return int16(n), nil
+}
+
 //ReadULong read ulong
 func (t *TTFParser) ReadULong(fd *os.File) (uint, error) {
 	buff, err := t.Read(fd, 4)

@@ -27,20 +27,10 @@ func (k KernTable) debug() string {
 type KernMap map[uint]KernValue
 
 //KernValue kerning values  map[right]value
-type KernValue map[uint]int
-
-/*
-func (k KernValue) Debug() string {
-	var buff bytes.Buffer
-	for right, val := range k {
-		buff.WriteString(fmt.Sprintf("\tright : %d value= %d\n", right, val))
-	}
-	return buff.String()
-}
-*/
+type KernValue map[uint]int16
 
 //ValueByRight  get value by right
-func (k KernValue) ValueByRight(right uint) (bool, int) {
+func (k KernValue) ValueByRight(right uint) (bool, int16) {
 	if val, ok := k[uint(right)]; ok {
 		return true, val
 	}

@@ -60,9 +60,9 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 		//find kern
 		if i > 0 {
 			val := c.kern(leftRune, r, leftIndex, index)
-			val = convertTTFUnit2PDFUnit(val, int(c.getRoot().Curr.Font_ISubset.ttfp.UnitsPerEm())) //convert unit
-			if val != 0 {
-				buff.WriteString(fmt.Sprintf(">%d<", (-1)*val))
+			valPdfUnit := convertTTFUnit2PDFUnit(int(val), int(c.getRoot().Curr.Font_ISubset.ttfp.UnitsPerEm())) //convert unit
+			if valPdfUnit != 0 {
+				buff.WriteString(fmt.Sprintf(">%d<", (-1)*valPdfUnit))
 			}
 		}
 
@@ -103,8 +103,8 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 	}
 }
 
-func (c *ContentObj) kern(leftRune rune, rightRune rune, leftIndex uint, rightIndex uint) int {
-	val := int(0)
+func (c *ContentObj) kern(leftRune rune, rightRune rune, leftIndex uint, rightIndex uint) int16 {
+	val := int16(0)
 	if ok, kval := c.getRoot().Curr.Font_ISubset.KernValueByLeft(leftIndex); ok {
 		//fmt.Printf("prevRune=%d r=%c\n%s\n", prevIndex, r, kval.Debug())
 		if ok, v := kval.ValueByRight(rightIndex); ok {

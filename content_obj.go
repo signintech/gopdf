@@ -10,9 +10,9 @@ import (
 
 //ContentObj content object
 type ContentObj struct { //impl IObj
-	buffer bytes.Buffer
-	stream bytes.Buffer
-
+	buffer    bytes.Buffer
+	stream    bytes.Buffer
+	listCache listCacheContent
 	//text bytes.Buffer
 	getRoot func() *GoPdf
 }
@@ -22,6 +22,7 @@ func (c *ContentObj) init(funcGetRoot func() *GoPdf) {
 }
 
 func (c *ContentObj) build() error {
+	fmt.Printf("%s\n", c.listCache.debug())
 	streamlen := c.stream.Len()
 	c.buffer.WriteString("<<\n")
 	c.buffer.WriteString("/Length " + strconv.Itoa(streamlen) + "\n")
@@ -41,6 +42,7 @@ func (c *ContentObj) getObjBuff() *bytes.Buffer {
 }
 
 //AppendStreamSubsetFont add stream of text
+/*
 func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 	unitsPerEm := int(c.getRoot().Curr.Font_ISubset.ttfp.UnitsPerEm())
 	r := c.getRoot().Curr.textColor().r
@@ -99,9 +101,6 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 	c.stream.WriteString("[<" + buff.String() + ">] TJ\n")
 	c.stream.WriteString("ET\n")
 
-	//fmt.Printf("sumValPdfUnit = %d  c.getRoot().Curr.X = %f\n", sumValPdfUnit, c.getRoot().Curr.X)
-	//vvvv := float64(5)
-
 	if rectangle == nil {
 		fontSize := c.getRoot().Curr.Font_Size
 		c.getRoot().Curr.X = c.getRoot().Curr.X + float64(sumWidth)*(float64(fontSize)/1000.0)
@@ -109,18 +108,52 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 		c.getRoot().Curr.X = c.getRoot().Curr.X + rectangle.W //+ (float64(sumValPdfUnit) / 1000.0)
 	}
 
-	//fmt.Printf("sumValPdfUnit = %d  c.getRoot().Curr.X = %f\n", sumValPdfUnit, c.getRoot().Curr.X)
+}*/
+func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) error {
+
+	textColor := c.getRoot().Curr.textColor()
+	grayFill := c.getRoot().Curr.grayFill
+	fontCountIndex := c.getRoot().Curr.Font_FontCount + 1
+	fontSize := c.getRoot().Curr.Font_Size
+	fontStyle := c.getRoot().Curr.Font_Style
+	x := c.getRoot().Curr.X
+	y := c.getRoot().Curr.Y
+	fontSubset := c.getRoot().Curr.Font_ISubset
+
+	cache := cacheContent{
+		fontSubset:     fontSubset,
+		rectangle:      rectangle,
+		textColor:      textColor,
+		grayFill:       grayFill,
+		fontCountIndex: fontCountIndex,
+		fontSize:       fontSize,
+		fontStyle:      fontStyle,
+		x:              x,
+		y:              y,
+	}
+	err := c.listCache.appendTextToCache(cache, text)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *ContentObj) kern(leftRune rune, rightRune rune, leftIndex uint, rightIndex uint) int16 {
 	val := int16(0)
-	if ok, kval := c.getRoot().Curr.Font_ISubset.KernValueByLeft(leftIndex); ok {
+
+	sfont := c.getRoot().Curr.Font_ISubset
+	if !sfont.ttfFontOption.UseKerning {
+		return 0 //not use kerning
+	}
+
+	if haveKerning, kval := sfont.KernValueByLeft(leftIndex); haveKerning {
 		//fmt.Printf("prevRune=%d r=%c\n%s\n", prevIndex, r)
 		if ok, v := kval.ValueByRight(rightIndex); ok {
 			//fmt.Printf("left=%c  right =%c  v=%d\n", leftRune, rightRune, v)
 			val = v
 		}
 	}
+
 	if c.getRoot().Curr.Font_ISubset.funcKernOverride != nil {
 		val = c.getRoot().Curr.Font_ISubset.funcKernOverride(
 			leftRune,
@@ -130,6 +163,7 @@ func (c *ContentObj) kern(leftRune rune, rightRune rune, leftIndex uint, rightIn
 			val,
 		)
 	}
+
 	return val
 }
 

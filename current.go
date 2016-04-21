@@ -59,3 +59,10 @@ type Rgb struct {
 	g uint8
 	b uint8
 }
+
+func (rgb Rgb) equal(obj Rgb) bool {
+	if rgb.r == obj.r && rgb.g == obj.g && rgb.b == obj.b {
+		return true
+	}
+	return false
+}

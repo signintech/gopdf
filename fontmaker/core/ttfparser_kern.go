@@ -39,8 +39,6 @@ func (t *TTFParser) Parsekern(fd *os.File) error {
 		i++
 	}
 
-	//fmt.Printf("%s\n", t.kern.debug())
-
 	return nil
 }
 

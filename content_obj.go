@@ -42,11 +42,12 @@ func (c *ContentObj) getObjBuff() *bytes.Buffer {
 
 //AppendStreamSubsetFont add stream of text
 func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
-
+	unitsPerEm := int(c.getRoot().Curr.Font_ISubset.ttfp.UnitsPerEm())
 	r := c.getRoot().Curr.textColor().r
 	g := c.getRoot().Curr.textColor().g
 	b := c.getRoot().Curr.textColor().b
 	grayFill := c.getRoot().Curr.grayFill
+	//sumKerning := 0
 
 	sumWidth := uint(0)
 	var buff bytes.Buffer
@@ -60,9 +61,10 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 		//find kern
 		if i > 0 {
 			val := c.kern(leftRune, r, leftIndex, index)
-			valPdfUnit := convertTTFUnit2PDFUnit(int(val), int(c.getRoot().Curr.Font_ISubset.ttfp.UnitsPerEm())) //convert unit
+			valPdfUnit := convertTTFUnit2PDFUnit(int(val), unitsPerEm) //convert unit
 			if valPdfUnit != 0 {
 				buff.WriteString(fmt.Sprintf(">%d<", (-1)*valPdfUnit))
+				//sumKerning += int(val)
 			}
 		}
 
@@ -74,6 +76,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 		sumWidth += width
 		leftIndex = index
 		leftRune = r
+		//fmt.Printf("width %d\n", width)
 	}
 
 	fontSize := c.getRoot().Curr.Font_Size
@@ -95,22 +98,27 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
 
 	c.stream.WriteString("[<" + buff.String() + ">] TJ\n")
 	c.stream.WriteString("ET\n")
+
+	//fmt.Printf("sumValPdfUnit = %d  c.getRoot().Curr.X = %f\n", sumValPdfUnit, c.getRoot().Curr.X)
+	//vvvv := float64(5)
+
 	if rectangle == nil {
 		fontSize := c.getRoot().Curr.Font_Size
-		c.getRoot().Curr.X += float64(sumWidth) * (float64(fontSize) / 1000.0)
+		c.getRoot().Curr.X = c.getRoot().Curr.X + float64(sumWidth)*(float64(fontSize)/1000.0)
 	} else {
-		c.getRoot().Curr.X += rectangle.W
+		c.getRoot().Curr.X = c.getRoot().Curr.X + rectangle.W //+ (float64(sumValPdfUnit) / 1000.0)
 	}
+
+	//fmt.Printf("sumValPdfUnit = %d  c.getRoot().Curr.X = %f\n", sumValPdfUnit, c.getRoot().Curr.X)
 }
 
 func (c *ContentObj) kern(leftRune rune, rightRune rune, leftIndex uint, rightIndex uint) int16 {
 	val := int16(0)
 	if ok, kval := c.getRoot().Curr.Font_ISubset.KernValueByLeft(leftIndex); ok {
-		//fmt.Printf("prevRune=%d r=%c\n%s\n", prevIndex, r, kval.Debug())
+		//fmt.Printf("prevRune=%d r=%c\n%s\n", prevIndex, r)
 		if ok, v := kval.ValueByRight(rightIndex); ok {
-			//fmt.Printf("left=%c  right =%c  v=%d\n", prevRune, r, val)
+			//fmt.Printf("left=%c  right =%c  v=%d\n", leftRune, rightRune, v)
 			val = v
-
 		}
 	}
 	if c.getRoot().Curr.Font_ISubset.funcKernOverride != nil {

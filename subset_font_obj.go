@@ -195,6 +195,7 @@ func (s *SubsetFontObj) CharCodeToGlyphIndex(r rune) (uint, error) {
 
 }
 
+//GlyphIndexToPdfWidth get with from glyphIndex
 func (s *SubsetFontObj) GlyphIndexToPdfWidth(glyphIndex uint) uint {
 
 	numberOfHMetrics := s.ttfp.NumberOfHMetrics()

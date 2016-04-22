@@ -163,6 +163,7 @@ func (s *SubsetFontObj) charCodeToGlyphIndexFormat4(r rune) (uint, error) {
 	}
 
 	if s.ttfp.IdRangeOffset[seg] == 0 {
+
 		return (value + s.ttfp.IdDelta[seg]) & 0xFFFF, nil
 	}
 	//fmt.Printf("IdRangeOffset=%d\n", me.ttfp.IdRangeOffset[seg])

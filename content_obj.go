@@ -22,7 +22,14 @@ func (c *ContentObj) init(funcGetRoot func() *GoPdf) {
 }
 
 func (c *ContentObj) build() error {
-	fmt.Printf("%s\n", c.listCache.debug())
+	//fmt.Printf("%s\n", c.listCache.debug())
+	buff, err := c.listCache.toStream()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%#v\n", buff.String())
+	//c.stream.WriteTo(buff)
+	buff.WriteTo(&c.stream)
 	streamlen := c.stream.Len()
 	c.buffer.WriteString("<<\n")
 	c.buffer.WriteString("/Length " + strconv.Itoa(streamlen) + "\n")
@@ -131,7 +138,8 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) error 
 		x:              x,
 		y:              y,
 	}
-	err := c.listCache.appendTextToCache(cache, text)
+	var err error
+	c.getRoot().Curr.X, c.getRoot().Curr.Y, err = c.listCache.appendTextToCache(cache, text)
 	if err != nil {
 		return err
 	}

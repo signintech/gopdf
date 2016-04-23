@@ -2,8 +2,10 @@ package gopdf
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type cacheContent struct {
@@ -14,9 +16,11 @@ type cacheContent struct {
 	fontSize       int
 	fontStyle      string
 	x, y           float64
-	text           bytes.Buffer
-	textWidth      float64
 	fontSubset     *SubsetFontObj
+	//
+	content          bytes.Buffer
+	text             bytes.Buffer
+	textWidthPdfUnit float64
 }
 
 func (c *cacheContent) isSame(cache cacheContent) bool {
@@ -37,18 +41,14 @@ func (c *cacheContent) isSame(cache cacheContent) bool {
 	return false
 }
 
-func (c *cacheContent) toStream() (*bytes.Buffer, error) {
-	var stream, textbuff bytes.Buffer
-	text := c.text.String()
-	for _, r := range text {
-		glyphindex, err := c.fontSubset.CharIndex(r)
-		if err != nil {
-			return nil, err
-		}
-		textbuff.WriteString(fmt.Sprintf("%04X", glyphindex))
-	}
+func (c *cacheContent) pageHeight() float64 {
+	return 841.89 //TODO fix this //c.getRoot().config.PageSize.H
+}
 
-	pageHeight := 841.89 //TODO fix this //c.getRoot().config.PageSize.H
+func (c *cacheContent) toStream() (*bytes.Buffer, error) {
+	var stream bytes.Buffer
+
+	pageHeight := c.pageHeight()
 	r := c.textColor.r
 	g := c.textColor.g
 	b := c.textColor.b
@@ -66,69 +66,78 @@ func (c *cacheContent) toStream() (*bytes.Buffer, error) {
 		stream.WriteString(rgb)
 	} else {
 		//c.AppendStreamSetGrayFill(grayFill)
+		//TODO fix this
 	}
 
-	stream.WriteString("[<" + textbuff.String() + ">] TJ\n")
+	stream.WriteString("[<" + c.content.String() + ">] TJ\n")
 	stream.WriteString("ET\n")
+
+	if strings.ToUpper(c.fontStyle) == "U" {
+		underlineStream, err := c.underline(c.x, c.y, c.x+c.textWidthPdfUnit, c.y)
+		if err != nil {
+			return nil, err
+		}
+		_, err = underlineStream.WriteTo(&stream)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &stream, nil
 }
 
-type listCacheContent struct {
-	caches []cacheContent
-}
+func (c *cacheContent) underline(startX float64, y float64, endX float64, endY float64) (*bytes.Buffer, error) {
 
-func (l *listCacheContent) last() *cacheContent {
-	max := len(l.caches)
-	if max > 0 {
-		return &l.caches[max-1]
-	}
-	return nil
-}
+	h := c.pageHeight()
+	ut := int(0)
 
-func (l *listCacheContent) appendTextToCache(cache cacheContent, text string) (float64, float64, error) {
-
-	x := cache.x
-	y := cache.y
-
-	mustMakeNewCache := true
-	cacheFont := l.last()
-	if cacheFont != nil {
-		if cacheFont.isSame(cache) {
-			mustMakeNewCache = false
-		}
+	if c.fontSubset != nil {
+		ut = int(c.fontSubset.GetUt())
+	} else {
+		return nil, errors.New("error AppendUnderline not found font")
 	}
 
-	if mustMakeNewCache {
-		l.caches = append(l.caches, cache)
-		cacheFont = l.last()
-	}
-	_, err := cacheFont.text.WriteString(text)
-	if err != nil {
-		return x, y, err
-	}
-	return x, y, nil
-}
-
-func (l *listCacheContent) toStream() (*bytes.Buffer, error) {
 	var buff bytes.Buffer
-	for _, cache := range l.caches {
-		stream, err := cache.toStream()
-		if err != nil {
-			return nil, err
-		}
-		_, err = stream.WriteTo(&buff)
-		if err != nil {
-			return nil, err
-		}
-	}
+	textH := ContentObj_CalTextHeight(c.fontSize)
+	arg3 := float64(h) - float64(y) - textH - textH*0.07
+	arg4 := (float64(ut) / 1000.00) * float64(c.fontSize)
+	buff.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f -%0.2f re f\n", startX, arg3, endX-startX, arg4))
+
 	return &buff, nil
 }
 
-func (l *listCacheContent) debug() string {
-	var buff bytes.Buffer
-	for _, cache := range l.caches {
-		buff.WriteString(cache.text.String())
-		buff.WriteString("\n")
+func (c *cacheContent) createContent() (float64, error) {
+
+	sumWidth := uint(0)
+	c.content.Truncate(0) //clear
+	text := c.text.String()
+	for _, r := range text {
+
+		glyphindex, err := c.fontSubset.CharIndex(r)
+		if err != nil {
+			return 0, err
+		}
+		c.content.WriteString(fmt.Sprintf("%04X", glyphindex))
+		width, err := c.fontSubset.CharWidth(r)
+		if err != nil {
+			return 0, err
+		}
+		sumWidth += width
 	}
-	return buff.String()
+
+	/*err := c.text.UnreadRune() //move read rune ponter to first
+	if err != nil {
+		return 0, err
+	}*/
+
+	fmt.Printf(">>>>>%s\n", c.content.String())
+	textWidthPdfUnit := float64(0)
+	if c.rectangle == nil {
+		textWidthPdfUnit = float64(sumWidth) * (float64(c.fontSize) / 1000.0)
+	} else {
+		textWidthPdfUnit = c.rectangle.W
+	}
+	c.textWidthPdfUnit = textWidthPdfUnit
+
+	return textWidthPdfUnit, nil
 }

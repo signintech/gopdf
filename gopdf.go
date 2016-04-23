@@ -6,10 +6,10 @@ import (
 	ioutil "io/ioutil"
 	"log"
 	"os"
+	"strings"
 	//"container/list"
 	"fmt"
 	"strconv"
-	"strings"
 )
 
 const subsetFont = "SubsetFont"
@@ -300,25 +300,29 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 
 	//undelineOffset := ContentObj_CalTextHeight(gp.Curr.Font_Size) + 1
 
-	startX := gp.Curr.X
-	startY := gp.Curr.Y
 	if gp.Curr.Font_Type == CURRENT_FONT_TYPE_IFONT {
+		startX := gp.Curr.X
+		startY := gp.Curr.Y
 		gp.getContent().AppendStream(rectangle, text)
+		endX := gp.Curr.X
+		endY := gp.Curr.Y
+		//underline
+		if strings.Contains(strings.ToUpper(gp.Curr.Font_Style), "U") {
+			gp.getContent().AppendUnderline(startX, startY, endX, endY, text)
+		}
 	} else if gp.Curr.Font_Type == CURRENT_FONT_TYPE_SUBSET {
+
 		err := gp.Curr.Font_ISubset.AddChars(text)
 		if err != nil {
 			return err
 		}
-		gp.getContent().AppendStreamSubsetFont(rectangle, text)
+		err = gp.getContent().AppendStreamSubsetFont(rectangle, text)
+		if err != nil {
+			return err
+		}
+		//FONT_TYPE_SUBSET make underline in cacheContent
 	}
-	endX := gp.Curr.X
-	endY := gp.Curr.Y
 
-	//underline
-	if strings.Contains(strings.ToUpper(gp.Curr.Font_Style), "U") {
-		//gp.Line(x1,y1+undelineOffset,x2,y2+undelineOffset)
-		gp.getContent().AppendUnderline(startX, startY, endX, endY, text)
-	}
 	return nil
 }
 

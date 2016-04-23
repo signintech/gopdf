@@ -42,10 +42,12 @@ func (s *SubsetFontObj) build() error {
 	return nil
 }
 
+//SetIndexObjCIDFont set IndexObjCIDFont
 func (s *SubsetFontObj) SetIndexObjCIDFont(index int) {
 	s.indexObjCIDFont = index
 }
 
+//SetIndexObjUnicodeMap set IndexObjUnicodeMap
 func (s *SubsetFontObj) SetIndexObjUnicodeMap(index int) {
 	s.indexObjUnicodeMap = index
 }

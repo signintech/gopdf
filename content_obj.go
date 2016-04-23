@@ -155,9 +155,7 @@ func (c *ContentObj) kern(leftRune rune, rightRune rune, leftIndex uint, rightIn
 	}
 
 	if haveKerning, kval := sfont.KernValueByLeft(leftIndex); haveKerning {
-		//fmt.Printf("prevRune=%d r=%c\n%s\n", prevIndex, r)
 		if ok, v := kval.ValueByRight(rightIndex); ok {
-			//fmt.Printf("left=%c  right =%c  v=%d\n", leftRune, rightRune, v)
 			val = v
 		}
 	}
@@ -269,6 +267,7 @@ func (c *ContentObj) AppendStreamCurve(x0 float64, y0 float64, x1 float64, y1 fl
 	c.stream.WriteString(fmt.Sprintf(" %s\n", op))
 }
 
+//Deprecated
 //AppendUnderline append underline
 func (c *ContentObj) AppendUnderline(startX float64, y float64, endX float64, endY float64, text string) {
 

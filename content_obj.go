@@ -49,73 +49,6 @@ func (c *ContentObj) getObjBuff() *bytes.Buffer {
 }
 
 //AppendStreamSubsetFont add stream of text
-/*
-func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) {
-	unitsPerEm := int(c.getRoot().Curr.Font_ISubset.ttfp.UnitsPerEm())
-	r := c.getRoot().Curr.textColor().r
-	g := c.getRoot().Curr.textColor().g
-	b := c.getRoot().Curr.textColor().b
-	grayFill := c.getRoot().Curr.grayFill
-	//sumKerning := 0
-
-	sumWidth := uint(0)
-	var buff bytes.Buffer
-	var leftIndex = uint(0)
-	var leftRune rune
-	for i, r := range text {
-		index, err := c.getRoot().Curr.Font_ISubset.CharIndex(r)
-		if err != nil {
-			log.Fatalf("err:%s", err.Error())
-		}
-		//find kern
-		if i > 0 {
-			val := c.kern(leftRune, r, leftIndex, index)
-			valPdfUnit := convertTTFUnit2PDFUnit(int(val), unitsPerEm) //convert unit
-			if valPdfUnit != 0 {
-				buff.WriteString(fmt.Sprintf(">%d<", (-1)*valPdfUnit))
-				//sumKerning += int(val)
-			}
-		}
-
-		buff.WriteString(fmt.Sprintf("%04X", index))
-		width, err := c.getRoot().Curr.Font_ISubset.CharWidth(r)
-		if err != nil {
-			log.Fatalf("err:%s", err.Error())
-		}
-		sumWidth += width
-		leftIndex = index
-		leftRune = r
-		//fmt.Printf("width %d\n", width)
-	}
-
-	fontSize := c.getRoot().Curr.Font_Size
-	x := fmt.Sprintf("%0.2f", c.getRoot().Curr.X)
-	y := fmt.Sprintf("%0.2f", c.getRoot().config.PageSize.H-c.getRoot().Curr.Y-(float64(fontSize)*0.7))
-
-	c.stream.WriteString("BT\n")
-	c.stream.WriteString(x + " " + y + " TD\n")
-	c.stream.WriteString("/F" + strconv.Itoa(c.getRoot().Curr.Font_FontCount+1) + " " + strconv.Itoa(fontSize) + " Tf\n")
-	if r+g+b != 0 {
-		rFloat := float64(r) * 0.00392156862745
-		gFloat := float64(g) * 0.00392156862745
-		bFloat := float64(b) * 0.00392156862745
-		rgb := fmt.Sprintf("%0.2f %0.2f %0.2f rg\n", rFloat, gFloat, bFloat)
-		c.stream.WriteString(rgb)
-	} else {
-		c.AppendStreamSetGrayFill(grayFill)
-	}
-
-	c.stream.WriteString("[<" + buff.String() + ">] TJ\n")
-	c.stream.WriteString("ET\n")
-
-	if rectangle == nil {
-		fontSize := c.getRoot().Curr.Font_Size
-		c.getRoot().Curr.X = c.getRoot().Curr.X + float64(sumWidth)*(float64(fontSize)/1000.0)
-	} else {
-		c.getRoot().Curr.X = c.getRoot().Curr.X + rectangle.W //+ (float64(sumValPdfUnit) / 1000.0)
-	}
-
-}*/
 func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) error {
 
 	textColor := c.getRoot().Curr.textColor()
@@ -147,34 +80,6 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) error 
 	}
 	return nil
 }
-
-/*
-func (c *ContentObj) kern(leftRune rune, rightRune rune, leftIndex uint, rightIndex uint) int16 {
-	val := int16(0)
-
-	sfont := c.getRoot().Curr.Font_ISubset
-	if !sfont.ttfFontOption.UseKerning {
-		return 0 //not use kerning
-	}
-
-	if haveKerning, kval := sfont.KernValueByLeft(leftIndex); haveKerning {
-		if ok, v := kval.ValueByRight(rightIndex); ok {
-			val = v
-		}
-	}
-
-	if c.getRoot().Curr.Font_ISubset.funcKernOverride != nil {
-		val = c.getRoot().Curr.Font_ISubset.funcKernOverride(
-			leftRune,
-			rightRune,
-			leftIndex,
-			rightIndex,
-			val,
-		)
-	}
-
-	return val
-}*/
 
 //AppendStream add stream of text
 func (c *ContentObj) AppendStream(rectangle *Rect, text string) {

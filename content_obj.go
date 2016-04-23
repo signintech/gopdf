@@ -27,7 +27,7 @@ func (c *ContentObj) build() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%#v\n", buff.String())
+	fmt.Printf("%s\n", buff.String())
 	//c.stream.WriteTo(buff)
 	buff.WriteTo(&c.stream)
 	streamlen := c.stream.Len()
@@ -127,6 +127,8 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) error 
 	y := c.getRoot().Curr.Y
 	fontSubset := c.getRoot().Curr.Font_ISubset
 
+	//fmt.Printf("fontSubset = %v", fontSubset.ttfFontOption.UseKerning)
+
 	cache := cacheContent{
 		fontSubset:     fontSubset,
 		rectangle:      rectangle,
@@ -146,6 +148,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) error 
 	return nil
 }
 
+/*
 func (c *ContentObj) kern(leftRune rune, rightRune rune, leftIndex uint, rightIndex uint) int16 {
 	val := int16(0)
 
@@ -171,7 +174,7 @@ func (c *ContentObj) kern(leftRune rune, rightRune rune, leftIndex uint, rightIn
 	}
 
 	return val
-}
+}*/
 
 //AppendStream add stream of text
 func (c *ContentObj) AppendStream(rectangle *Rect, text string) {

@@ -108,36 +108,79 @@ func (c *cacheContent) underline(startX float64, y float64, endX float64, endY f
 
 func (c *cacheContent) createContent() (float64, error) {
 
-	sumWidth := uint(0)
 	c.content.Truncate(0) //clear
-	text := c.text.String()
-	for _, r := range text {
-
-		glyphindex, err := c.fontSubset.CharIndex(r)
-		if err != nil {
-			return 0, err
-		}
-		c.content.WriteString(fmt.Sprintf("%04X", glyphindex))
-		width, err := c.fontSubset.CharWidth(r)
-		if err != nil {
-			return 0, err
-		}
-		sumWidth += width
-	}
-
-	/*err := c.text.UnreadRune() //move read rune ponter to first
+	textWidthPdfUnit, err := createContent(c.fontSubset, c.text.String(), c.fontSize, c.rectangle, &c.content)
 	if err != nil {
 		return 0, err
-	}*/
-
-	fmt.Printf(">>>>>%s\n", c.content.String())
-	textWidthPdfUnit := float64(0)
-	if c.rectangle == nil {
-		textWidthPdfUnit = float64(sumWidth) * (float64(c.fontSize) / 1000.0)
-	} else {
-		textWidthPdfUnit = c.rectangle.W
 	}
 	c.textWidthPdfUnit = textWidthPdfUnit
 
 	return textWidthPdfUnit, nil
+}
+
+func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect, out *bytes.Buffer) (float64, error) {
+
+	unitsPerEm := int(f.ttfp.UnitsPerEm())
+	var leftRune rune
+	var leftRuneIndex uint
+	sumWidth := int(0)
+
+	for i, r := range text {
+
+		glyphindex, err := f.CharIndex(r)
+		if err != nil {
+			return 0, err
+		}
+
+		pairvalPdfUnit := 0
+		if i > 0 && f.ttfFontOption.UseKerning { //kerning
+			pairval := kern(f, leftRune, r, leftRuneIndex, glyphindex)
+			pairvalPdfUnit = convertTTFUnit2PDFUnit(int(pairval), unitsPerEm)
+			if pairvalPdfUnit != 0 && out != nil {
+				out.WriteString(fmt.Sprintf(">%d<", (-1)*pairvalPdfUnit))
+			}
+		}
+
+		if out != nil {
+			out.WriteString(fmt.Sprintf("%04X", glyphindex))
+		}
+		width, err := f.CharWidth(r)
+		if err != nil {
+			return 0, err
+		}
+
+		sumWidth += int(width) + int(pairvalPdfUnit)
+		leftRune = r
+		leftRuneIndex = glyphindex
+	}
+
+	textWidthPdfUnit := float64(0)
+	if rectangle == nil {
+		textWidthPdfUnit = float64(sumWidth) * (float64(fontSize) / 1000.0)
+	} else {
+		textWidthPdfUnit = rectangle.W
+	}
+
+	return textWidthPdfUnit, nil
+}
+
+func kern(f *SubsetFontObj, leftRune rune, rightRune rune, leftIndex uint, rightIndex uint) int16 {
+
+	pairVal := int16(0)
+	if haveKerning, kval := f.KernValueByLeft(leftIndex); haveKerning {
+		if ok, v := kval.ValueByRight(rightIndex); ok {
+			pairVal = v
+		}
+	}
+
+	if f.funcKernOverride != nil {
+		pairVal = f.funcKernOverride(
+			leftRune,
+			rightRune,
+			leftIndex,
+			rightIndex,
+			pairVal,
+		)
+	}
+	return pairVal
 }

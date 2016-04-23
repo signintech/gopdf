@@ -483,7 +483,7 @@ func (gp *GoPdf) SetStrokeColor(r uint8, g uint8, b uint8) {
 //MeasureTextWidth : measure Width of text (use current font)
 func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 
-	fontSize := gp.Curr.Font_Size
+	/*fontSize := gp.Curr.Font_Size
 	sfont := gp.Curr.Font_ISubset
 	err := sfont.AddChars(text) //AddChars for create CharacterToGlyphIndex
 	if err != nil {
@@ -499,8 +499,12 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 		}
 		sumWidth = sumWidth + width
 	}
-	realWidth := float64(sumWidth) * (float64(fontSize) / 1000.0) //convert
-	return realWidth, nil
+	realWidth := float64(sumWidth) * (float64(fontSize) / 1000.0) //convert*/
+	textWidthPdfUnit, err := createContent(gp.Curr.Font_ISubset, text, gp.Curr.Font_Size, nil, nil)
+	if err != nil {
+		return 0, err
+	}
+	return textWidthPdfUnit, nil
 }
 
 //Curve Draws a Bézier curve (the Bézier curve is tangent to the line between the control points at either end of the curve)

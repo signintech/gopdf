@@ -214,10 +214,17 @@ func (s *SubsetFontObj) GlyphIndexToPdfWidth(glyphIndex uint) uint {
 	return width * 1000 / unitsPerEm
 }
 
+//GetTTFParser get TTFParser
 func (s *SubsetFontObj) GetTTFParser() *core.TTFParser {
 	return &s.ttfp
 }
 
+//GetUt underlineThickness
 func (s *SubsetFontObj) GetUt() int {
 	return s.ttfp.UnderlineThickness()
+}
+
+//GetUp underline postion
+func (s *SubsetFontObj) GetUp() int {
+	return s.ttfp.UnderlinePosition()
 }

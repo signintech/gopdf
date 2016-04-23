@@ -66,7 +66,6 @@ func (c *cacheContent) toStream() (*bytes.Buffer, error) {
 		stream.WriteString(rgb)
 	} else {
 		//c.AppendStreamSetGrayFill(grayFill)
-		//TODO fix this
 	}
 
 	stream.WriteString("[<" + c.content.String() + ">] TJ\n")
@@ -88,20 +87,20 @@ func (c *cacheContent) toStream() (*bytes.Buffer, error) {
 
 func (c *cacheContent) underline(startX float64, y float64, endX float64, endY float64) (*bytes.Buffer, error) {
 
-	h := c.pageHeight()
-	ut := int(0)
-
-	if c.fontSubset != nil {
-		ut = int(c.fontSubset.GetUt())
-	} else {
+	if c.fontSubset == nil {
 		return nil, errors.New("error AppendUnderline not found font")
 	}
-
+	unitsPerEm := float64(c.fontSubset.ttfp.UnitsPerEm())
+	h := c.pageHeight()
+	ut := float64(c.fontSubset.GetUt())
+	up := float64(c.fontSubset.GetUp())
 	var buff bytes.Buffer
 	textH := ContentObj_CalTextHeight(c.fontSize)
-	arg3 := float64(h) - float64(y) - textH - textH*0.07
-	arg4 := (float64(ut) / 1000.00) * float64(c.fontSize)
+	arg3 := float64(h) - (float64(y) - ((up / unitsPerEm) * float64(c.fontSize))) - textH
+	arg4 := (ut / unitsPerEm) * float64(c.fontSize)
 	buff.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f -%0.2f re f\n", startX, arg3, endX-startX, arg4))
+
+	fmt.Printf("arg3=%f arg4=%f\n", arg3, arg4)
 
 	return &buff, nil
 }
@@ -124,7 +123,7 @@ func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect,
 	var leftRune rune
 	var leftRuneIndex uint
 	sumWidth := int(0)
-
+	fmt.Printf("unitsPerEm = %d", unitsPerEm)
 	for i, r := range text {
 
 		glyphindex, err := f.CharIndex(r)

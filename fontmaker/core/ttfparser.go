@@ -401,7 +401,7 @@ func (t *TTFParser) ParsePost(fd *os.File) error {
 	if err != nil {
 		return err
 	}
-	//fmt.Printf("end>>>>>>>\n")
+	//fmt.Printf("underlineThickness=%d\n", t.underlineThickness)
 	//fmt.Printf(">>>>>>>%d\n", me.underlineThickness)
 
 	isFixedPitch, err := t.ReadULong(fd)

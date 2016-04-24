@@ -18,6 +18,7 @@ type cacheContent struct {
 	setXCount      int
 	x, y           float64
 	fontSubset     *SubsetFontObj
+	pageheight     float64
 	//
 	content          bytes.Buffer
 	text             bytes.Buffer
@@ -43,8 +44,12 @@ func (c *cacheContent) isSame(cache cacheContent) bool {
 	return false
 }
 
+func (c *cacheContent) setPageHeight(pageheight float64) {
+	c.pageheight = pageheight
+}
+
 func (c *cacheContent) pageHeight() float64 {
-	return 841.89 //TODO fix this //c.getRoot().config.PageSize.H
+	return c.pageheight //841.89
 }
 
 func (c *cacheContent) toStream() (*bytes.Buffer, error) {

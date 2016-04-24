@@ -74,6 +74,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) error 
 		setXCount:      setXCount,
 		x:              x,
 		y:              y,
+		pageheight:     c.getRoot().config.PageSize.H,
 	}
 	var err error
 	c.getRoot().Curr.X, c.getRoot().Curr.Y, err = c.listCache.appendTextToCache(cache, text)

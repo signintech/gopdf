@@ -8,8 +8,9 @@ const CURRENT_FONT_TYPE_SUBSET = 1
 
 //Current current state
 type Current struct {
-	X float64
-	Y float64
+	setXCount int //many times we go func SetX()
+	X         float64
+	Y         float64
 
 	//font
 	IndexOfFontObj int

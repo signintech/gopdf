@@ -98,6 +98,7 @@ func (gp *GoPdf) SetTopMargin(margin float64) {
 
 //SetX : set current position X
 func (gp *GoPdf) SetX(x float64) {
+	gp.Curr.setXCount++
 	gp.Curr.X = x
 }
 
@@ -299,7 +300,7 @@ func (gp *GoPdf) GetBytesPdf() []byte {
 func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 
 	//undelineOffset := ContentObj_CalTextHeight(gp.Curr.Font_Size) + 1
-	fmt.Printf("init Cell=%s\n", text)
+	//fmt.Printf("init Cell=%s\n", text)
 	if gp.Curr.Font_Type == CURRENT_FONT_TYPE_IFONT {
 		startX := gp.Curr.X
 		startY := gp.Curr.Y
@@ -311,7 +312,7 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 			gp.getContent().AppendUnderline(startX, startY, endX, endY, text)
 		}
 	} else if gp.Curr.Font_Type == CURRENT_FONT_TYPE_SUBSET {
-		fmt.Printf("START Cell=%s\n", text)
+		//fmt.Printf("START Cell=%s\n", text)
 		err := gp.Curr.Font_ISubset.AddChars(text)
 		if err != nil {
 			return err
@@ -320,7 +321,7 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("END Cell=%s\n", text)
+		//fmt.Printf("END Cell=%s\n", text)
 		//FONT_TYPE_SUBSET make underline in cacheContent
 	}
 

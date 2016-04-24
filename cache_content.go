@@ -15,6 +15,7 @@ type cacheContent struct {
 	fontCountIndex int //Curr.Font_FontCount+1
 	fontSize       int
 	fontStyle      string
+	setXCount      int
 	x, y           float64
 	fontSubset     *SubsetFontObj
 	//
@@ -33,6 +34,7 @@ func (c *cacheContent) isSame(cache cacheContent) bool {
 		c.fontCountIndex == cache.fontCountIndex &&
 		c.fontSize == cache.fontSize &&
 		c.fontStyle == cache.fontStyle &&
+		c.setXCount == cache.setXCount &&
 		//c.x == cache.x &&
 		c.y == cache.y {
 		return true
@@ -99,8 +101,7 @@ func (c *cacheContent) underline(startX float64, y float64, endX float64, endY f
 	arg3 := float64(h) - (float64(y) - ((up / unitsPerEm) * float64(c.fontSize))) - textH
 	arg4 := (ut / unitsPerEm) * float64(c.fontSize)
 	buff.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f -%0.2f re f\n", startX, arg3, endX-startX, arg4))
-
-	fmt.Printf("arg3=%f arg4=%f\n", arg3, arg4)
+	//fmt.Printf("arg3=%f arg4=%f\n", arg3, arg4)
 
 	return &buff, nil
 }

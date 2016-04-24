@@ -112,14 +112,16 @@ func (s *SubsetFontObj) AddChars(txt string) error {
 	return nil
 }
 
+//CharIndex index of char in glyph table
 func (s *SubsetFontObj) CharIndex(r rune) (uint, error) {
-	fmt.Printf("len = %d\n", len(s.CharacterToGlyphIndex))
+	//fmt.Printf("len = %d\n", len(s.CharacterToGlyphIndex))
 	if index, ok := s.CharacterToGlyphIndex[r]; ok {
 		return index, nil
 	}
 	return 0, ErrCharNotFound
 }
 
+//CharWidth with of char
 func (s *SubsetFontObj) CharWidth(r rune) (uint, error) {
 	glyphIndex := s.CharacterToGlyphIndex
 	if index, ok := glyphIndex[r]; ok {

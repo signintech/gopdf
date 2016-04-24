@@ -27,7 +27,7 @@ func (c *ContentObj) build() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s\n", buff.String())
+	//fmt.Printf("%s\n", buff.String())
 	//c.stream.WriteTo(buff)
 	buff.WriteTo(&c.stream)
 	streamlen := c.stream.Len()
@@ -58,6 +58,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) error 
 	fontStyle := c.getRoot().Curr.Font_Style
 	x := c.getRoot().Curr.X
 	y := c.getRoot().Curr.Y
+	setXCount := c.getRoot().Curr.setXCount
 	fontSubset := c.getRoot().Curr.Font_ISubset
 
 	//fmt.Printf("fontSubset = %v", fontSubset.ttfFontOption.UseKerning)
@@ -70,6 +71,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) error 
 		fontCountIndex: fontCountIndex,
 		fontSize:       fontSize,
 		fontStyle:      fontStyle,
+		setXCount:      setXCount,
 		x:              x,
 		y:              y,
 	}

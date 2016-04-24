@@ -113,6 +113,7 @@ func (s *SubsetFontObj) AddChars(txt string) error {
 }
 
 func (s *SubsetFontObj) CharIndex(r rune) (uint, error) {
+	fmt.Printf("len = %d\n", len(s.CharacterToGlyphIndex))
 	if index, ok := s.CharacterToGlyphIndex[r]; ok {
 		return index, nil
 	}

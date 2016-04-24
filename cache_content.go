@@ -123,7 +123,7 @@ func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect,
 	var leftRune rune
 	var leftRuneIndex uint
 	sumWidth := int(0)
-	fmt.Printf("unitsPerEm = %d", unitsPerEm)
+	//fmt.Printf("unitsPerEm = %d", unitsPerEm)
 	for i, r := range text {
 
 		glyphindex, err := f.CharIndex(r)

@@ -299,7 +299,7 @@ func (gp *GoPdf) GetBytesPdf() []byte {
 func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 
 	//undelineOffset := ContentObj_CalTextHeight(gp.Curr.Font_Size) + 1
-
+	fmt.Printf("init Cell=%s\n", text)
 	if gp.Curr.Font_Type == CURRENT_FONT_TYPE_IFONT {
 		startX := gp.Curr.X
 		startY := gp.Curr.Y
@@ -311,7 +311,7 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 			gp.getContent().AppendUnderline(startX, startY, endX, endY, text)
 		}
 	} else if gp.Curr.Font_Type == CURRENT_FONT_TYPE_SUBSET {
-
+		fmt.Printf("START Cell=%s\n", text)
 		err := gp.Curr.Font_ISubset.AddChars(text)
 		if err != nil {
 			return err
@@ -320,6 +320,7 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 		if err != nil {
 			return err
 		}
+		fmt.Printf("END Cell=%s\n", text)
 		//FONT_TYPE_SUBSET make underline in cacheContent
 	}
 
@@ -482,6 +483,12 @@ func (gp *GoPdf) SetStrokeColor(r uint8, g uint8, b uint8) {
 
 //MeasureTextWidth : measure Width of text (use current font)
 func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
+
+	err := gp.Curr.Font_ISubset.AddChars(text) //AddChars for create CharacterToGlyphIndex
+	if err != nil {
+		return 0, err
+	}
+
 	textWidthPdfUnit, err := createContent(gp.Curr.Font_ISubset, text, gp.Curr.Font_Size, nil, nil)
 	if err != nil {
 		return 0, err

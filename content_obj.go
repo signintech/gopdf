@@ -127,6 +127,12 @@ func (c *ContentObj) AppendStreamLine(x1 float64, y1 float64, x2 float64, y2 flo
 	c.stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", x1, h-y1, x2, h-y2))
 }
 
+//AppendStreamRectangle : draw rectangle from lower-left corner (x, y) with specif width/height
+func (c *ContentObj) AppendStreamRectangle(x float64, y float64, wdth float64, hght float64) {
+	h := c.getRoot().config.PageSize.H
+	c.stream.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re s\n", x, h-y, wdth, hght))
+}
+
 func (c *ContentObj) AppendStreamOval(x1 float64, y1 float64, x2 float64, y2 float64) {
 	h := c.getRoot().config.PageSize.H
 	cp := 0.55228                              // Magnification of the control point

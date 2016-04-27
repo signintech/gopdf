@@ -63,6 +63,16 @@ func (gp *GoPdf) Line(x1 float64, y1 float64, x2 float64, y2 float64) {
 	gp.getContent().AppendStreamLine(x1, y1, x2, y2)
 }
 
+//RectFromLowerLeft : draw rectangle from lower-left corner (x, y)
+func (gp *GoPdf) RectFromLowerLeft(x float64, y float64, wdth float64, hght float64) {
+	gp.getContent().AppendStreamRectangle(x, y, wdth, hght)
+}
+
+//RectFromUpperLeft : draw rectangle from upper-left corner (x, y)
+func (gp *GoPdf) RectFromUpperLeft(x float64, y float64, wdth float64, hght float64) {
+	gp.getContent().AppendStreamRectangle(x, y+hght, wdth, hght)
+}
+
 //Oval : draw oval
 func (gp *GoPdf) Oval(x1 float64, y1 float64, x2 float64, y2 float64) {
 	gp.getContent().AppendStreamOval(x1, y1, x2, y2)

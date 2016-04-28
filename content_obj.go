@@ -130,7 +130,7 @@ func (c *ContentObj) AppendStreamLine(x1 float64, y1 float64, x2 float64, y2 flo
 //AppendStreamRectangle : draw rectangle from lower-left corner (x, y) with specif width/height
 func (c *ContentObj) AppendStreamRectangle(x float64, y float64, wdth float64, hght float64) {
 	h := c.getRoot().config.PageSize.H
-	c.stream.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re s\n", x, h-y, wdth, hght))
+	c.stream.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re b\n", x, h-y, wdth, hght))
 }
 
 func (c *ContentObj) AppendStreamOval(x1 float64, y1 float64, x2 float64, y2 float64) {
@@ -155,7 +155,7 @@ func (c *ContentObj) AppendStreamOval(x1 float64, y1 float64, x2 float64, y2 flo
 		v3[0]-(x2-x1)/2*cp, v3[1], v4[0], v4[1]+(y2-y1)/2*cp, v4[0], v4[1],
 	))
 	c.stream.WriteString(fmt.Sprintf(
-		"%0.2f %0.2f %0.2f %0.2f %0.2f %0.2f c S\n",
+		"%0.2f %0.2f %0.2f %0.2f %0.2f %0.2f c b\n",
 		v4[0], v4[1]-(y2-y1)/2*cp, v1[0]-(x2-x1)/2*cp, v1[1], v1[0], v1[1],
 	))
 }
@@ -242,6 +242,14 @@ func (c *ContentObj) AppendStreamSetColorStroke(r uint8, g uint8, b uint8) {
 	gFloat := float64(g) * 0.00392156862745
 	bFloat := float64(b) * 0.00392156862745
 	c.stream.WriteString(fmt.Sprintf("%.2f %.2f %.2f RG\n", rFloat, gFloat, bFloat))
+}
+
+//AppendStreamSetColorFill  set the color fill
+func (c *ContentObj) AppendStreamSetColorFill(r uint8, g uint8, b uint8) {
+	rFloat := float64(r) * 0.00392156862745
+	gFloat := float64(g) * 0.00392156862745
+	bFloat := float64(b) * 0.00392156862745
+	c.stream.WriteString(fmt.Sprintf("%.2f %.2f %.2f rg\n", rFloat, gFloat, bFloat))
 }
 
 //AppendStreamImage append image

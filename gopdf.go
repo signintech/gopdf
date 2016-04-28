@@ -457,6 +457,11 @@ func (gp *GoPdf) SetStrokeColor(r uint8, g uint8, b uint8) {
 	gp.getContent().AppendStreamSetColorStroke(r, g, b)
 }
 
+//SetFillColor set the color for the fill
+func (gp *GoPdf) SetFillColor(r uint8, g uint8, b uint8) {
+	gp.getContent().AppendStreamSetColorFill(r, g, b)
+}
+
 //MeasureTextWidth : measure Width of text (use current font)
 func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 

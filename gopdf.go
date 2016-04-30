@@ -305,7 +305,23 @@ func (gp *GoPdf) GetBytesPdf() []byte {
 	return b
 }
 
-//Cell : create cell of text
+//Text write text start at current x,y ( current y on baseline )
+func (gp *GoPdf) Text(text string) error {
+
+	err := gp.Curr.Font_ISubset.AddChars(text)
+	if err != nil {
+		return err
+	}
+
+	err = gp.getContent().AppendStreamText(text)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//Cell : create cell of text ( current x,y is upper-left corner)
 //Note that this has no effect on Rect.H pdf (now). Fix later :-)
 func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 

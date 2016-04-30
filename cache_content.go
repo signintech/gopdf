@@ -8,7 +8,14 @@ import (
 	"strings"
 )
 
+//ContentTypeCell cell
+const ContentTypeCell = 0
+
+//ContentTypeText text
+const ContentTypeText = 1
+
 type cacheContent struct {
+	//---setup---
 	rectangle      *Rect
 	textColor      Rgb
 	grayFill       float64
@@ -19,10 +26,11 @@ type cacheContent struct {
 	x, y           float64
 	fontSubset     *SubsetFontObj
 	pageheight     float64
-	//
+	//---result---
 	content          bytes.Buffer
 	text             bytes.Buffer
 	textWidthPdfUnit float64
+	contentType      int
 }
 
 func (c *cacheContent) isSame(cache cacheContent) bool {
@@ -60,7 +68,12 @@ func (c *cacheContent) toStream() (*bytes.Buffer, error) {
 	g := c.textColor.g
 	b := c.textColor.b
 	x := fmt.Sprintf("%0.2f", c.x)
-	y := fmt.Sprintf("%0.2f", pageHeight-c.y-(float64(c.fontSize)*0.7))
+	y := "0.00"
+	if c.contentType == ContentTypeCell {
+		y = fmt.Sprintf("%0.2f", pageHeight-c.y-(float64(c.fontSize)*0.7))
+	} else {
+		y = fmt.Sprintf("%0.2f", pageHeight-c.y)
+	}
 
 	stream.WriteString("BT\n")
 	stream.WriteString(x + " " + y + " TD\n")

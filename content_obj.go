@@ -48,6 +48,43 @@ func (c *ContentObj) getObjBuff() *bytes.Buffer {
 	return &(c.buffer)
 }
 
+func (c *ContentObj) AppendStreamText(text string) error {
+
+	//support only CURRENT_FONT_TYPE_SUBSET
+	textColor := c.getRoot().Curr.textColor()
+	grayFill := c.getRoot().Curr.grayFill
+	fontCountIndex := c.getRoot().Curr.Font_FontCount + 1
+	fontSize := c.getRoot().Curr.Font_Size
+	fontStyle := c.getRoot().Curr.Font_Style
+	x := c.getRoot().Curr.X
+	y := c.getRoot().Curr.Y
+	setXCount := c.getRoot().Curr.setXCount
+	fontSubset := c.getRoot().Curr.Font_ISubset
+
+	cache := cacheContent{
+		fontSubset:     fontSubset,
+		rectangle:      nil,
+		textColor:      textColor,
+		grayFill:       grayFill,
+		fontCountIndex: fontCountIndex,
+		fontSize:       fontSize,
+		fontStyle:      fontStyle,
+		setXCount:      setXCount,
+		x:              x,
+		y:              y,
+		pageheight:     c.getRoot().config.PageSize.H,
+		contentType:    ContentTypeText,
+	}
+
+	var err error
+	c.getRoot().Curr.X, c.getRoot().Curr.Y, err = c.listCache.appendTextToCache(cache, text)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 //AppendStreamSubsetFont add stream of text
 func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) error {
 
@@ -61,8 +98,6 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) error 
 	setXCount := c.getRoot().Curr.setXCount
 	fontSubset := c.getRoot().Curr.Font_ISubset
 
-	//fmt.Printf("fontSubset = %v", fontSubset.ttfFontOption.UseKerning)
-
 	cache := cacheContent{
 		fontSubset:     fontSubset,
 		rectangle:      rectangle,
@@ -75,6 +110,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) error 
 		x:              x,
 		y:              y,
 		pageheight:     c.getRoot().config.PageSize.H,
+		contentType:    ContentTypeCell,
 	}
 	var err error
 	c.getRoot().Curr.X, c.getRoot().Curr.Y, err = c.listCache.appendTextToCache(cache, text)

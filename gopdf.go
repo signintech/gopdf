@@ -305,7 +305,7 @@ func (gp *GoPdf) GetBytesPdf() []byte {
 	return b
 }
 
-//Text write text start at current x,y ( current y on baseline )
+//Text write text start at current x,y ( current y is the baseline of text )
 func (gp *GoPdf) Text(text string) error {
 
 	err := gp.Curr.Font_ISubset.AddChars(text)
@@ -321,7 +321,12 @@ func (gp *GoPdf) Text(text string) error {
 	return nil
 }
 
-//Cell : create cell of text ( current x,y is upper-left corner)
+//CellWithOption create cell of text ( use current x,y is upper-left corner of cell)
+func (gp *GoPdf) CellWithOption(rectangle *Rect, text string, opt CellOption) error {
+	return nil
+}
+
+//Cell : create cell of text ( use current x,y is upper-left corner of cell)
 //Note that this has no effect on Rect.H pdf (now). Fix later :-)
 func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 

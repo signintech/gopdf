@@ -60,23 +60,45 @@ func (c *cacheContent) pageHeight() float64 {
 	return c.pageheight //841.89
 }
 
+func (c *cacheContent) calTypoAscender() float64 {
+	typoAsc := float64(c.fontSubset.ttfp.TypoAscender()) * 1000.00 / float64(c.fontSubset.ttfp.UnitsPerEm())
+	return typoAsc * float64(c.fontSize) / 1000.0
+}
+
+func (c *cacheContent) calY() (float64, error) {
+	pageHeight := c.pageHeight()
+	if c.contentType == ContentTypeText {
+		return pageHeight - c.y, nil
+	} else if c.contentType == ContentTypeCell {
+		//fake to top
+		y := pageHeight - c.y - c.calTypoAscender()
+		return y, nil
+	}
+	return 0.0, errors.New("contentType not found")
+}
+
+func (c *cacheContent) calX() (float64, error) {
+	return c.x, nil
+}
+
 func (c *cacheContent) toStream() (*bytes.Buffer, error) {
 	var stream bytes.Buffer
 
-	pageHeight := c.pageHeight()
+	//pageHeight := c.pageHeight()
 	r := c.textColor.r
 	g := c.textColor.g
 	b := c.textColor.b
-	x := fmt.Sprintf("%0.2f", c.x)
-	y := "0.00"
-	if c.contentType == ContentTypeCell {
-		y = fmt.Sprintf("%0.2f", pageHeight-c.y-(float64(c.fontSize)*0.7))
-	} else {
-		y = fmt.Sprintf("%0.2f", pageHeight-c.y)
+	x, err := c.calX()
+	if err != nil {
+		return nil, err
+	}
+	y, err := c.calY()
+	if err != nil {
+		return nil, err
 	}
 
 	stream.WriteString("BT\n")
-	stream.WriteString(x + " " + y + " TD\n")
+	stream.WriteString(fmt.Sprintf("%0.2f %0.2f TD\n", x, y))
 	stream.WriteString("/F" + strconv.Itoa(c.fontCountIndex) + " " + strconv.Itoa(c.fontSize) + " Tf\n")
 	if r+g+b != 0 {
 		rFloat := float64(r) * 0.00392156862745

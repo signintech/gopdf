@@ -1,24 +1,21 @@
 package gopdf
 
-//AlignLeft align on left of cell
-const AlignLeft = 0
+//Left left
+const Left = 8 //1000
+//Top top
+const Top = 4 //0100
+//Right right
+const Right = 2 //0010
+//Bottom bottom
+const Bottom = 1 //0001
+//Center center
+const Center = 0 //0000
+//All Left | Top | Right | Bottom
+const All = Left | Top | Right | Bottom //1111
 
-//AlignCenter align on center of cell
-const AlignCenter = 1
-
-//AlignRight align on right of cell
-const AlignRight = 2
-
-//VAlignTop vertical align on top of cell
-const VAlignTop = 0
-
-//VAlignMiddle vertical align on middle of cell
-const VAlignMiddle = 1
-
-//VAlignBottom  vertical align on bottom of cell
-const VAlignBottom = 2
-
+//CellOption cell option
 type CellOption struct {
 	Align  int
 	VAlign int
+	Border int
 }

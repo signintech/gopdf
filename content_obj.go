@@ -86,7 +86,7 @@ func (c *ContentObj) AppendStreamText(text string) error {
 }
 
 //AppendStreamSubsetFont add stream of text
-func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) error {
+func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOpt CellOption) error {
 
 	textColor := c.getRoot().Curr.textColor()
 	grayFill := c.getRoot().Curr.grayFill
@@ -111,6 +111,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string) error 
 		y:              y,
 		pageheight:     c.getRoot().config.PageSize.H,
 		contentType:    ContentTypeCell,
+		cellOpt:        cellOpt,
 	}
 	var err error
 	c.getRoot().Curr.X, c.getRoot().Curr.Y, err = c.listCache.appendTextToCache(cache, text)

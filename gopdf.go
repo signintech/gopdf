@@ -323,6 +323,14 @@ func (gp *GoPdf) Text(text string) error {
 
 //CellWithOption create cell of text ( use current x,y is upper-left corner of cell)
 func (gp *GoPdf) CellWithOption(rectangle *Rect, text string, opt CellOption) error {
+	err := gp.Curr.Font_ISubset.AddChars(text)
+	if err != nil {
+		return err
+	}
+	err = gp.getContent().AppendStreamSubsetFont(rectangle, text, opt)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -330,8 +338,6 @@ func (gp *GoPdf) CellWithOption(rectangle *Rect, text string, opt CellOption) er
 //Note that this has no effect on Rect.H pdf (now). Fix later :-)
 func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 
-	//undelineOffset := ContentObj_CalTextHeight(gp.Curr.Font_Size) + 1
-	//fmt.Printf("init Cell=%s\n", text)
 	if gp.Curr.Font_Type == CURRENT_FONT_TYPE_IFONT {
 		startX := gp.Curr.X
 		startY := gp.Curr.Y
@@ -344,11 +350,17 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 		}
 	} else if gp.Curr.Font_Type == CURRENT_FONT_TYPE_SUBSET {
 		//fmt.Printf("START Cell=%s\n", text)
+		defaultopt := CellOption{
+			Align:  Left,
+			VAlign: Top,
+			Border: 0,
+		}
+
 		err := gp.Curr.Font_ISubset.AddChars(text)
 		if err != nil {
 			return err
 		}
-		err = gp.getContent().AppendStreamSubsetFont(rectangle, text)
+		err = gp.getContent().AppendStreamSubsetFont(rectangle, text, defaultopt)
 		if err != nil {
 			return err
 		}

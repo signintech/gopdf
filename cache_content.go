@@ -31,6 +31,7 @@ type cacheContent struct {
 	text             bytes.Buffer
 	textWidthPdfUnit float64
 	contentType      int
+	cellOpt          CellOption
 }
 
 func (c *cacheContent) isSame(cache cacheContent) bool {
@@ -62,6 +63,11 @@ func (c *cacheContent) pageHeight() float64 {
 
 func (c *cacheContent) calTypoAscender() float64 {
 	typoAsc := float64(c.fontSubset.ttfp.TypoAscender()) * 1000.00 / float64(c.fontSubset.ttfp.UnitsPerEm())
+	return typoAsc * float64(c.fontSize) / 1000.0
+}
+
+func (c *cacheContent) calTypoDescender() float64 {
+	typoAsc := float64(c.fontSubset.ttfp.TypoDescender()) * 1000.00 / float64(c.fontSubset.ttfp.UnitsPerEm())
 	return typoAsc * float64(c.fontSize) / 1000.0
 }
 
@@ -124,10 +130,64 @@ func (c *cacheContent) toStream() (*bytes.Buffer, error) {
 		}
 	}
 
+	c.drawBorder(&stream)
+
 	return &stream, nil
 }
 
-func (c *cacheContent) underline(startX float64, y float64, endX float64, endY float64) (*bytes.Buffer, error) {
+func (c *cacheContent) drawBorder(stream *bytes.Buffer) error {
+
+	stream.WriteString(fmt.Sprintf("%.2f w\n", 0.1))
+
+	if c.cellOpt.Border&Top == Top {
+
+		startX := c.x
+		startY := c.pageHeight() - c.y
+		endX := c.x + c.textWidthPdfUnit
+		endY := startY
+		_, err := stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY))
+		if err != nil {
+			return err
+		}
+	}
+
+	if c.cellOpt.Border&Left == Left {
+		startX := c.x
+		startY := c.pageHeight() - c.y
+		endX := c.x
+		endY := startY + c.calTypoDescender() - c.calTypoAscender()
+		_, err := stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY))
+		if err != nil {
+			return err
+		}
+	}
+
+	if c.cellOpt.Border&Right == Right {
+		startX := c.x + c.textWidthPdfUnit
+		startY := c.pageHeight() - c.y
+		endX := c.x + c.textWidthPdfUnit
+		endY := startY + c.calTypoDescender() - c.calTypoAscender()
+		_, err := stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY))
+		if err != nil {
+			return err
+		}
+	}
+
+	if c.cellOpt.Border&Bottom == Bottom {
+		startX := c.x
+		startY := c.pageHeight() - c.y + c.calTypoDescender() - c.calTypoAscender()
+		endX := c.x + c.textWidthPdfUnit
+		endY := startY
+		_, err := stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *cacheContent) underline(startX float64, startY float64, endX float64, endY float64) (*bytes.Buffer, error) {
 
 	if c.fontSubset == nil {
 		return nil, errors.New("error AppendUnderline not found font")
@@ -138,7 +198,7 @@ func (c *cacheContent) underline(startX float64, y float64, endX float64, endY f
 	up := float64(c.fontSubset.GetUp())
 	var buff bytes.Buffer
 	textH := ContentObj_CalTextHeight(c.fontSize)
-	arg3 := float64(h) - (float64(y) - ((up / unitsPerEm) * float64(c.fontSize))) - textH
+	arg3 := float64(h) - (float64(startY) - ((up / unitsPerEm) * float64(c.fontSize))) - textH
 	arg4 := (ut / unitsPerEm) * float64(c.fontSize)
 	buff.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f -%0.2f re f\n", startX, arg3, endX-startX, arg4))
 	//fmt.Printf("arg3=%f arg4=%f\n", arg3, arg4)

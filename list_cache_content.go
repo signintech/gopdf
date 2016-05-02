@@ -42,7 +42,7 @@ func (l *listCacheContent) appendTextToCache(cache cacheContent, text string) (f
 		return x, y, err
 	}
 
-	if cacheFont.cellOpt.Float&Right == Right {
+	if cacheFont.cellOpt.Float == 0 || cacheFont.cellOpt.Float&Right == Right || cacheFont.contentType == ContentTypeText {
 		x += textWidthPdfUnit
 	}
 	if cacheFont.cellOpt.Float&Bottom == Bottom {

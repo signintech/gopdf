@@ -318,8 +318,7 @@ func (gp *GoPdf) CellWithOption(rectangle *Rect, text string, opt CellOption) er
 func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 
 	defaultopt := CellOption{
-		Align:  Left,
-		VAlign: Top,
+		Align:  Left | Top,
 		Border: 0,
 		Float:  Right,
 	}
@@ -447,7 +446,7 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 		return 0, err
 	}
 
-	textWidthPdfUnit, _, err := createContent(gp.curr.Font_ISubset, text, gp.curr.Font_Size, nil, nil)
+	_, _, textWidthPdfUnit, err := createContent(gp.curr.Font_ISubset, text, gp.curr.Font_Size, nil, nil)
 	if err != nil {
 		return 0, err
 	}

@@ -137,7 +137,7 @@ func (c *cacheContent) toStream() (*bytes.Buffer, error) {
 
 func (c *cacheContent) drawBorder(stream *bytes.Buffer) error {
 
-	stream.WriteString(fmt.Sprintf("%.2f w\n", 0.1))
+	//stream.WriteString(fmt.Sprintf("%.2f w\n", 0.1))
 
 	if c.cellOpt.Border&Top == Top {
 

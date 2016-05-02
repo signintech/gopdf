@@ -26,13 +26,13 @@ type cacheContent struct {
 	x, y           float64
 	fontSubset     *SubsetFontObj
 	pageheight     float64
+	contentType    int
+	cellOpt        CellOption
+	lineWidth      float64
 	//---result---
-	content          bytes.Buffer
-	text             bytes.Buffer
-	textWidthPdfUnit float64
-	contentType      int
-	cellOpt          CellOption
-	lineWidth        float64
+	content                             bytes.Buffer
+	text                                bytes.Buffer
+	textWidthPdfUnit, textHeightPdfUnit float64
 }
 
 func (c *cacheContent) isSame(cache cacheContent) bool {
@@ -62,14 +62,23 @@ func (c *cacheContent) pageHeight() float64 {
 	return c.pageheight //841.89
 }
 
+func convertTypoUnit(val float64, unitsPerEm uint, fontSize float64) float64 {
+	val = val * 1000.00 / float64(unitsPerEm)
+	return val * fontSize / 1000.0
+}
+
 func (c *cacheContent) calTypoAscender() float64 {
-	typoAsc := float64(c.fontSubset.ttfp.TypoAscender()) * 1000.00 / float64(c.fontSubset.ttfp.UnitsPerEm())
-	return typoAsc * float64(c.fontSize) / 1000.0
+	/*
+		typoAsc := float64(c.fontSubset.ttfp.TypoAscender()) * 1000.00 / float64(c.fontSubset.ttfp.UnitsPerEm())
+		return typoAsc * float64(c.fontSize) / 1000.0
+	*/
+	return convertTypoUnit(float64(c.fontSubset.ttfp.TypoAscender()), c.fontSubset.ttfp.UnitsPerEm(), float64(c.fontSize))
 }
 
 func (c *cacheContent) calTypoDescender() float64 {
-	typoAsc := float64(c.fontSubset.ttfp.TypoDescender()) * 1000.00 / float64(c.fontSubset.ttfp.UnitsPerEm())
-	return typoAsc * float64(c.fontSize) / 1000.0
+	//typoAsc := float64(c.fontSubset.ttfp.TypoDescender()) * 1000.00 / float64(c.fontSubset.ttfp.UnitsPerEm())
+	//return typoAsc * float64(c.fontSize) / 1000.0
+	return convertTypoUnit(float64(c.fontSubset.ttfp.TypoDescender()), c.fontSubset.ttfp.UnitsPerEm(), float64(c.fontSize))
 }
 
 func (c *cacheContent) calY() (float64, error) {
@@ -138,7 +147,7 @@ func (c *cacheContent) toStream() (*bytes.Buffer, error) {
 func (c *cacheContent) drawBorder(stream *bytes.Buffer) error {
 
 	//stream.WriteString(fmt.Sprintf("%.2f w\n", 0.1))
-	lineOffset := c.lineWidth / 2
+	lineOffset := c.lineWidth * 0.5
 
 	if c.cellOpt.Border&Top == Top {
 
@@ -156,7 +165,7 @@ func (c *cacheContent) drawBorder(stream *bytes.Buffer) error {
 		startX := c.x
 		startY := c.pageHeight() - c.y
 		endX := c.x
-		endY := startY + c.calTypoDescender() - c.calTypoAscender()
+		endY := startY - c.textHeightPdfUnit
 		_, err := stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY))
 		if err != nil {
 			return err
@@ -167,7 +176,7 @@ func (c *cacheContent) drawBorder(stream *bytes.Buffer) error {
 		startX := c.x + c.textWidthPdfUnit
 		startY := c.pageHeight() - c.y
 		endX := c.x + c.textWidthPdfUnit
-		endY := startY + c.calTypoDescender() - c.calTypoAscender()
+		endY := startY - c.textHeightPdfUnit
 		_, err := stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY))
 		if err != nil {
 			return err
@@ -176,7 +185,7 @@ func (c *cacheContent) drawBorder(stream *bytes.Buffer) error {
 
 	if c.cellOpt.Border&Bottom == Bottom {
 		startX := c.x - lineOffset
-		startY := c.pageHeight() - c.y + c.calTypoDescender() - c.calTypoAscender()
+		startY := c.pageHeight() - c.y - c.textHeightPdfUnit
 		endX := c.x + c.textWidthPdfUnit + lineOffset
 		endY := startY
 		_, err := stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY))
@@ -207,19 +216,19 @@ func (c *cacheContent) underline(startX float64, startY float64, endX float64, e
 	return &buff, nil
 }
 
-func (c *cacheContent) createContent() (float64, error) {
+func (c *cacheContent) createContent() (float64, float64, error) {
 
 	c.content.Truncate(0) //clear
-	textWidthPdfUnit, err := createContent(c.fontSubset, c.text.String(), c.fontSize, c.rectangle, &c.content)
+	textWidthPdfUnit, textHeightPdfUnit, err := createContent(c.fontSubset, c.text.String(), c.fontSize, c.rectangle, &c.content)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 	c.textWidthPdfUnit = textWidthPdfUnit
-
-	return textWidthPdfUnit, nil
+	c.textHeightPdfUnit = textHeightPdfUnit
+	return textWidthPdfUnit, textHeightPdfUnit, nil
 }
 
-func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect, out *bytes.Buffer) (float64, error) {
+func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect, out *bytes.Buffer) (float64, float64, error) {
 
 	unitsPerEm := int(f.ttfp.UnitsPerEm())
 	var leftRune rune
@@ -230,7 +239,7 @@ func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect,
 
 		glyphindex, err := f.CharIndex(r)
 		if err != nil {
-			return 0, err
+			return 0, 0, err
 		}
 
 		pairvalPdfUnit := 0
@@ -247,7 +256,7 @@ func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect,
 		}
 		width, err := f.CharWidth(r)
 		if err != nil {
-			return 0, err
+			return 0, 0, err
 		}
 
 		sumWidth += int(width) + int(pairvalPdfUnit)
@@ -256,13 +265,18 @@ func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect,
 	}
 
 	textWidthPdfUnit := float64(0)
+	textHeightPdfUnit := float64(0)
 	if rectangle == nil {
 		textWidthPdfUnit = float64(sumWidth) * (float64(fontSize) / 1000.0)
+		typoAscender := convertTypoUnit(float64(f.ttfp.TypoAscender()), f.ttfp.UnitsPerEm(), float64(fontSize))
+		typoDescender := convertTypoUnit(float64(f.ttfp.TypoDescender()), f.ttfp.UnitsPerEm(), float64(fontSize))
+		textHeightPdfUnit = typoAscender - typoDescender
 	} else {
 		textWidthPdfUnit = rectangle.W
+		textHeightPdfUnit = rectangle.H
 	}
 
-	return textWidthPdfUnit, nil
+	return textWidthPdfUnit, textHeightPdfUnit, nil
 }
 
 func kern(f *SubsetFontObj, leftRune rune, rightRune rune, leftIndex uint, rightIndex uint) int16 {

@@ -15,7 +15,8 @@ const All = Left | Top | Right | Bottom //1111
 
 //CellOption cell option
 type CellOption struct {
-	Align  int
-	VAlign int
-	Border int
+	Align  int //Allows to align the text. Possible values are: Left,Center,Right
+	VAlign int //Allows to  vertical align the text. Possible values are: Top,Center,Bottom
+	Border int //Indicates if borders must be drawn around the cell. Possible values are: Left, Top, Right, Bottom, ALL
+	Float  int //Indicates where the current position should go after the call. Possible values are: Right, Bottom
 }

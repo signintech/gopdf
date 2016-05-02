@@ -321,6 +321,7 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 		Align:  Left,
 		VAlign: Top,
 		Border: 0,
+		Float:  Right,
 	}
 
 	err := gp.curr.Font_ISubset.AddChars(text)
@@ -446,7 +447,7 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 		return 0, err
 	}
 
-	textWidthPdfUnit, err := createContent(gp.curr.Font_ISubset, text, gp.curr.Font_Size, nil, nil)
+	textWidthPdfUnit, _, err := createContent(gp.curr.Font_ISubset, text, gp.curr.Font_Size, nil, nil)
 	if err != nil {
 		return 0, err
 	}

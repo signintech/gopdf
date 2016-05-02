@@ -32,6 +32,7 @@ type cacheContent struct {
 	textWidthPdfUnit float64
 	contentType      int
 	cellOpt          CellOption
+	lineWidth        float64
 }
 
 func (c *cacheContent) isSame(cache cacheContent) bool {
@@ -76,7 +77,7 @@ func (c *cacheContent) calY() (float64, error) {
 	if c.contentType == ContentTypeText {
 		return pageHeight - c.y, nil
 	} else if c.contentType == ContentTypeCell {
-		//fake to top
+
 		y := pageHeight - c.y - c.calTypoAscender()
 		return y, nil
 	}
@@ -88,9 +89,8 @@ func (c *cacheContent) calX() (float64, error) {
 }
 
 func (c *cacheContent) toStream() (*bytes.Buffer, error) {
-	var stream bytes.Buffer
 
-	//pageHeight := c.pageHeight()
+	var stream bytes.Buffer
 	r := c.textColor.r
 	g := c.textColor.g
 	b := c.textColor.b
@@ -138,12 +138,13 @@ func (c *cacheContent) toStream() (*bytes.Buffer, error) {
 func (c *cacheContent) drawBorder(stream *bytes.Buffer) error {
 
 	//stream.WriteString(fmt.Sprintf("%.2f w\n", 0.1))
+	lineOffset := c.lineWidth / 2
 
 	if c.cellOpt.Border&Top == Top {
 
-		startX := c.x
+		startX := c.x - lineOffset
 		startY := c.pageHeight() - c.y
-		endX := c.x + c.textWidthPdfUnit
+		endX := c.x + c.textWidthPdfUnit + lineOffset
 		endY := startY
 		_, err := stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY))
 		if err != nil {
@@ -174,9 +175,9 @@ func (c *cacheContent) drawBorder(stream *bytes.Buffer) error {
 	}
 
 	if c.cellOpt.Border&Bottom == Bottom {
-		startX := c.x
+		startX := c.x - lineOffset
 		startY := c.pageHeight() - c.y + c.calTypoDescender() - c.calTypoAscender()
-		endX := c.x + c.textWidthPdfUnit
+		endX := c.x + c.textWidthPdfUnit + lineOffset
 		endY := startY
 		_, err := stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY))
 		if err != nil {

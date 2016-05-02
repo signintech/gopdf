@@ -3,7 +3,6 @@ package gopdf
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 )
@@ -48,18 +47,19 @@ func (c *ContentObj) getObjBuff() *bytes.Buffer {
 	return &(c.buffer)
 }
 
+//AppendStreamText append text
 func (c *ContentObj) AppendStreamText(text string) error {
 
 	//support only CURRENT_FONT_TYPE_SUBSET
-	textColor := c.getRoot().Curr.textColor()
-	grayFill := c.getRoot().Curr.grayFill
-	fontCountIndex := c.getRoot().Curr.Font_FontCount + 1
-	fontSize := c.getRoot().Curr.Font_Size
-	fontStyle := c.getRoot().Curr.Font_Style
-	x := c.getRoot().Curr.X
-	y := c.getRoot().Curr.Y
-	setXCount := c.getRoot().Curr.setXCount
-	fontSubset := c.getRoot().Curr.Font_ISubset
+	textColor := c.getRoot().curr.textColor()
+	grayFill := c.getRoot().curr.grayFill
+	fontCountIndex := c.getRoot().curr.Font_FontCount + 1
+	fontSize := c.getRoot().curr.Font_Size
+	fontStyle := c.getRoot().curr.Font_Style
+	x := c.getRoot().curr.X
+	y := c.getRoot().curr.Y
+	setXCount := c.getRoot().curr.setXCount
+	fontSubset := c.getRoot().curr.Font_ISubset
 
 	cache := cacheContent{
 		fontSubset:     fontSubset,
@@ -74,10 +74,11 @@ func (c *ContentObj) AppendStreamText(text string) error {
 		y:              y,
 		pageheight:     c.getRoot().config.PageSize.H,
 		contentType:    ContentTypeText,
+		lineWidth:      c.getRoot().curr.lineWidth,
 	}
 
 	var err error
-	c.getRoot().Curr.X, c.getRoot().Curr.Y, err = c.listCache.appendTextToCache(cache, text)
+	c.getRoot().curr.X, c.getRoot().curr.Y, err = c.listCache.appendTextToCache(cache, text)
 	if err != nil {
 		return err
 	}
@@ -88,15 +89,15 @@ func (c *ContentObj) AppendStreamText(text string) error {
 //AppendStreamSubsetFont add stream of text
 func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOpt CellOption) error {
 
-	textColor := c.getRoot().Curr.textColor()
-	grayFill := c.getRoot().Curr.grayFill
-	fontCountIndex := c.getRoot().Curr.Font_FontCount + 1
-	fontSize := c.getRoot().Curr.Font_Size
-	fontStyle := c.getRoot().Curr.Font_Style
-	x := c.getRoot().Curr.X
-	y := c.getRoot().Curr.Y
-	setXCount := c.getRoot().Curr.setXCount
-	fontSubset := c.getRoot().Curr.Font_ISubset
+	textColor := c.getRoot().curr.textColor()
+	grayFill := c.getRoot().curr.grayFill
+	fontCountIndex := c.getRoot().curr.Font_FontCount + 1
+	fontSize := c.getRoot().curr.Font_Size
+	fontStyle := c.getRoot().curr.Font_Style
+	x := c.getRoot().curr.X
+	y := c.getRoot().curr.Y
+	setXCount := c.getRoot().curr.setXCount
+	fontSubset := c.getRoot().curr.Font_ISubset
 
 	cache := cacheContent{
 		fontSubset:     fontSubset,
@@ -112,47 +113,14 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOp
 		pageheight:     c.getRoot().config.PageSize.H,
 		contentType:    ContentTypeCell,
 		cellOpt:        cellOpt,
+		lineWidth:      c.getRoot().curr.lineWidth,
 	}
 	var err error
-	c.getRoot().Curr.X, c.getRoot().Curr.Y, err = c.listCache.appendTextToCache(cache, text)
+	c.getRoot().curr.X, c.getRoot().curr.Y, err = c.listCache.appendTextToCache(cache, text)
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-//AppendStream add stream of text
-func (c *ContentObj) AppendStream(rectangle *Rect, text string) {
-
-	fontSize := c.getRoot().Curr.Font_Size
-	r := c.getRoot().Curr.textColor().r
-	g := c.getRoot().Curr.textColor().g
-	b := c.getRoot().Curr.textColor().b
-	grayFill := c.getRoot().Curr.grayFill
-
-	x := fmt.Sprintf("%0.2f", c.getRoot().Curr.X)
-	y := fmt.Sprintf("%0.2f", c.getRoot().config.PageSize.H-c.getRoot().Curr.Y-(float64(fontSize)*0.7))
-
-	c.stream.WriteString("BT\n")
-	c.stream.WriteString(x + " " + y + " TD\n")
-	c.stream.WriteString("/F" + strconv.Itoa(c.getRoot().Curr.Font_FontCount+1) + " " + strconv.Itoa(fontSize) + " Tf\n")
-	if r+g+b != 0 {
-		rFloat := float64(r) * 0.00392156862745
-		gFloat := float64(g) * 0.00392156862745
-		bFloat := float64(b) * 0.00392156862745
-		rgb := fmt.Sprintf("%0.2f %0.2f %0.2f rg\n", rFloat, gFloat, bFloat)
-		c.stream.WriteString(rgb)
-	} else {
-		c.AppendStreamSetGrayFill(grayFill)
-	}
-	c.stream.WriteString("(" + text + ") Tj\n")
-	c.stream.WriteString("ET\n")
-	if rectangle == nil {
-		c.getRoot().Curr.X += StrHelperGetStringWidth(text, fontSize, c.getRoot().Curr.Font_IFont)
-	} else {
-		c.getRoot().Curr.X += rectangle.W
-	}
-
 }
 
 //AppendStreamLine append line
@@ -219,26 +187,6 @@ func (c *ContentObj) AppendStreamCurve(x0 float64, y0 float64, x1 float64, y1 fl
 		op = "B"
 	}
 	c.stream.WriteString(fmt.Sprintf(" %s\n", op))
-}
-
-//Deprecated
-//AppendUnderline append underline
-func (c *ContentObj) AppendUnderline(startX float64, y float64, endX float64, endY float64, text string) {
-
-	h := c.getRoot().config.PageSize.H
-	ut := int(0)
-	if c.getRoot().Curr.Font_IFont != nil {
-		ut = c.getRoot().Curr.Font_IFont.GetUt()
-	} else if c.getRoot().Curr.Font_ISubset != nil {
-		ut = int(c.getRoot().Curr.Font_ISubset.GetUt())
-	} else {
-		log.Fatal("error AppendUnderline not found font")
-	}
-
-	textH := ContentObj_CalTextHeight(c.getRoot().Curr.Font_Size)
-	arg3 := float64(h) - float64(y) - textH - textH*0.07
-	arg4 := (float64(ut) / 1000.00) * float64(c.getRoot().Curr.Font_Size)
-	c.stream.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f -%0.2f re f\n", startX, arg3, endX-startX, arg4))
 }
 
 //AppendStreamSetLineWidth : set line width

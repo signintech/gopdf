@@ -16,7 +16,7 @@ func main() {
 		echoUsage()
 		return
 	}
-	fmt.Println("Deprecated: No longer need to create font maps.")
+	fmt.Println("Deprecated: No longer need to create font maps!!!!")
 	i := 1
 	encoding := os.Args[i+0]
 	mappath := os.Args[i+1]

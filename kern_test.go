@@ -51,17 +51,17 @@ func kern01(font string, prefix string, leftRune rune, rightRune rune) (int, err
 		return 0, err
 	}
 
-	gindexleftRune, err := pdf.Curr.Font_ISubset.CharCodeToGlyphIndex(leftRune)
+	gindexleftRune, err := pdf.curr.Font_ISubset.CharCodeToGlyphIndex(leftRune)
 	if err != nil {
 		return 0, err
 	}
 
-	gindexrightRune, err := pdf.Curr.Font_ISubset.CharCodeToGlyphIndex(rightRune)
+	gindexrightRune, err := pdf.curr.Font_ISubset.CharCodeToGlyphIndex(rightRune)
 	if err != nil {
 		return 0, err
 	}
 	//fmt.Printf("gindexleftRune = %d  gindexrightRune=%d \n", gindexleftRune, gindexrightRune)
-	kernTb := pdf.Curr.Font_ISubset.ttfp.Kern()
+	kernTb := pdf.curr.Font_ISubset.ttfp.Kern()
 
 	//fmt.Printf("UnitsPerEm = %d\n", pdf.Curr.Font_ISubset.ttfp.UnitsPerEm())
 
@@ -71,7 +71,7 @@ func kern01(font string, prefix string, leftRune rune, rightRune rune) (int, err
 			for right, val := range kval {
 				if right == gindexrightRune {
 					//fmt.Printf("left=%d right= %d  val=%d\n", left, right, val)
-					valPdfUnit := convertTTFUnit2PDFUnit(int(val), int(pdf.Curr.Font_ISubset.ttfp.UnitsPerEm()))
+					valPdfUnit := convertTTFUnit2PDFUnit(int(val), int(pdf.curr.Font_ISubset.ttfp.UnitsPerEm()))
 					return valPdfUnit, nil
 				}
 			}

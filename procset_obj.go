@@ -38,8 +38,8 @@ func (pr *ProcSetObj) build() error {
 	i = 0
 	max = len(pr.RealteXobjs)
 	for i < max {
-		pr.buffer.WriteString(fmt.Sprintf("/I%d %d 0 R\n", pr.getRoot().Curr.CountOfL+1, pr.RealteXobjs[i].IndexOfObj+1))
-		pr.getRoot().Curr.CountOfL++
+		pr.buffer.WriteString(fmt.Sprintf("/I%d %d 0 R\n", pr.getRoot().curr.CountOfL+1, pr.RealteXobjs[i].IndexOfObj+1))
+		pr.getRoot().curr.CountOfL++
 		i++
 	}
 	pr.buffer.WriteString(">>\n")

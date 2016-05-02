@@ -12,12 +12,10 @@ const Bottom = 1 //000001
 const Center = 16 //010000
 //Middle middle
 const Middle = 32 //100000
-//All Left | Top | Right | Bottom
-const All = Left | Top | Right | Bottom //1111
 
 //CellOption cell option
 type CellOption struct {
-	Align  int //Allows to align the text. Possible values are: Left,Center,Right
+	Align  int //Allows to align the text. Possible values are: Left,Center,Right,Top,Bottom,Middle
 	Border int //Indicates if borders must be drawn around the cell. Possible values are: Left, Top, Right, Bottom, ALL
 	Float  int //Indicates where the current position should go after the call. Possible values are: Right, Bottom
 }

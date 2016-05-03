@@ -78,3 +78,13 @@ func (u *UnicodeMap) pdfToUnicodeMap() *bytes.Buffer {
 
 	return &streambuff
 }
+
+//GetObjBuff get buffer
+func (u *UnicodeMap) GetObjBuff() *bytes.Buffer {
+	return u.getObjBuff()
+}
+
+//Build build buffer
+func (u *UnicodeMap) Build() error {
+	return u.build()
+}

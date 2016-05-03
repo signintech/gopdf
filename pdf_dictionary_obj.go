@@ -321,6 +321,16 @@ func (p *PdfDictionaryObj) GetOffset(glyph int) int {
 	return offset
 }
 
+//Build build buffer
+func (p *PdfDictionaryObj) Build() error {
+	return p.build()
+}
+
+//GetObjBuff get buffer
+func (p *PdfDictionaryObj) GetObjBuff() *bytes.Buffer {
+	return p.getObjBuff()
+}
+
 //CheckSum check sum
 func CheckSum(data []byte) uint {
 

@@ -231,3 +231,13 @@ func (s *SubsetFontObj) GetUt() int {
 func (s *SubsetFontObj) GetUp() int {
 	return s.ttfp.UnderlinePosition()
 }
+
+//GetObjBuff get buffer
+func (s *SubsetFontObj) GetObjBuff() *bytes.Buffer {
+	return s.getObjBuff()
+}
+
+//Build build buffer
+func (s *SubsetFontObj) Build() error {
+	return s.build()
+}

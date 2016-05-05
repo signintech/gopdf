@@ -22,7 +22,7 @@ type cacheContent struct {
 	fontCountIndex int //Curr.Font_FontCount+1
 	fontSize       int
 	fontStyle      string
-	setXCount      int
+	setXCount      int //จำนวนครั้งที่ใช้ setX
 	x, y           float64
 	fontSubset     *SubsetFontObj
 	pageheight     float64
@@ -314,4 +314,53 @@ func kern(f *SubsetFontObj, leftRune rune, rightRune rune, leftIndex uint, right
 		)
 	}
 	return pairVal
+}
+
+//CacheContent Export cacheContent
+type CacheContent struct {
+	cacheContent
+}
+
+//Setup setup all infomation for cacheContent
+func (c *CacheContent) Setup(rectangle *Rect,
+	textColor Rgb,
+	grayFill float64,
+	fontCountIndex int, //Curr.Font_FontCount+1
+	fontSize int,
+	fontStyle string,
+	setXCount int, //จำนวนครั้งที่ใช้ setX
+	x, y float64,
+	fontSubset *SubsetFontObj,
+	pageheight float64,
+	contentType int,
+	cellOpt CellOption,
+	lineWidth float64,
+) {
+	c.cacheContent = cacheContent{
+		fontSubset:     fontSubset,
+		rectangle:      rectangle,
+		textColor:      textColor,
+		grayFill:       grayFill,
+		fontCountIndex: fontCountIndex,
+		fontSize:       fontSize,
+		fontStyle:      fontStyle,
+		setXCount:      setXCount,
+		x:              x,
+		y:              y,
+		pageheight:     pageheight,
+		contentType:    ContentTypeCell,
+		cellOpt:        cellOpt,
+		lineWidth:      lineWidth,
+	}
+}
+
+//WriteTextToContent write text to content
+func (c *CacheContent) WriteTextToContent(text string) {
+	c.cacheContent.text.WriteString(text)
+}
+
+//ToStream create stream of content
+func (c *CacheContent) ToStream() (*bytes.Buffer, error) {
+	c.cacheContent.createContent()
+	return c.cacheContent.toStream()
 }

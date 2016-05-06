@@ -187,14 +187,9 @@ func (c *ContentObj) AppendStreamSetLineWidth(w float64) {
 
 //AppendStreamSetLineType : Set linetype [solid, dashed, dotted]
 func (c *ContentObj) AppendStreamSetLineType(t string) {
-	switch t {
-	case "dashed":
-		c.stream.WriteString(fmt.Sprint("[5] 2 d\n"))
-	case "dotted":
-		c.stream.WriteString(fmt.Sprint("[2 3] 11 d\n"))
-	default:
-		c.stream.WriteString(fmt.Sprint("[] 0 d\n"))
-	}
+	var cache cacheContentLineType
+	cache.lineType = t
+	c.listCache.append(&cache)
 
 }
 

@@ -180,9 +180,9 @@ func (c *ContentObj) AppendStreamCurve(x0 float64, y0 float64, x1 float64, y1 fl
 
 //AppendStreamSetLineWidth : set line width
 func (c *ContentObj) AppendStreamSetLineWidth(w float64) {
-
-	c.stream.WriteString(fmt.Sprintf("%.2f w\n", w))
-
+	var cache cacheContentLineWidth
+	cache.width = w
+	c.listCache.append(&cache)
 }
 
 //AppendStreamSetLineType : Set linetype [solid, dashed, dotted]

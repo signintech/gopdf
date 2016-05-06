@@ -14,7 +14,7 @@ const ContentTypeCell = 0
 //ContentTypeText text
 const ContentTypeText = 1
 
-type cacheContent struct {
+type cacheContentText struct {
 	//---setup---
 	rectangle      *Rect
 	textColor      Rgb
@@ -36,7 +36,7 @@ type cacheContent struct {
 	cellHeightPdfUnit                  float64
 }
 
-func (c *cacheContent) isSame(cache cacheContent) bool {
+func (c *cacheContentText) isSame(cache cacheContentText) bool {
 	if c.rectangle != nil {
 		//if rectangle != nil we assumes this is not same content
 		return false
@@ -54,11 +54,11 @@ func (c *cacheContent) isSame(cache cacheContent) bool {
 	return false
 }
 
-func (c *cacheContent) setPageHeight(pageheight float64) {
+func (c *cacheContentText) setPageHeight(pageheight float64) {
 	c.pageheight = pageheight
 }
 
-func (c *cacheContent) pageHeight() float64 {
+func (c *cacheContentText) pageHeight() float64 {
 	return c.pageheight //841.89
 }
 
@@ -67,15 +67,15 @@ func convertTypoUnit(val float64, unitsPerEm uint, fontSize float64) float64 {
 	return val * fontSize / 1000.0
 }
 
-func (c *cacheContent) calTypoAscender() float64 {
+func (c *cacheContentText) calTypoAscender() float64 {
 	return convertTypoUnit(float64(c.fontSubset.ttfp.TypoAscender()), c.fontSubset.ttfp.UnitsPerEm(), float64(c.fontSize))
 }
 
-func (c *cacheContent) calTypoDescender() float64 {
+func (c *cacheContentText) calTypoDescender() float64 {
 	return convertTypoUnit(float64(c.fontSubset.ttfp.TypoDescender()), c.fontSubset.ttfp.UnitsPerEm(), float64(c.fontSize))
 }
 
-func (c *cacheContent) calY() (float64, error) {
+func (c *cacheContentText) calY() (float64, error) {
 	pageHeight := c.pageHeight()
 	if c.contentType == ContentTypeText {
 		return pageHeight - c.y, nil
@@ -95,7 +95,7 @@ func (c *cacheContent) calY() (float64, error) {
 	return 0.0, errors.New("contentType not found")
 }
 
-func (c *cacheContent) calX() (float64, error) {
+func (c *cacheContentText) calX() (float64, error) {
 	if c.contentType == ContentTypeText {
 		return c.x, nil
 	} else if c.contentType == ContentTypeCell {
@@ -112,7 +112,7 @@ func (c *cacheContent) calX() (float64, error) {
 	return 0.0, errors.New("contentType not found")
 }
 
-func (c *cacheContent) toStream() (*bytes.Buffer, error) {
+func (c *cacheContentText) toStream() (*bytes.Buffer, error) {
 
 	var stream bytes.Buffer
 	r := c.textColor.r
@@ -159,7 +159,7 @@ func (c *cacheContent) toStream() (*bytes.Buffer, error) {
 	return &stream, nil
 }
 
-func (c *cacheContent) drawBorder(stream *bytes.Buffer) error {
+func (c *cacheContentText) drawBorder(stream *bytes.Buffer) error {
 
 	//stream.WriteString(fmt.Sprintf("%.2f w\n", 0.1))
 	lineOffset := c.lineWidth * 0.5
@@ -212,7 +212,7 @@ func (c *cacheContent) drawBorder(stream *bytes.Buffer) error {
 	return nil
 }
 
-func (c *cacheContent) underline(startX float64, startY float64, endX float64, endY float64) (*bytes.Buffer, error) {
+func (c *cacheContentText) underline(startX float64, startY float64, endX float64, endY float64) (*bytes.Buffer, error) {
 
 	if c.fontSubset == nil {
 		return nil, errors.New("error AppendUnderline not found font")
@@ -231,7 +231,7 @@ func (c *cacheContent) underline(startX float64, startY float64, endX float64, e
 	return &buff, nil
 }
 
-func (c *cacheContent) createContent() (float64, float64, error) {
+func (c *cacheContentText) createContent() (float64, float64, error) {
 
 	c.content.Truncate(0) //clear
 	cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, err := createContent(c.fontSubset, c.text.String(), c.fontSize, c.rectangle, &c.content)
@@ -318,7 +318,7 @@ func kern(f *SubsetFontObj, leftRune rune, rightRune rune, leftIndex uint, right
 
 //CacheContent Export cacheContent
 type CacheContent struct {
-	cacheContent
+	cacheContentText
 }
 
 //Setup setup all infomation for cacheContent
@@ -336,7 +336,7 @@ func (c *CacheContent) Setup(rectangle *Rect,
 	cellOpt CellOption,
 	lineWidth float64,
 ) {
-	c.cacheContent = cacheContent{
+	c.cacheContentText = cacheContentText{
 		fontSubset:     fontSubset,
 		rectangle:      rectangle,
 		textColor:      textColor,
@@ -356,11 +356,11 @@ func (c *CacheContent) Setup(rectangle *Rect,
 
 //WriteTextToContent write text to content
 func (c *CacheContent) WriteTextToContent(text string) {
-	c.cacheContent.text.WriteString(text)
+	c.cacheContentText.text.WriteString(text)
 }
 
 //ToStream create stream of content
 func (c *CacheContent) ToStream() (*bytes.Buffer, error) {
-	c.cacheContent.createContent()
-	return c.cacheContent.toStream()
+	c.cacheContentText.createContent()
+	return c.cacheContentText.toStream()
 }

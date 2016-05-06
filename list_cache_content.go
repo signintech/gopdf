@@ -3,34 +3,40 @@ package gopdf
 import "bytes"
 
 type listCacheContent struct {
-	caches []cacheContent
+	caches []iCacheContent
 }
 
-func (l *listCacheContent) last() *cacheContent {
+func (l *listCacheContent) last() iCacheContent {
 	max := len(l.caches)
 	if max > 0 {
-		return &l.caches[max-1]
+		return l.caches[max-1]
 	}
 	return nil
 }
 
-func (l *listCacheContent) appendTextToCache(cache cacheContent, text string) (float64, float64, error) {
+func (l *listCacheContent) appendContentText(cache cacheContentText, text string) (float64, float64, error) {
 
 	x := cache.x
 	y := cache.y
 
 	mustMakeNewCache := true
-	cacheFont := l.last()
-	if cacheFont != nil {
-		if cacheFont.isSame(cache) {
-			mustMakeNewCache = false
+	var cacheFont *cacheContentText
+	var ok bool
+	last := l.last()
+	if cacheFont, ok = last.(*cacheContentText); ok {
+		if cacheFont != nil {
+			if cacheFont.isSame(cache) {
+				mustMakeNewCache = false
+			}
 		}
 	}
 
-	if mustMakeNewCache {
-		l.caches = append(l.caches, cache)
-		cacheFont = l.last()
+	if mustMakeNewCache { //make new cell
+		l.caches = append(l.caches, &cache)
+		cacheFont = &cache
 	}
+
+	//start add text
 	_, err := cacheFont.text.WriteString(text)
 	if err != nil {
 		return x, y, err
@@ -67,6 +73,7 @@ func (l *listCacheContent) toStream() (*bytes.Buffer, error) {
 	return &buff, nil
 }
 
+/*
 func (l *listCacheContent) debug() string {
 	var buff bytes.Buffer
 	for _, cache := range l.caches {
@@ -74,4 +81,4 @@ func (l *listCacheContent) debug() string {
 		buff.WriteString("\n")
 	}
 	return buff.String()
-}
+}*/

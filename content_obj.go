@@ -212,13 +212,19 @@ func (c *ContentObj) AppendStreamSetLineType(t string) {
 //AppendStreamSetGrayFill  set the grayscale fills
 func (c *ContentObj) AppendStreamSetGrayFill(w float64) {
 	w = fixRange10(w)
-	c.stream.WriteString(fmt.Sprintf("%.2f g\n", w))
+	var cache cacheContentGray
+	cache.drawType = drawTypeFill
+	cache.scale = w
+	c.listCache.append(&cache)
 }
 
 //AppendStreamSetGrayStroke  set the grayscale stroke
 func (c *ContentObj) AppendStreamSetGrayStroke(w float64) {
 	w = fixRange10(w)
-	c.stream.WriteString(fmt.Sprintf("%.2f G\n", w))
+	var cache cacheContentGray
+	cache.drawType = drawTypeStroke
+	cache.scale = w
+	c.listCache.append(&cache)
 }
 
 //AppendStreamSetColorStroke  set the color stroke

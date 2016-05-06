@@ -14,6 +14,10 @@ func (l *listCacheContent) last() iCacheContent {
 	return nil
 }
 
+func (l *listCacheContent) append(cache iCacheContent) {
+	l.caches = append(l.caches, cache)
+}
+
 func (l *listCacheContent) appendContentText(cache cacheContentText, text string) (float64, float64, error) {
 
 	x := cache.x

@@ -138,8 +138,13 @@ func (c *ContentObj) AppendStreamLine(x1 float64, y1 float64, x2 float64, y2 flo
 
 //AppendStreamRectangle : draw rectangle from lower-left corner (x, y) with specif width/height
 func (c *ContentObj) AppendStreamRectangle(x float64, y float64, wdth float64, hght float64) {
-	h := c.getRoot().config.PageSize.H
-	c.stream.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re s\n", x, h-y, wdth, hght))
+	var cache cacheContentRectangle
+	cache.pageHeight = c.getRoot().config.PageSize.H
+	cache.x = x
+	cache.y = y
+	cache.width = wdth
+	cache.height = hght
+	c.listCache.append(&cache)
 }
 
 //AppendStreamOval append oval

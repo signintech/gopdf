@@ -198,7 +198,7 @@ func (c *ContentObj) AppendStreamSetLineType(t string) {
 func (c *ContentObj) AppendStreamSetGrayFill(w float64) {
 	w = fixRange10(w)
 	var cache cacheContentGray
-	cache.drawType = drawTypeFill
+	cache.grayType = grayTypeFill
 	cache.scale = w
 	c.listCache.append(&cache)
 }
@@ -207,18 +207,19 @@ func (c *ContentObj) AppendStreamSetGrayFill(w float64) {
 func (c *ContentObj) AppendStreamSetGrayStroke(w float64) {
 	w = fixRange10(w)
 	var cache cacheContentGray
-	cache.drawType = drawTypeStroke
+	cache.grayType = grayTypeStroke
 	cache.scale = w
 	c.listCache.append(&cache)
 }
 
 //AppendStreamSetColorStroke  set the color stroke
 func (c *ContentObj) AppendStreamSetColorStroke(r uint8, g uint8, b uint8) {
-	//w = fixRange10(w)
-	rFloat := float64(r) * 0.00392156862745
-	gFloat := float64(g) * 0.00392156862745
-	bFloat := float64(b) * 0.00392156862745
-	c.stream.WriteString(fmt.Sprintf("%.2f %.2f %.2f RG\n", rFloat, gFloat, bFloat))
+	var cache cacheContentColor
+	cache.colorType = colorTypeStroke
+	cache.r = r
+	cache.g = g
+	cache.b = b
+	c.listCache.append(&cache)
 }
 
 //AppendStreamImage append image

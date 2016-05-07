@@ -5,16 +5,16 @@ import (
 	"fmt"
 )
 
-const drawTypeFill = "g"
-const drawTypeStroke = "G"
+const grayTypeFill = "g"
+const grayTypeStroke = "G"
 
 type cacheContentGray struct {
-	drawType string
+	grayType string
 	scale    float64
 }
 
 func (c *cacheContentGray) toStream() (*bytes.Buffer, error) {
 	var buff bytes.Buffer
-	buff.WriteString(fmt.Sprintf("%.2f %s\n", c.scale, c.drawType))
+	buff.WriteString(fmt.Sprintf("%.2f %s\n", c.scale, c.grayType))
 	return &buff, nil
 }

@@ -160,22 +160,18 @@ func (c *ContentObj) AppendStreamOval(x1 float64, y1 float64, x2 float64, y2 flo
 // - x3, y3: End point
 // - style: Style of rectangule (draw and/or fill: D, F, DF, FD)
 func (c *ContentObj) AppendStreamCurve(x0 float64, y0 float64, x1 float64, y1 float64, x2 float64, y2 float64, x3 float64, y3 float64, style string) {
-	h := c.getRoot().config.PageSize.H
-	//cp := 0.55228
-	c.stream.WriteString(fmt.Sprintf("%0.2f %0.2f m\n", x0, h-y0))
-	c.stream.WriteString(fmt.Sprintf(
-		"%0.2f %0.2f %0.2f %0.2f %0.2f %0.2f c",
-		x1, h-y1, x2, h-y2, x3, h-y3,
-	))
-
-	style = strings.TrimSpace(style)
-	op := "S"
-	if style == "F" {
-		op = "f"
-	} else if style == "FD" || style == "DF" {
-		op = "B"
-	}
-	c.stream.WriteString(fmt.Sprintf(" %s\n", op))
+	var cache cacheContentCurve
+	cache.pageHeight = c.getRoot().config.PageSize.H
+	cache.x0 = x0
+	cache.y0 = y0
+	cache.x1 = x1
+	cache.y1 = y1
+	cache.x2 = x2
+	cache.y2 = y2
+	cache.x3 = x3
+	cache.y3 = y3
+	cache.style = strings.ToUpper(strings.TrimSpace(style))
+	c.listCache.append(&cache)
 }
 
 //AppendStreamSetLineWidth : set line width

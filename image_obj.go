@@ -10,6 +10,7 @@ import (
 	"os"
 )
 
+//ImageObj image object
 type ImageObj struct {
 	buffer    bytes.Buffer
 	imagepath string
@@ -62,12 +63,19 @@ func (i *ImageObj) getObjBuff() *bytes.Buffer {
 	return &(i.buffer)
 }
 
+//SetImagePath set image path
 func (i *ImageObj) SetImagePath(path string) {
 	i.imagepath = path
 }
 
+//GetRect get rect of img
 func (i *ImageObj) GetRect() *Rect {
 	file, err := os.Open(i.imagepath)
+	if err != nil {
+		return nil
+	}
+	defer file.Close()
+
 	m, _, err := image.Decode(file)
 	if err != nil {
 		return nil
@@ -95,4 +103,8 @@ func (i *ImageObj) GetRect() *Rect {
 	rect.W = float64(w)
 
 	return rect
+}
+
+func (i *ImageObj) parse() error {
+	return nil
 }

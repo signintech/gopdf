@@ -128,7 +128,7 @@ func (gp *GoPdf) GetY() float64 {
 }
 
 //Image : draw image
-func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) {
+func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 
 	//check
 	cacheImageIndex := -1
@@ -150,7 +150,10 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) {
 	}
 
 	if cacheImageIndex == -1 { //new image
-
+		err := imgobj.parse()
+		if err != nil {
+			return err
+		}
 		index := gp.addObj(imgobj)
 		if gp.indexOfProcSet != -1 {
 			//ยัดรูป
@@ -168,7 +171,7 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) {
 	} else { //same img
 		gp.getContent().AppendStreamImage(cacheImageIndex, x, y, rect)
 	}
-
+	return nil
 }
 
 //AddPage : add new page

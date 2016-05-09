@@ -106,6 +106,7 @@ func parseImgJpg(info *imgInfo, imgConfig image.Config) error {
 }
 
 func paesePng(info *imgInfo, imgConfig image.Config) error {
+	//TODO ทำต่อ
 	return nil
 }
 

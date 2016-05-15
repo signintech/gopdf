@@ -1,6 +1,7 @@
 package gopdf
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"image"
@@ -79,13 +80,14 @@ func parseImg(src string) (imgInfo, error) {
 			return info, err
 		}
 	} else if formatname == "png" {
-		err = paesePng(&info, imgConfig)
+
+		err = paesePng(file, &info, imgConfig)
 		if err != nil {
 			return info, err
 		}
 	}
 
-	fmt.Printf("%#v\n", info)
+	//fmt.Printf("%#v\n", info)
 
 	return info, nil
 }
@@ -105,9 +107,122 @@ func parseImgJpg(info *imgInfo, imgConfig image.Config) error {
 	return nil
 }
 
-func paesePng(info *imgInfo, imgConfig image.Config) error {
-	//TODO ทำต่อ
+var pngMagicNumber = []byte{0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a}
+var pngIHDR = []byte{0x49, 0x48, 0x44, 0x52}
+
+func paesePng(f *os.File, info *imgInfo, imgConfig image.Config) error {
+
+	f.Seek(0, 0)
+	b, err := readBytes(f, 8)
+	if err != nil {
+		return err
+	}
+	if !compareBytes(b, pngMagicNumber) {
+		return errors.New("Not a PNG file")
+	}
+
+	f.Seek(4, 1) //skip header chunk
+	b, err = readBytes(f, 4)
+	if err != nil {
+		return err
+	}
+	if !compareBytes(b, pngIHDR) {
+		return errors.New("Incorrect PNG file")
+	}
+
+	w, err := readInt(f)
+	if err != nil {
+		return err
+	}
+	h, err := readInt(f)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("w=%d h=%d\n", w, h)
+
+	bpc, err := readBytes(f, 1)
+	if err != nil {
+		return err
+	}
+
+	if bpc[0] > 8 {
+		return errors.New("16-bit depth not supported")
+	}
+
+	ct, err := readBytes(f, 1)
+	if err != nil {
+		return err
+	}
+
+	if ct[0] == 0 || ct[0] == 4 {
+		info.colspace = "DeviceGray"
+	} else if ct[0] == 2 || ct[0] == 6 {
+		info.colspace = "DeviceRGB"
+	} else if ct[0] == 3 {
+		info.colspace = "Indexed"
+	} else {
+		return errors.New("Unknown color type")
+	}
+
 	return nil
+}
+
+func readUInt(f *os.File) (uint, error) {
+	buff, err := readBytes(f, 4)
+	fmt.Printf("%#v\n\n", buff)
+	if err != nil {
+		return 0, err
+	}
+	n := binary.BigEndian.Uint32(buff)
+	return uint(n), nil
+}
+
+func readInt(f *os.File) (int, error) {
+
+	u, err := readUInt(f)
+	if err != nil {
+		return 0, err
+	}
+	var v int
+	if u >= 0x8000 {
+		v = int(u) - 65536
+	} else {
+		v = int(u)
+	}
+	return v, nil
+}
+
+func readBytes(f *os.File, len int) ([]byte, error) {
+	b := make([]byte, len)
+	_, err := f.Read(b)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func compareBytes(a []byte, b []byte) bool {
+	if a == nil && b == nil {
+		return true
+	} else if a == nil {
+		return false
+	} else if b == nil {
+		return false
+	}
+
+	if len(a) != len(b) {
+		return false
+	}
+
+	i := 0
+	max := len(a)
+	for i < max {
+		if a[i] != b[i] {
+			return false
+		}
+		i++
+	}
+	return true
 }
 
 func isDeviceRGB(formatname string, img *image.Image) bool {

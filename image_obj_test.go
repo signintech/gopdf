@@ -164,6 +164,22 @@ func paesePng(f *os.File, info *imgInfo, imgConfig image.Config) error {
 		return errors.New("Unknown color type")
 	}
 
+	compressionMethod, err := readBytes(f, 1)
+	if err != nil {
+		return err
+	}
+	if compressionMethod[0] != 0 {
+		return errors.New("Unknown compression method")
+	}
+
+	filterMethod, err := readBytes(f, 1)
+	if err != nil {
+		return err
+	}
+	if filterMethod[0] != 0 {
+		return errors.New("Unknown filter method")
+	}
+
 	return nil
 }
 

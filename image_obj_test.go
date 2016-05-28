@@ -12,38 +12,38 @@ import (
 
 func TestImagePares(t *testing.T) {
 	var err error
+	/*
+		_, err = parseImg("test/res/gopher01.jpg")
+		if err != nil {
+			t.Error(err)
+			//return
+		}
 
-	_, err = parseImg("test/res/gopher01.jpg")
-	if err != nil {
-		t.Error(err)
-		//return
-	}
+		_, err = parseImg("test/res/gopher01_g_mode.jpg")
+		if err != nil {
+			t.Error(err)
+			//return
+		}
 
-	_, err = parseImg("test/res/gopher01_g_mode.jpg")
-	if err != nil {
-		t.Error(err)
-		//return
-	}
+		_, err = parseImg("test/res/gopher01_i_mode.jpg")
+		if err != nil {
+			t.Error(err)
+			//return
+		}
 
-	_, err = parseImg("test/res/gopher01_i_mode.jpg")
-	if err != nil {
-		t.Error(err)
-		//return
-	}
+		//Channel_digital_image_CMYK_color.jpg
+		_, err = parseImg("test/res/Channel_digital_image_CMYK_color.jpg")
+		if err != nil {
+			t.Error(err)
+			//return
+		}
 
-	//Channel_digital_image_CMYK_color.jpg
-	_, err = parseImg("test/res/Channel_digital_image_CMYK_color.jpg")
-	if err != nil {
-		t.Error(err)
-		//return
-	}
-
-	_, err = parseImg("test/res/gopher02.png")
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
+		_, err = parseImg("test/res/gopher02.png")
+		if err != nil {
+			t.Error(err)
+			return
+		}
+	*/
 	_, err = parseImg("test/res/gopher02_g_mode.png")
 	if err != nil {
 		t.Error(err)
@@ -178,6 +178,88 @@ func paesePng(f *os.File, info *imgInfo, imgConfig image.Config) error {
 	}
 	if filterMethod[0] != 0 {
 		return errors.New("Unknown filter method")
+	}
+
+	interlacing, err := readBytes(f, 1)
+	if err != nil {
+		return err
+	}
+	if interlacing[0] != 0 {
+		return errors.New("Interlacing not supported")
+	}
+
+	_, err = f.Seek(4, 1) //skip
+	if err != nil {
+		return err
+	}
+
+	//$dp = '/Predictor 15 /Colors '.($colspace=='DeviceRGB' ? 3 : 1).' /BitsPerComponent '.$bpc.' /Columns '.$w;
+	var pal []byte
+	var trns []byte
+	for {
+		n, err := readInt(f)
+		if err != nil {
+			return err
+		}
+
+		typ, err := readBytes(f, 4)
+		fmt.Printf(">>>>>%s\n", string(typ))
+		if err != nil {
+			return err
+		}
+
+		if string(typ) == "PLTE" {
+			pal, err = readBytes(f, n)
+			if err != nil {
+				return err
+			}
+			_, err = f.Seek(int64(4), 1) //skip
+			if err != nil {
+				return err
+			}
+		} else if string(typ) == "tRNS" {
+
+			var t []byte
+			t, err = readBytes(f, n)
+			if err != nil {
+				return err
+			}
+
+			_ = trns
+			if ct[0] == 0 {
+				fmt.Printf("t=%d\n", t)
+			}
+
+			_, err = f.Seek(int64(4), 1) //skip
+			if err != nil {
+				return err
+			}
+
+		} else if string(typ) == "IDAT" {
+
+			var data []byte
+			data, err = readBytes(f, n)
+			if err != nil {
+				return err
+			}
+			_ = data
+			_, err = f.Seek(int64(4), 1) //skip
+			if err != nil {
+				return err
+			}
+		} else if string(typ) == "IEND" {
+			break
+		} else {
+			_, err = f.Seek(int64(n+4), 1) //skip
+			if err != nil {
+				return err
+			}
+		}
+
+		_ = pal
+		if n <= 0 {
+			break
+		}
 	}
 
 	return nil

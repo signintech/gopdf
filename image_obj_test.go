@@ -53,14 +53,6 @@ func TestImagePares(t *testing.T) {
 
 }
 
-type imgInfo struct {
-	src              string
-	formatName       string
-	colspace         string
-	bitsPerComponent string
-	filter           string
-}
-
 func parseImg(src string) (imgInfo, error) {
 	var info imgInfo
 	info.src = src
@@ -105,6 +97,10 @@ func parseImgJpg(info *imgInfo, imgConfig image.Config) error {
 	}
 	info.bitsPerComponent = "8"
 	info.filter = "DCTDecode"
+
+	info.h = imgConfig.Height
+	info.w = imgConfig.Width
+
 	return nil
 }
 
@@ -139,7 +135,7 @@ func paesePng(f *os.File, info *imgInfo, imgConfig image.Config) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("w=%d h=%d\n", w, h)
+	//fmt.Printf("w=%d h=%d\n", w, h)
 
 	bpc, err := readBytes(f, 1)
 	if err != nil {
@@ -155,12 +151,13 @@ func paesePng(f *os.File, info *imgInfo, imgConfig image.Config) error {
 		return err
 	}
 
+	var colspace string
 	if ct[0] == 0 || ct[0] == 4 {
-		info.colspace = "DeviceGray"
+		colspace = "DeviceGray"
 	} else if ct[0] == 2 || ct[0] == 6 {
-		info.colspace = "DeviceRGB"
+		colspace = "DeviceRGB"
 	} else if ct[0] == 3 {
-		info.colspace = "Indexed"
+		colspace = "Indexed"
 	} else {
 		return errors.New("Unknown color type")
 	}
@@ -205,7 +202,7 @@ func paesePng(f *os.File, info *imgInfo, imgConfig image.Config) error {
 		}
 
 		typ, err := readBytes(f, 4)
-		fmt.Printf(">>>>>%s\n", string(typ))
+		//fmt.Printf(">>>>>%s\n", string(typ))
 		if err != nil {
 			return err
 		}
@@ -244,7 +241,7 @@ func paesePng(f *os.File, info *imgInfo, imgConfig image.Config) error {
 			}
 
 		} else if string(typ) == "IDAT" {
-			fmt.Printf("n=%d\n\n", n)
+			//fmt.Printf("n=%d\n\n", n)
 			var d []byte
 			d, err = readBytes(f, n)
 			if err != nil {
@@ -273,10 +270,17 @@ func paesePng(f *os.File, info *imgInfo, imgConfig image.Config) error {
 	_ = trns //ok
 	_ = pal  //ok
 
-	if info.colspace == "Indexed" && strings.TrimSpace(string(pal)) == "" {
+	if colspace == "Indexed" && strings.TrimSpace(string(pal)) == "" {
 		return errors.New("Missing palette")
 	}
 
+	info.w = w
+	info.h = h
+	info.colspace = colspace
+	info.bitsPerComponent = fmt.Sprintf("%d", int(bpc[0]))
+	info.filter = "FlateDecode"
+
+	//fmt.Printf("%s\n", info.bitsPerComponent)
 	//fmt.Printf("%x\n", md5.Sum(data))
 	//fmt.Printf("%#v\n", trns)
 	//fmt.Printf("%x", md5.Sum(pal))

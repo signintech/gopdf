@@ -7,6 +7,7 @@ import (
 	"image"
 	"image/color"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -44,7 +45,7 @@ func TestImagePares(t *testing.T) {
 			return
 		}
 	*/
-	_, err = parseImg("test/res/gopher02_g_mode.png")
+	_, err = parseImg("test/res/OpenOffice.org_1.1_official_main_logo_2col_trans.png")
 	if err != nil {
 		t.Error(err)
 		return
@@ -196,6 +197,7 @@ func paesePng(f *os.File, info *imgInfo, imgConfig image.Config) error {
 	//$dp = '/Predictor 15 /Colors '.($colspace=='DeviceRGB' ? 3 : 1).' /BitsPerComponent '.$bpc.' /Columns '.$w;
 	var pal []byte
 	var trns []byte
+	var data []byte
 	for {
 		n, err := readInt(f)
 		if err != nil {
@@ -225,9 +227,15 @@ func paesePng(f *os.File, info *imgInfo, imgConfig image.Config) error {
 				return err
 			}
 
-			_ = trns
 			if ct[0] == 0 {
-				fmt.Printf("t=%d\n", t)
+				trns = []byte{(t[1])}
+			} else if ct[0] == 2 {
+				trns = []byte{t[1], t[3], t[5]}
+			} else {
+				pos := strings.Index(string(t), "\x00")
+				if pos >= 0 {
+					trns = []byte{byte(pos)}
+				}
 			}
 
 			_, err = f.Seek(int64(4), 1) //skip
@@ -236,13 +244,13 @@ func paesePng(f *os.File, info *imgInfo, imgConfig image.Config) error {
 			}
 
 		} else if string(typ) == "IDAT" {
-
-			var data []byte
-			data, err = readBytes(f, n)
+			fmt.Printf("n=%d\n\n", n)
+			var d []byte
+			d, err = readBytes(f, n)
 			if err != nil {
 				return err
 			}
-			_ = data
+			data = append(data, d...)
 			_, err = f.Seek(int64(4), 1) //skip
 			if err != nil {
 				return err
@@ -256,12 +264,22 @@ func paesePng(f *os.File, info *imgInfo, imgConfig image.Config) error {
 			}
 		}
 
-		_ = pal
 		if n <= 0 {
 			break
 		}
+	} //end for
+
+	_ = data //ok
+	_ = trns //ok
+	_ = pal  //ok
+
+	if info.colspace == "Indexed" && strings.TrimSpace(string(pal)) == "" {
+		return errors.New("Missing palette")
 	}
 
+	//fmt.Printf("%x\n", md5.Sum(data))
+	//fmt.Printf("%#v\n", trns)
+	//fmt.Printf("%x", md5.Sum(pal))
 	return nil
 }
 

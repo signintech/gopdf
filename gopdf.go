@@ -3,7 +3,7 @@ package gopdf
 import (
 	"bytes"
 	"errors"
-	ioutil "io/ioutil"
+	"io/ioutil"
 	"log"
 	"os"
 	//"container/list"
@@ -144,7 +144,13 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 	imgobj.init(func() *GoPdf {
 		return gp
 	})
-	imgobj.SetImagePath(picPath)
+
+	var err error
+	err = imgobj.SetImagePath(picPath)
+	if err != nil {
+		return err
+	}
+
 	if rect == nil {
 		rect = imgobj.GetRect()
 	}

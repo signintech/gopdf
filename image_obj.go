@@ -6,14 +6,17 @@ import (
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
+	"io"
 	"io/ioutil"
 	"os"
 )
 
 //ImageObj image object
 type ImageObj struct {
-	buffer    bytes.Buffer
-	imagepath string
+	buffer bytes.Buffer
+	//imagepath string
+
+	imgData []byte
 }
 
 func (i *ImageObj) init(funcGetRoot func() *GoPdf) {
@@ -22,21 +25,12 @@ func (i *ImageObj) init(funcGetRoot func() *GoPdf) {
 
 func (i *ImageObj) build() error {
 
-	file, err := os.Open(i.imagepath)
-	if err != nil {
-		//fmt.Printf("0--%+v\n",err)
-		return err
-	}
-	defer file.Close()
-
-	m, _, err := image.Decode(file)
+	m, _, err := image.Decode(bytes.NewBuffer(i.imgData))
 	if err != nil {
 		return err
 	}
 
 	imageRect := m.Bounds()
-
-	b, _ := ioutil.ReadFile(i.imagepath)
 
 	i.buffer.WriteString("<</Type /XObject\n")
 	i.buffer.WriteString("/Subtype /Image\n")
@@ -47,9 +41,9 @@ func (i *ImageObj) build() error {
 	i.buffer.WriteString("/Filter /DCTDecode\n")
 	//me.buffer.WriteString("/Filter /FlateDecode\n")
 	//me.buffer.WriteString("/DecodeParms <</Predictor 15 /Colors 3 /BitsPerComponent 8 /Columns 675>>\n")
-	i.buffer.WriteString(fmt.Sprintf("/Length %d\n>>\n", len(b))) // /Length 62303>>\n
+	i.buffer.WriteString(fmt.Sprintf("/Length %d\n>>\n", len(i.imgData))) // /Length 62303>>\n
 	i.buffer.WriteString("stream\n")
-	i.buffer.Write(b)
+	i.buffer.Write(i.imgData)
 	i.buffer.WriteString("\nendstream\n")
 
 	return nil
@@ -64,19 +58,35 @@ func (i *ImageObj) getObjBuff() *bytes.Buffer {
 }
 
 //SetImagePath set image path
-func (i *ImageObj) SetImagePath(path string) {
-	i.imagepath = path
+func (i *ImageObj) SetImagePath(path string) error {
+
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	err = i.SetImage(file)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//SetImage set image
+func (i *ImageObj) SetImage(r io.Reader) error {
+	var err error
+	i.imgData, err = ioutil.ReadAll(r)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //GetRect get rect of img
 func (i *ImageObj) GetRect() *Rect {
-	file, err := os.Open(i.imagepath)
-	if err != nil {
-		return nil
-	}
-	defer file.Close()
 
-	m, _, err := image.Decode(file)
+	m, _, err := image.Decode(bytes.NewBuffer(i.imgData))
 	if err != nil {
 		return nil
 	}
@@ -107,4 +117,14 @@ func (i *ImageObj) GetRect() *Rect {
 
 func (i *ImageObj) parse() error {
 	return nil
+}
+
+//GetObjBuff get buffer
+func (i *ImageObj) GetObjBuff() *bytes.Buffer {
+	return i.getObjBuff()
+}
+
+//Build build buffer
+func (i *ImageObj) Build() error {
+	return i.build()
 }

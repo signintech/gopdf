@@ -280,6 +280,9 @@ func paesePng(f *os.File, info *imgInfo, imgConfig image.Config) error {
 	info.bitsPerComponent = fmt.Sprintf("%d", int(bpc[0]))
 	info.filter = "FlateDecode"
 
+	if ct[0] >= 4 {
+
+	}
 	//fmt.Printf("%s\n", info.bitsPerComponent)
 	//fmt.Printf("%x\n", md5.Sum(data))
 	//fmt.Printf("%#v\n", trns)

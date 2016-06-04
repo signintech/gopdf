@@ -307,23 +307,45 @@ func paesePng(file []byte, info *imgInfo, imgConfig image.Config) error {
 		var alpha []byte
 		if ct[0] == 4 {
 			// Gray image
-			len := 2 * w
+			length := 2 * w
 			i := 0
 			for i < h {
-				/*
-					$pos = (1+$len)*$i;
-					$color .= $data[$pos];
-					$alpha .= $data[$pos];
-					$line = substr($data,$pos+1,$len);
-					$color .= preg_replace('/(.)./s','$1',$line);
-					$alpha .= preg_replace('/.(.)/s','$1',$line);*/
-				pos := (1 + len) * i
+				pos := (1 + length) * i
 				color = append(color, afterZipData[pos])
 				alpha = append(alpha, afterZipData[pos])
+				line := afterZipData[pos+1 : pos+length+1]
+				j := 0
+				max := len(line)
+				for j < max {
+					color = append(color, line[j])
+					j++
+					alpha = append(alpha, line[j])
+					j++
+				}
 				i++
 			}
-			fmt.Print("aaaaa")
+			//fmt.Print("aaaaa")
+
 		} else {
+			// RGB image
+			length := 4 * w
+			i := 0
+			for i < h {
+				pos := (1 + length) * i
+				color = append(color, afterZipData[pos])
+				alpha = append(alpha, afterZipData[pos])
+				line := afterZipData[pos+1 : pos+length+1]
+				j := 0
+				max := len(line)
+				for j < max {
+					color = append(color, line[j:j+3]...)
+					alpha = append(alpha, line[j+3])
+					j = j + 4
+				}
+
+				i++
+			}
+			fmt.Printf("xx--%x %d\n", md5.Sum(alpha), len(alpha))
 			fmt.Print("cccc")
 		}
 

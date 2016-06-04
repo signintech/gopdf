@@ -1,8 +1,8 @@
 package gopdf
 
 type imgInfo struct {
-	w, h             int
-	src              string
+	w, h int
+	//src              string
 	formatName       string
 	colspace         string
 	bitsPerComponent string

@@ -1,12 +1,15 @@
 package gopdf
 
 import (
+	"bytes"
+	"compress/zlib"
+	"crypto/md5"
 	"encoding/binary"
 	"errors"
 	"fmt"
 	"image"
 	"image/color"
-	"os"
+	"io/ioutil"
 	"strings"
 	"testing"
 )
@@ -45,7 +48,14 @@ func TestImagePares(t *testing.T) {
 			return
 		}
 	*/
-	_, err = parseImg("test/res/OpenOffice.org_1.1_official_main_logo_2col_trans.png")
+	//data, err := ioutil.ReadFile("test/res/OpenOffice.org_1.1_official_main_logo_2col_trans.png")
+	data, err := ioutil.ReadFile("test/res/gopher02.png")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	_, err = parseImg(data)
 	if err != nil {
 		t.Error(err)
 		return
@@ -53,16 +63,15 @@ func TestImagePares(t *testing.T) {
 
 }
 
-func parseImg(src string) (imgInfo, error) {
+func parseImg(data []byte) (imgInfo, error) {
 	var info imgInfo
-	info.src = src
-	file, err := os.Open(src)
+	//info.src = src
+	/*file, err := os.Open(src)
 	if err != nil {
 		return info, err
 	}
-	defer file.Close()
-
-	imgConfig, formatname, err := image.DecodeConfig(file)
+	defer file.Close()*/
+	imgConfig, formatname, err := image.DecodeConfig(bytes.NewBuffer(data))
 	if err != nil {
 		return info, err
 	}
@@ -74,7 +83,7 @@ func parseImg(src string) (imgInfo, error) {
 		}
 	} else if formatname == "png" {
 
-		err = paesePng(file, &info, imgConfig)
+		err = paesePng(data, &info, imgConfig)
 		if err != nil {
 			return info, err
 		}
@@ -107,8 +116,8 @@ func parseImgJpg(info *imgInfo, imgConfig image.Config) error {
 var pngMagicNumber = []byte{0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a}
 var pngIHDR = []byte{0x49, 0x48, 0x44, 0x52}
 
-func paesePng(f *os.File, info *imgInfo, imgConfig image.Config) error {
-
+func paesePng(file []byte, info *imgInfo, imgConfig image.Config) error {
+	f := bytes.NewReader(file)
 	f.Seek(0, 0)
 	b, err := readBytes(f, 8)
 	if err != nil {
@@ -280,17 +289,53 @@ func paesePng(f *os.File, info *imgInfo, imgConfig image.Config) error {
 	info.bitsPerComponent = fmt.Sprintf("%d", int(bpc[0]))
 	info.filter = "FlateDecode"
 
+	fmt.Printf("%d = ct[0]\n", ct[0])
+	fmt.Printf("%x\n", md5.Sum(data))
 	if ct[0] >= 4 {
+		zipReader, err := zlib.NewReader(bytes.NewReader(data))
+		if err != nil {
+			return err
+		}
+		defer zipReader.Close()
+		afterZipData, err := ioutil.ReadAll(zipReader)
+		if err != nil {
+			return err
+		}
+
+		_ = afterZipData
+		var color []byte
+		var alpha []byte
+		if ct[0] == 4 {
+			// Gray image
+			len := 2 * w
+			i := 0
+			for i < h {
+				/*
+					$pos = (1+$len)*$i;
+					$color .= $data[$pos];
+					$alpha .= $data[$pos];
+					$line = substr($data,$pos+1,$len);
+					$color .= preg_replace('/(.)./s','$1',$line);
+					$alpha .= preg_replace('/.(.)/s','$1',$line);*/
+				pos := (1 + len) * i
+				color = append(color, afterZipData[pos])
+				alpha = append(alpha, afterZipData[pos])
+				i++
+			}
+			fmt.Print("aaaaa")
+		} else {
+			fmt.Print("cccc")
+		}
 
 	}
 	//fmt.Printf("%s\n", info.bitsPerComponent)
-	//fmt.Printf("%x\n", md5.Sum(data))
+
 	//fmt.Printf("%#v\n", trns)
 	//fmt.Printf("%x", md5.Sum(pal))
 	return nil
 }
 
-func readUInt(f *os.File) (uint, error) {
+func readUInt(f *bytes.Reader) (uint, error) {
 	buff, err := readBytes(f, 4)
 	fmt.Printf("%#v\n\n", buff)
 	if err != nil {
@@ -300,7 +345,7 @@ func readUInt(f *os.File) (uint, error) {
 	return uint(n), nil
 }
 
-func readInt(f *os.File) (int, error) {
+func readInt(f *bytes.Reader) (int, error) {
 
 	u, err := readUInt(f)
 	if err != nil {
@@ -315,7 +360,7 @@ func readInt(f *os.File) (int, error) {
 	return v, nil
 }
 
-func readBytes(f *os.File, len int) ([]byte, error) {
+func readBytes(f *bytes.Reader, len int) ([]byte, error) {
 	b := make([]byte, len)
 	_, err := f.Read(b)
 	if err != nil {

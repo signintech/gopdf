@@ -7,4 +7,6 @@ type imgInfo struct {
 	colspace         string
 	bitsPerComponent string
 	filter           string
+	decodeParms      string
+	trns             []byte
 }

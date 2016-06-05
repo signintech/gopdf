@@ -150,7 +150,8 @@ func paesePng(file []byte, info *imgInfo, imgConfig image.Config) error {
 		return err
 	}
 
-	//$dp = '/Predictor 15 /Colors '.($colspace=='DeviceRGB' ? 3 : 1).' /BitsPerComponent '.$bpc.' /Columns '.$w;
+	//decodeParms := "/Predictor 15 /Colors '.($colspace=='DeviceRGB' ? 3 : 1).' /BitsPerComponent '.$bpc.' /Columns '.$w;
+
 	var pal []byte
 	var trns []byte
 	var data []byte
@@ -226,8 +227,8 @@ func paesePng(file []byte, info *imgInfo, imgConfig image.Config) error {
 	} //end for
 
 	_ = data //ok
-	_ = trns //ok
-	_ = pal  //ok
+	info.trns = trns
+	_ = pal //ok
 
 	if colspace == "Indexed" && strings.TrimSpace(string(pal)) == "" {
 		return errors.New("Missing palette")
@@ -238,6 +239,12 @@ func paesePng(file []byte, info *imgInfo, imgConfig image.Config) error {
 	info.colspace = colspace
 	info.bitsPerComponent = fmt.Sprintf("%d", int(bpc[0]))
 	info.filter = "FlateDecode"
+
+	colors := 1
+	if colspace == "DeviceRGB" {
+		colors = 3
+	}
+	info.decodeParms = fmt.Sprintf("/Predictor 15 /Colors  %d /BitsPerComponent %s /Columns %d", colors, info.bitsPerComponent, w)
 
 	fmt.Printf("%d = ct[0]\n", ct[0])
 	fmt.Printf("%x\n", md5.Sum(data))
@@ -252,7 +259,6 @@ func paesePng(file []byte, info *imgInfo, imgConfig image.Config) error {
 			return err
 		}
 
-		_ = afterZipData
 		var color []byte
 		var alpha []byte
 		if ct[0] == 4 {

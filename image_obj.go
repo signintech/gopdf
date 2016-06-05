@@ -2,6 +2,7 @@ package gopdf
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"image"
 	_ "image/jpeg"
@@ -9,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 //ImageObj image object
@@ -25,22 +27,43 @@ func (i *ImageObj) init(funcGetRoot func() *GoPdf) {
 
 func (i *ImageObj) build() error {
 
-	m, _, err := image.Decode(bytes.NewBuffer(i.imgData))
+	/*m, _, err := image.Decode(bytes.NewBuffer(i.imgData))
 	if err != nil {
 		return err
 	}
 
-	imageRect := m.Bounds()
+	imageRect := m.Bounds()*/
+	imgInfo, err := parseImg(i.imgData)
+	if err != nil {
+		return err
+	}
 
 	i.buffer.WriteString("<</Type /XObject\n")
 	i.buffer.WriteString("/Subtype /Image\n")
-	i.buffer.WriteString(fmt.Sprintf("/Width %d\n", imageRect.Dx()))  // /Width 675\n"
-	i.buffer.WriteString(fmt.Sprintf("/Height %d\n", imageRect.Dy())) //  /Height 942\n"
-	i.buffer.WriteString("/ColorSpace /DeviceRGB\n")                  //HARD CODE ไว้เป็น RGB
-	i.buffer.WriteString("/BitsPerComponent 8\n")                     //HARD CODE ไว้เป็น 8 bit
-	i.buffer.WriteString("/Filter /DCTDecode\n")
-	//me.buffer.WriteString("/Filter /FlateDecode\n")
-	//me.buffer.WriteString("/DecodeParms <</Predictor 15 /Colors 3 /BitsPerComponent 8 /Columns 675>>\n")
+	i.buffer.WriteString(fmt.Sprintf("/Width %d\n", imgInfo.w))  // /Width 675\n"
+	i.buffer.WriteString(fmt.Sprintf("/Height %d\n", imgInfo.h)) //  /Height 942\n"
+	if imgInfo.colspace == "Indexed" {
+		//i.buffer.WriteString("/ColorSpace /DeviceRGB\n") //HARD CODE ไว้เป็น RGB
+		return errors.New("not suport Indexed yet")
+	} else {
+		i.buffer.WriteString(fmt.Sprintf("/ColorSpace /%s\n", imgInfo.colspace))
+		if imgInfo.colspace == "DeviceCMYK" {
+			i.buffer.WriteString("/Decode [1 0 1 0 1 0 1 0]\n")
+		}
+	}
+	i.buffer.WriteString(fmt.Sprintf("/BitsPerComponent %s\n", imgInfo.bitsPerComponent))
+	if strings.TrimSpace(imgInfo.filter) != "" {
+		i.buffer.WriteString(fmt.Sprintf("/Filter /%s\n", imgInfo.filter))
+	}
+
+	if strings.TrimSpace(imgInfo.decodeParms) != "" {
+		i.buffer.WriteString(fmt.Sprintf("/DecodeParms <<%s>>\n", imgInfo.decodeParms))
+	}
+
+	if imgInfo.trns != nil && len(imgInfo.trns) > 0 {
+		//TODO ต่อ
+	}
+
 	i.buffer.WriteString(fmt.Sprintf("/Length %d\n>>\n", len(i.imgData))) // /Length 62303>>\n
 	i.buffer.WriteString("stream\n")
 	i.buffer.Write(i.imgData)

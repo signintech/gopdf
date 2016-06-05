@@ -44,6 +44,7 @@ func (i *ImageObj) build() error {
 	i.buffer.WriteString(fmt.Sprintf("/Height %d\n", imgInfo.h)) //  /Height 942\n"
 	if imgInfo.colspace == "Indexed" {
 		//i.buffer.WriteString("/ColorSpace /DeviceRGB\n") //HARD CODE ไว้เป็น RGB
+		//TODO fix this
 		return errors.New("not suport Indexed yet")
 	} else {
 		i.buffer.WriteString(fmt.Sprintf("/ColorSpace /%s\n", imgInfo.colspace))
@@ -61,7 +62,22 @@ func (i *ImageObj) build() error {
 	}
 
 	if imgInfo.trns != nil && len(imgInfo.trns) > 0 {
-		//TODO ต่อ
+		j := 0
+		max := len(imgInfo.trns)
+		var trns bytes.Buffer
+		for j < max {
+			trns.WriteByte(imgInfo.trns[j])
+			trns.WriteString(" ")
+			trns.WriteByte(imgInfo.trns[j])
+			trns.WriteString(" ")
+			j++
+		}
+		i.buffer.WriteString(fmt.Sprintf("/Mask [%s]\n", trns.String()))
+	}
+
+	if imgInfo.smask != nil && len(imgInfo.smask) > 0 {
+		//TODO fix this
+		return errors.New("not suport smask yet")
 	}
 
 	i.buffer.WriteString(fmt.Sprintf("/Length %d\n>>\n", len(i.imgData))) // /Length 62303>>\n

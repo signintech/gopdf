@@ -9,4 +9,5 @@ type imgInfo struct {
 	filter           string
 	decodeParms      string
 	trns             []byte
+	smask            []byte
 }

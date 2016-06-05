@@ -303,6 +303,14 @@ func paesePng(file []byte, info *imgInfo, imgConfig image.Config) error {
 			}
 			fmt.Printf("xx--%x %d\n", md5.Sum(alpha), len(alpha))
 			fmt.Print("cccc")
+
+			var smarkBuff bytes.Buffer
+			zwr := zlib.NewWriter(&smarkBuff)
+			_, err = zwr.Write(alpha)
+			if err != nil {
+				return err
+			}
+			info.smask = smarkBuff.Bytes()
 		}
 
 	}

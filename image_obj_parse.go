@@ -301,8 +301,8 @@ func paesePng(file []byte, info *imgInfo, imgConfig image.Config) error {
 
 				i++
 			}
-			fmt.Printf("xx--%x %d\n", md5.Sum(alpha), len(alpha))
-			fmt.Print("cccc")
+			//fmt.Printf("xx--%x %d\n", md5.Sum(alpha), len(alpha))
+			//fmt.Print("cccc")
 
 			var smarkBuff bytes.Buffer
 			zwr := zlib.NewWriter(&smarkBuff)

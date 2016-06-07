@@ -174,6 +174,14 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 			gp.curr.CountOfImg++
 		}
 
+		if imgobj.haveSMask() {
+			smaskObj, err := imgobj.createSMask()
+			if err != nil {
+				return err
+			}
+			_ = smaskObj
+		}
+
 	} else { //same img
 		gp.getContent().AppendStreamImage(cacheImageIndex, x, y, rect)
 	}

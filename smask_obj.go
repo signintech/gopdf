@@ -1,15 +1,15 @@
 package gopdf
 
-import "bytes"
+import (
+	"bytes"
+	"fmt"
+)
 
 //SMask smask
 type SMask struct {
-	w, h             int
-	colspace         string
-	bitsPerComponent string
-	filter           string
-	decodeParms      string
-	data             []byte
+	buffer bytes.Buffer
+	imgInfo
+	data []byte
 }
 
 func (s *SMask) init(funcGetRoot func() *GoPdf) {
@@ -20,11 +20,25 @@ func (s *SMask) getType() string {
 	return "smask"
 }
 func (s *SMask) getObjBuff() *bytes.Buffer {
-	var buff bytes.Buffer
-	return &buff
+	return &s.buffer
 }
 
 //สร้าง ข้อมูลใน pdf
 func (s *SMask) build() error {
+
+	buff, err := buildImgProp(s.imgInfo)
+	if err != nil {
+		return err
+	}
+	_, err = buff.WriteTo(&s.buffer)
+	if err != nil {
+		return err
+	}
+
+	s.buffer.WriteString(fmt.Sprintf("/Length %d\n>>\n", len(s.data))) // /Length 62303>>\n
+	s.buffer.WriteString("stream\n")
+	s.buffer.Write(s.data)
+	s.buffer.WriteString("\nendstream\n")
+
 	return nil
 }

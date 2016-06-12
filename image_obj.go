@@ -2,7 +2,6 @@ package gopdf
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"image"
 	_ "image/jpeg"
@@ -10,7 +9,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"strings"
 )
 
 //ImageObj image object
@@ -18,7 +16,7 @@ type ImageObj struct {
 	buffer bytes.Buffer
 	//imagepath string
 
-	imgData []byte
+	raw     []byte
 	imginfo imgInfo
 }
 
@@ -28,71 +26,28 @@ func (i *ImageObj) init(funcGetRoot func() *GoPdf) {
 
 func (i *ImageObj) build() error {
 
-	/*m, _, err := image.Decode(bytes.NewBuffer(i.imgData))
+	buff, err := buildImgProp(i.imginfo)
+	if err != nil {
+		return err
+	}
+	_, err = buff.WriteTo(&i.buffer)
 	if err != nil {
 		return err
 	}
 
-	imageRect := m.Bounds()*/
-
-	i.buffer.WriteString("<</Type /XObject\n")
-	i.buffer.WriteString("/Subtype /Image\n")
-	i.buffer.WriteString(fmt.Sprintf("/Width %d\n", i.imginfo.w))  // /Width 675\n"
-	i.buffer.WriteString(fmt.Sprintf("/Height %d\n", i.imginfo.h)) //  /Height 942\n"
-	if i.imginfo.colspace == "Indexed" {
-		//i.buffer.WriteString("/ColorSpace /DeviceRGB\n") //HARD CODE ไว้เป็น RGB
-		//TODO fix this
-		return errors.New("not suport Indexed yet")
-	} else {
-		i.buffer.WriteString(fmt.Sprintf("/ColorSpace /%s\n", i.imginfo.colspace))
-		if i.imginfo.colspace == "DeviceCMYK" {
-			i.buffer.WriteString("/Decode [1 0 1 0 1 0 1 0]\n")
-		}
-	}
-	i.buffer.WriteString(fmt.Sprintf("/BitsPerComponent %s\n", i.imginfo.bitsPerComponent))
-	if strings.TrimSpace(i.imginfo.filter) != "" {
-		i.buffer.WriteString(fmt.Sprintf("/Filter /%s\n", i.imginfo.filter))
-	}
-
-	if strings.TrimSpace(i.imginfo.decodeParms) != "" {
-		i.buffer.WriteString(fmt.Sprintf("/DecodeParms <<%s>>\n", i.imginfo.decodeParms))
-	}
-
-	if i.imginfo.trns != nil && len(i.imginfo.trns) > 0 {
-		j := 0
-		max := len(i.imginfo.trns)
-		var trns bytes.Buffer
-		for j < max {
-			trns.WriteByte(i.imginfo.trns[j])
-			trns.WriteString(" ")
-			trns.WriteByte(i.imginfo.trns[j])
-			trns.WriteString(" ")
-			j++
-		}
-		i.buffer.WriteString(fmt.Sprintf("/Mask [%s]\n", trns.String()))
-	}
-
-	if i.haveSMask() {
-		//TODO fix this
-		return errors.New("not suport smask yet")
-	}
-
-	i.buffer.WriteString(fmt.Sprintf("/Length %d\n>>\n", len(i.imgData))) // /Length 62303>>\n
+	i.buffer.WriteString(fmt.Sprintf("/Length %d\n>>\n", len(i.imginfo.data))) // /Length 62303>>\n
 	i.buffer.WriteString("stream\n")
-	i.buffer.Write(i.imgData)
+	i.buffer.Write(i.imginfo.data)
 	i.buffer.WriteString("\nendstream\n")
 
 	return nil
 }
 
 func (i *ImageObj) haveSMask() bool {
-	if i.imginfo.smask != nil && len(i.imginfo.smask) > 0 {
-		return true
-	}
-	return false
+	return haveSMask(i.imginfo)
 }
 
-func (i ImageObj) createSMask() (*SMask, error) {
+func (i *ImageObj) createSMask() (*SMask, error) {
 	var smk SMask
 	smk.w = i.imginfo.w
 	smk.h = i.imginfo.h
@@ -100,6 +55,7 @@ func (i ImageObj) createSMask() (*SMask, error) {
 	smk.bitsPerComponent = "8"
 	smk.filter = i.imginfo.filter
 	smk.data = i.imginfo.smask
+	smk.decodeParms = fmt.Sprintf("/Predictor 15 /Colors 1 /BitsPerComponent 8 /Columns %d", i.imginfo.w)
 	return &smk, nil
 }
 
@@ -130,7 +86,7 @@ func (i *ImageObj) SetImagePath(path string) error {
 //SetImage set image
 func (i *ImageObj) SetImage(r io.Reader) error {
 	var err error
-	i.imgData, err = ioutil.ReadAll(r)
+	i.raw, err = ioutil.ReadAll(r)
 	if err != nil {
 		return err
 	}
@@ -141,7 +97,7 @@ func (i *ImageObj) SetImage(r io.Reader) error {
 //GetRect get rect of img
 func (i *ImageObj) GetRect() *Rect {
 
-	m, _, err := image.Decode(bytes.NewBuffer(i.imgData))
+	m, _, err := image.Decode(bytes.NewBuffer(i.raw))
 	if err != nil {
 		return nil
 	}
@@ -172,7 +128,7 @@ func (i *ImageObj) GetRect() *Rect {
 
 func (i *ImageObj) parse() error {
 
-	imginfo, err := parseImg(i.imgData)
+	imginfo, err := parseImg(i.raw)
 	if err != nil {
 		return err
 	}

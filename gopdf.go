@@ -179,7 +179,8 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 			if err != nil {
 				return err
 			}
-			_ = smaskObj
+			smarkObjID := gp.addObj(smaskObj)
+			imgobj.imginfo.smarkObjID = smarkObjID
 		}
 
 	} else { //same img

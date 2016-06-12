@@ -3,7 +3,6 @@ package gopdf
 import (
 	"bytes"
 	"compress/zlib"
-	"crypto/md5"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -13,15 +12,63 @@ import (
 	"strings"
 )
 
-func parseImg(data []byte) (imgInfo, error) {
-	var info imgInfo
-	//info.src = src
-	/*file, err := os.Open(src)
-	if err != nil {
-		return info, err
+func buildImgProp(imginfo imgInfo) (*bytes.Buffer, error) {
+
+	var buffer bytes.Buffer
+	buffer.WriteString("<</Type /XObject\n")
+	buffer.WriteString("/Subtype /Image\n")
+	buffer.WriteString(fmt.Sprintf("/Width %d\n", imginfo.w))  // /Width 675\n"
+	buffer.WriteString(fmt.Sprintf("/Height %d\n", imginfo.h)) //  /Height 942\n"
+	if imginfo.colspace == "Indexed" {
+		//i.buffer.WriteString("/ColorSpace /DeviceRGB\n") //HARD CODE ไว้เป็น RGB
+		//TODO fix this
+		return nil, errors.New("not suport Indexed yet")
+	} else {
+		buffer.WriteString(fmt.Sprintf("/ColorSpace /%s\n", imginfo.colspace))
+		if imginfo.colspace == "DeviceCMYK" {
+			buffer.WriteString("/Decode [1 0 1 0 1 0 1 0]\n")
+		}
 	}
-	defer file.Close()*/
-	imgConfig, formatname, err := image.DecodeConfig(bytes.NewBuffer(data))
+	buffer.WriteString(fmt.Sprintf("/BitsPerComponent %s\n", imginfo.bitsPerComponent))
+	if strings.TrimSpace(imginfo.filter) != "" {
+		buffer.WriteString(fmt.Sprintf("/Filter /%s\n", imginfo.filter))
+	}
+
+	if strings.TrimSpace(imginfo.decodeParms) != "" {
+		buffer.WriteString(fmt.Sprintf("/DecodeParms <<%s>>\n", imginfo.decodeParms))
+	}
+
+	if imginfo.trns != nil && len(imginfo.trns) > 0 {
+		j := 0
+		max := len(imginfo.trns)
+		var trns bytes.Buffer
+		for j < max {
+			trns.WriteByte(imginfo.trns[j])
+			trns.WriteString(" ")
+			trns.WriteByte(imginfo.trns[j])
+			trns.WriteString(" ")
+			j++
+		}
+		buffer.WriteString(fmt.Sprintf("/Mask [%s]\n", trns.String()))
+	}
+
+	if haveSMask(imginfo) {
+		buffer.WriteString(fmt.Sprintf("/SMask %d 0 R\n", imginfo.smarkObjID+1))
+	}
+
+	return &buffer, nil
+}
+
+func haveSMask(imginfo imgInfo) bool {
+	if imginfo.smask != nil && len(imginfo.smask) > 0 {
+		return true
+	}
+	return false
+}
+
+func parseImg(raw []byte) (imgInfo, error) {
+	var info imgInfo
+	imgConfig, formatname, err := image.DecodeConfig(bytes.NewBuffer(raw))
 	if err != nil {
 		return info, err
 	}
@@ -31,9 +78,9 @@ func parseImg(data []byte) (imgInfo, error) {
 		if err != nil {
 			return info, err
 		}
+		info.data = raw
 	} else if formatname == "png" {
-
-		err = paesePng(data, &info, imgConfig)
+		err = paesePng(raw, &info, imgConfig)
 		if err != nil {
 			return info, err
 		}
@@ -66,8 +113,8 @@ func parseImgJpg(info *imgInfo, imgConfig image.Config) error {
 var pngMagicNumber = []byte{0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a}
 var pngIHDR = []byte{0x49, 0x48, 0x44, 0x52}
 
-func paesePng(file []byte, info *imgInfo, imgConfig image.Config) error {
-	f := bytes.NewReader(file)
+func paesePng(raw []byte, info *imgInfo, imgConfig image.Config) error {
+	f := bytes.NewReader(raw)
 	f.Seek(0, 0)
 	b, err := readBytes(f, 8)
 	if err != nil {
@@ -226,9 +273,11 @@ func paesePng(file []byte, info *imgInfo, imgConfig image.Config) error {
 		}
 	} //end for
 
-	_ = data //ok
+	//info.data = data //ok
 	info.trns = trns
 	_ = pal //ok
+
+	//fmt.Printf("data= %x", md5.Sum(data))
 
 	if colspace == "Indexed" && strings.TrimSpace(string(pal)) == "" {
 		return errors.New("Missing palette")
@@ -246,8 +295,8 @@ func paesePng(file []byte, info *imgInfo, imgConfig image.Config) error {
 	}
 	info.decodeParms = fmt.Sprintf("/Predictor 15 /Colors  %d /BitsPerComponent %s /Columns %d", colors, info.bitsPerComponent, w)
 
-	fmt.Printf("%d = ct[0]\n", ct[0])
-	fmt.Printf("%x\n", md5.Sum(data))
+	//fmt.Printf("%d = ct[0]\n", ct[0])
+	//fmt.Printf("%x\n", md5.Sum(data))
 	if ct[0] >= 4 {
 		zipReader, err := zlib.NewReader(bytes.NewReader(data))
 		if err != nil {
@@ -301,29 +350,39 @@ func paesePng(file []byte, info *imgInfo, imgConfig image.Config) error {
 
 				i++
 			}
-			//fmt.Printf("xx--%x %d\n", md5.Sum(alpha), len(alpha))
-			//fmt.Print("cccc")
-
-			var smarkBuff bytes.Buffer
-			zwr := zlib.NewWriter(&smarkBuff)
-			_, err = zwr.Write(alpha)
+			info.smask, err = compress(alpha)
 			if err != nil {
 				return err
 			}
-			info.smask = smarkBuff.Bytes()
+
+			info.data, err = compress(color)
+			if err != nil {
+				return err
+			}
 		}
 
 	}
-	//fmt.Printf("%s\n", info.bitsPerComponent)
-
-	//fmt.Printf("%#v\n", trns)
-	//fmt.Printf("%x", md5.Sum(pal))
 	return nil
+}
+
+func compress(data []byte) ([]byte, error) {
+	var results []byte
+	var buff bytes.Buffer
+	zwr, err := zlib.NewWriterLevel(&buff, zlib.BestSpeed)
+	if err != nil {
+		return results, err
+	}
+	_, err = zwr.Write(data)
+	if err != nil {
+		return results, err
+	}
+	zwr.Close()
+	return buff.Bytes(), nil
 }
 
 func readUInt(f *bytes.Reader) (uint, error) {
 	buff, err := readBytes(f, 4)
-	fmt.Printf("%#v\n\n", buff)
+	//fmt.Printf("%#v\n\n", buff)
 	if err != nil {
 		return 0, err
 	}

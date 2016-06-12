@@ -10,4 +10,6 @@ type imgInfo struct {
 	decodeParms      string
 	trns             []byte
 	smask            []byte
+	smarkObjID       int
+	data             []byte
 }

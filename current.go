@@ -50,10 +50,26 @@ type ImageCache struct {
 	Index int
 }
 
+//Rgb  rgb color
 type Rgb struct {
 	r uint8
 	g uint8
 	b uint8
+}
+
+//SetR set red
+func (rgb *Rgb) SetR(r uint8) {
+	rgb.r = r
+}
+
+//SetG set green
+func (rgb *Rgb) SetG(g uint8) {
+	rgb.g = g
+}
+
+//SetB set blue
+func (rgb *Rgb) SetB(b uint8) {
+	rgb.b = b
 }
 
 func (rgb Rgb) equal(obj Rgb) bool {

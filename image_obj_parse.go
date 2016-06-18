@@ -19,10 +19,9 @@ func buildImgProp(imginfo imgInfo) (*bytes.Buffer, error) {
 	buffer.WriteString("/Subtype /Image\n")
 	buffer.WriteString(fmt.Sprintf("/Width %d\n", imginfo.w))  // /Width 675\n"
 	buffer.WriteString(fmt.Sprintf("/Height %d\n", imginfo.h)) //  /Height 942\n"
-	if imginfo.colspace == "Indexed" {
-		//i.buffer.WriteString("/ColorSpace /DeviceRGB\n") //HARD CODE ไว้เป็น RGB
-		//TODO fix this
-		return nil, errors.New("not suport Indexed yet")
+	if isColspaceIndexed(imginfo) {
+		size := len(imginfo.pal)/3 - 1
+		buffer.WriteString(fmt.Sprintf("/ColorSpace [/Indexed /DeviceRGB %d %d 0 R]", size, imginfo.deviceRGBObjID+1))
 	} else {
 		buffer.WriteString(fmt.Sprintf("/ColorSpace /%s\n", imginfo.colspace))
 		if imginfo.colspace == "DeviceCMYK" {
@@ -57,6 +56,13 @@ func buildImgProp(imginfo imgInfo) (*bytes.Buffer, error) {
 	}
 
 	return &buffer, nil
+}
+
+func isColspaceIndexed(imginfo imgInfo) bool {
+	if imginfo.colspace == "Indexed" {
+		return true
+	}
+	return false
 }
 
 func haveSMask(imginfo imgInfo) bool {
@@ -275,7 +281,7 @@ func paesePng(raw []byte, info *imgInfo, imgConfig image.Config) error {
 
 	//info.data = data //ok
 	info.trns = trns
-	_ = pal //ok
+	info.pal = pal
 
 	//fmt.Printf("data= %x", md5.Sum(data))
 
@@ -361,7 +367,10 @@ func paesePng(raw []byte, info *imgInfo, imgConfig image.Config) error {
 			}
 		}
 
+	} else {
+		info.data = data
 	}
+
 	return nil
 }
 

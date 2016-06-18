@@ -179,8 +179,15 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 			if err != nil {
 				return err
 			}
-			smarkObjID := gp.addObj(smaskObj)
-			imgobj.imginfo.smarkObjID = smarkObjID
+			imgobj.imginfo.smarkObjID = gp.addObj(smaskObj)
+		}
+
+		if imgobj.isColspaceIndexed() {
+			dRGB, err := imgobj.createDeviceRGB()
+			if err != nil {
+				return err
+			}
+			imgobj.imginfo.deviceRGBObjID = gp.addObj(dRGB)
 		}
 
 	} else { //same img

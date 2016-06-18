@@ -11,5 +11,7 @@ type imgInfo struct {
 	trns             []byte
 	smask            []byte
 	smarkObjID       int
+	pal              []byte
+	deviceRGBObjID   int
 	data             []byte
 }

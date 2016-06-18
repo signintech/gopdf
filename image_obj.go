@@ -43,6 +43,10 @@ func (i *ImageObj) build() error {
 	return nil
 }
 
+func (i *ImageObj) isColspaceIndexed() bool {
+	return isColspaceIndexed(i.imginfo)
+}
+
 func (i *ImageObj) haveSMask() bool {
 	return haveSMask(i.imginfo)
 }
@@ -57,6 +61,12 @@ func (i *ImageObj) createSMask() (*SMask, error) {
 	smk.data = i.imginfo.smask
 	smk.decodeParms = fmt.Sprintf("/Predictor 15 /Colors 1 /BitsPerComponent 8 /Columns %d", i.imginfo.w)
 	return &smk, nil
+}
+
+func (i *ImageObj) createDeviceRGB() (*DeviceRGBObj, error) {
+	var dRGB DeviceRGBObj
+	dRGB.data = i.imginfo.pal
+	return &dRGB, nil
 }
 
 func (i *ImageObj) getType() string {

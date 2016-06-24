@@ -34,7 +34,7 @@ func (i *ImageObj) build() error {
 	if err != nil {
 		return err
 	}
-
+	//fmt.Printf("----------%d\n", len(i.imginfo.data))
 	i.buffer.WriteString(fmt.Sprintf("/Length %d\n>>\n", len(i.imginfo.data))) // /Length 62303>>\n
 	i.buffer.WriteString("stream\n")
 	i.buffer.Write(i.imginfo.data)
@@ -150,6 +150,11 @@ func (i *ImageObj) parse() error {
 //GetObjBuff get buffer
 func (i *ImageObj) GetObjBuff() *bytes.Buffer {
 	return i.getObjBuff()
+}
+
+//Parse parse img
+func (i *ImageObj) Parse() error {
+	return i.parse()
 }
 
 //Build build buffer

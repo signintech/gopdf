@@ -73,13 +73,16 @@ func haveSMask(imginfo imgInfo) bool {
 }
 
 func parseImg(raw []byte) (imgInfo, error) {
+	//fmt.Printf("----------\n")
 	var info imgInfo
 	imgConfig, formatname, err := image.DecodeConfig(bytes.NewBuffer(raw))
 	if err != nil {
 		return info, err
 	}
 	info.formatName = formatname
+
 	if formatname == "jpeg" {
+
 		err = parseImgJpg(&info, imgConfig)
 		if err != nil {
 			return info, err

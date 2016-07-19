@@ -21,7 +21,7 @@ func buildImgProp(imginfo imgInfo) (*bytes.Buffer, error) {
 	buffer.WriteString(fmt.Sprintf("/Height %d\n", imginfo.h)) //  /Height 942\n"
 	if isColspaceIndexed(imginfo) {
 		size := len(imginfo.pal)/3 - 1
-		buffer.WriteString(fmt.Sprintf("/ColorSpace [/Indexed /DeviceRGB %d %d 0 R]", size, imginfo.deviceRGBObjID+1))
+		buffer.WriteString(fmt.Sprintf("/ColorSpace [/Indexed /DeviceRGB %d %d 0 R]\n", size, imginfo.deviceRGBObjID+1))
 	} else {
 		buffer.WriteString(fmt.Sprintf("/ColorSpace /%s\n", imginfo.colspace))
 		if imginfo.colspace == "DeviceCMYK" {
@@ -42,9 +42,11 @@ func buildImgProp(imginfo imgInfo) (*bytes.Buffer, error) {
 		max := len(imginfo.trns)
 		var trns bytes.Buffer
 		for j < max {
-			trns.WriteByte(imginfo.trns[j])
+			//trn := int(imginfo.trns[j])
+			//trns.WriteByte(imginfo.trns[j])
+			trns.WriteString(fmt.Sprintf("%d", imginfo.trns[j]))
 			trns.WriteString(" ")
-			trns.WriteByte(imginfo.trns[j])
+			trns.WriteString(fmt.Sprintf("%d", imginfo.trns[j]))
 			trns.WriteString(" ")
 			j++
 		}

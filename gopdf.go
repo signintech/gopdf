@@ -40,6 +40,9 @@ type GoPdf struct {
 	indexOfProcSet int
 
 	//IsUnderline bool
+
+	//protection
+	pdfProtection *PDFProtection
 }
 
 //SetLineWidth : set line width
@@ -487,6 +490,12 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 // - style: Style of rectangule (draw and/or fill: D, F, DF, FD)
 func (gp *GoPdf) Curve(x0 float64, y0 float64, x1 float64, y1 float64, x2 float64, y2 float64, x3 float64, y3 float64, style string) {
 	gp.getContent().AppendStreamCurve(x0, y0, x1, y1, x2, y2, x3, y3, style)
+}
+
+//SetProtection set permissions as well as user and owner passwords
+func (gp *GoPdf) SetProtection(permissions int, userPass []byte, ownerPass []byte) {
+	gp.pdfProtection = new(PDFProtection)
+	gp.pdfProtection.setProtection(permissions, userPass, ownerPass)
 }
 
 /*---private---*/

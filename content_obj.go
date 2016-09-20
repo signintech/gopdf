@@ -137,13 +137,14 @@ func (c *ContentObj) AppendStreamLine(x1 float64, y1 float64, x2 float64, y2 flo
 }
 
 //AppendStreamRectangle : draw rectangle from lower-left corner (x, y) with specif width/height
-func (c *ContentObj) AppendStreamRectangle(x float64, y float64, wdth float64, hght float64) {
+func (c *ContentObj) AppendStreamRectangle(x float64, y float64, wdth float64, hght float64, style string) {
 	var cache cacheContentRectangle
 	cache.pageHeight = c.getRoot().config.PageSize.H
 	cache.x = x
 	cache.y = y
 	cache.width = wdth
 	cache.height = hght
+	cache.style = style
 	c.listCache.append(&cache)
 }
 
@@ -164,6 +165,9 @@ func (c *ContentObj) AppendStreamOval(x1 float64, y1 float64, x2 float64, y2 flo
 // - x2, y2: Control point 2
 // - x3, y3: End point
 // - style: Style of rectangule (draw and/or fill: D, F, DF, FD)
+//		D or empty string: draw. This is the default value.
+//		F: fill
+//		DF or FD: draw and fill
 func (c *ContentObj) AppendStreamCurve(x0 float64, y0 float64, x1 float64, y1 float64, x2 float64, y2 float64, x3 float64, y3 float64, style string) {
 	var cache cacheContentCurve
 	cache.pageHeight = c.getRoot().config.PageSize.H
@@ -216,6 +220,16 @@ func (c *ContentObj) AppendStreamSetGrayStroke(w float64) {
 func (c *ContentObj) AppendStreamSetColorStroke(r uint8, g uint8, b uint8) {
 	var cache cacheContentColor
 	cache.colorType = colorTypeStroke
+	cache.r = r
+	cache.g = g
+	cache.b = b
+	c.listCache.append(&cache)
+}
+
+//AppendStreamSetColorFill  set the color fill
+func (c *ContentObj) AppendStreamSetColorFill(r uint8, g uint8, b uint8) {
+	var cache cacheContentColor
+	cache.colorType = colorTypeFill
 	cache.r = r
 	cache.g = g
 	cache.b = b

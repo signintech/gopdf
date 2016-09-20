@@ -68,12 +68,30 @@ func (gp *GoPdf) Line(x1 float64, y1 float64, x2 float64, y2 float64) {
 
 //RectFromLowerLeft : draw rectangle from lower-left corner (x, y)
 func (gp *GoPdf) RectFromLowerLeft(x float64, y float64, wdth float64, hght float64) {
-	gp.getContent().AppendStreamRectangle(x, y, wdth, hght)
+	gp.getContent().AppendStreamRectangle(x, y, wdth, hght, "")
 }
 
 //RectFromUpperLeft : draw rectangle from upper-left corner (x, y)
 func (gp *GoPdf) RectFromUpperLeft(x float64, y float64, wdth float64, hght float64) {
-	gp.getContent().AppendStreamRectangle(x, y+hght, wdth, hght)
+	gp.getContent().AppendStreamRectangle(x, y+hght, wdth, hght, "")
+}
+
+//RectFromLowerLeftWithStyle : draw rectangle from lower-left corner (x, y)
+// - style: Style of rectangule (draw and/or fill: D, F, DF, FD)
+//		D or empty string: draw. This is the default value.
+//		F: fill
+//		DF or FD: draw and fill
+func (gp *GoPdf) RectFromLowerLeftWithStyle(x float64, y float64, wdth float64, hght float64, style string) {
+	gp.getContent().AppendStreamRectangle(x, y, wdth, hght, style)
+}
+
+//RectFromUpperLeftWithStyle : draw rectangle from upper-left corner (x, y)
+// - style: Style of rectangule (draw and/or fill: D, F, DF, FD)
+//		D or empty string: draw. This is the default value.
+//		F: fill
+//		DF or FD: draw and fill
+func (gp *GoPdf) RectFromUpperLeftWithStyle(x float64, y float64, wdth float64, hght float64, style string) {
+	gp.getContent().AppendStreamRectangle(x, y+hght, wdth, hght, style)
 }
 
 //Oval : draw oval
@@ -464,6 +482,11 @@ func (gp *GoPdf) SetTextColor(r uint8, g uint8, b uint8) {
 //SetStrokeColor set the color for the stroke
 func (gp *GoPdf) SetStrokeColor(r uint8, g uint8, b uint8) {
 	gp.getContent().AppendStreamSetColorStroke(r, g, b)
+}
+
+//SetFillColor set the color for the stroke
+func (gp *GoPdf) SetFillColor(r uint8, g uint8, b uint8) {
+	gp.getContent().AppendStreamSetColorFill(r, g, b)
 }
 
 //MeasureTextWidth : measure Width of text (use current font)

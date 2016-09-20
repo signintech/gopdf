@@ -68,9 +68,8 @@ func (p *PDFProtection) createOValue(userPassWithPadding []byte, ownerPassWithPa
 	if err != nil {
 		return nil, err
 	}
-	var ovalue []byte
-	cip.XORKeyStream(ovalue, userPassWithPadding)
-	return ovalue, nil
+	cip.XORKeyStream(userPassWithPadding, userPassWithPadding)
+	return userPassWithPadding, nil
 }
 
 func (p *PDFProtection) randomPass(strlen int) []byte {

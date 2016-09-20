@@ -7,6 +7,8 @@ import (
 
 const colorTypeStroke = "RG"
 
+const colorTypeFill = "rg"
+
 type cacheContentColor struct {
 	colorType string
 	r, g, b   uint8

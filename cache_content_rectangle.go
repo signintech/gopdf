@@ -11,6 +11,7 @@ type cacheContentRectangle struct {
 	y          float64
 	width      float64
 	height     float64
+	style      string
 }
 
 func (c *cacheContentRectangle) toStream() (*bytes.Buffer, error) {
@@ -22,6 +23,8 @@ func (c *cacheContentRectangle) toStream() (*bytes.Buffer, error) {
 	height := c.height
 
 	var buff bytes.Buffer
-	buff.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re s\n", x, h-y, width, height))
+	op := parseStyle(c.style)
+	buff.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re %s\n", x, h-y, width, height, op))
+	//buff.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re b\n", x, h-y, width, height))
 	return &buff, nil
 }

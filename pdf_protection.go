@@ -61,7 +61,8 @@ func (p *PDFProtection) generateencryptionkey(userPass []byte, ownerPass []byte,
 		return err
 	}
 	p.uValue = uValue
-
+	p.pValue = -((protection ^ 255) + 1)
+	//fmt.Printf("%d\n", p.pValue)
 	//fmt.Printf("%#v\n", uValue)
 
 	return nil

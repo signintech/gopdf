@@ -24,6 +24,10 @@ func TestSetProtection(t *testing.T) {
 		return
 	}
 
+	if pp.pValue != -36 {
+		t.Errorf("wrong pValue")
+		return
+	}
 }
 
 func isSliceEq(a, b []byte) bool {

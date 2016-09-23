@@ -1,6 +1,7 @@
 package gopdf
 
 import (
+	"bytes"
 	"crypto/md5"
 	"crypto/rc4"
 	"fmt"
@@ -45,8 +46,11 @@ func (p *PDFProtection) setProtection(permissions int, userPass []byte, ownerPas
 func (p *PDFProtection) generateencryptionkey(userPass []byte, ownerPass []byte, protection int) error {
 
 	//pass
+	fmt.Printf("%#v\n", (userPass))
 	userPass = append(userPass, protectionPadding...)
+
 	userPassWithPadding := userPass[0:32]
+
 	ownerPass = append(ownerPass, protectionPadding...)
 	ownerPassWithPadding := ownerPass[0:32]
 
@@ -56,7 +60,17 @@ func (p *PDFProtection) generateencryptionkey(userPass []byte, ownerPass []byte,
 		return err
 	}
 	p.oValue = oValue
-	fmt.Printf("%#v\n", oValue)
+	//fmt.Printf("%#v\n", (userPass))
+	var tmp bytes.Buffer
+	tmp.Write(userPassWithPadding)
+	tmp.Write(oValue)
+	tmp.WriteByte(byte(protection))
+	tmp.WriteByte(byte(0xff))
+	tmp.WriteByte(byte(0xff))
+	tmp.WriteByte(byte(0xff))
+
+	encryptionKey := md5.Sum(tmp.Bytes())
+	fmt.Printf("%#v", encryptionKey)
 
 	return nil
 }
@@ -68,8 +82,9 @@ func (p *PDFProtection) createOValue(userPassWithPadding []byte, ownerPassWithPa
 	if err != nil {
 		return nil, err
 	}
-	cip.XORKeyStream(userPassWithPadding, userPassWithPadding)
-	return userPassWithPadding, nil
+	dest := make([]byte, len(userPassWithPadding))
+	cip.XORKeyStream(dest, userPassWithPadding)
+	return dest, nil
 }
 
 func (p *PDFProtection) randomPass(strlen int) []byte {

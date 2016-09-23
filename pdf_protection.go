@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/md5"
 	"crypto/rc4"
-	"fmt"
 	"math/rand"
 	"time"
 )
@@ -45,12 +44,8 @@ func (p *PDFProtection) setProtection(permissions int, userPass []byte, ownerPas
 
 func (p *PDFProtection) generateencryptionkey(userPass []byte, ownerPass []byte, protection int) error {
 
-	//pass
-	fmt.Printf("%#v\n", (userPass))
 	userPass = append(userPass, protectionPadding...)
-
 	userPassWithPadding := userPass[0:32]
-
 	ownerPass = append(ownerPass, protectionPadding...)
 	ownerPassWithPadding := ownerPass[0:32]
 
@@ -60,17 +55,14 @@ func (p *PDFProtection) generateencryptionkey(userPass []byte, ownerPass []byte,
 		return err
 	}
 	p.oValue = oValue
-	//fmt.Printf("%#v\n", (userPass))
-	var tmp bytes.Buffer
-	tmp.Write(userPassWithPadding)
-	tmp.Write(oValue)
-	tmp.WriteByte(byte(protection))
-	tmp.WriteByte(byte(0xff))
-	tmp.WriteByte(byte(0xff))
-	tmp.WriteByte(byte(0xff))
 
-	encryptionKey := md5.Sum(tmp.Bytes())
-	fmt.Printf("%#v", encryptionKey)
+	uValue, err := p.createUValue(userPassWithPadding, oValue, protection)
+	if err != nil {
+		return err
+	}
+	p.uValue = uValue
+
+	//fmt.Printf("%#v\n", uValue)
 
 	return nil
 }
@@ -84,6 +76,26 @@ func (p *PDFProtection) createOValue(userPassWithPadding []byte, ownerPassWithPa
 	}
 	dest := make([]byte, len(userPassWithPadding))
 	cip.XORKeyStream(dest, userPassWithPadding)
+	return dest, nil
+}
+
+func (p *PDFProtection) createUValue(userPassWithPadding []byte, oValue []byte, protection int) ([]byte, error) {
+
+	var tmp bytes.Buffer
+	tmp.Write(userPassWithPadding)
+	tmp.Write(oValue)
+	tmp.WriteByte(byte(protection))
+	tmp.WriteByte(byte(0xff))
+	tmp.WriteByte(byte(0xff))
+	tmp.WriteByte(byte(0xff))
+
+	encryptionKey := md5.Sum(tmp.Bytes())
+	cip, err := rc4.NewCipher(encryptionKey[0:5])
+	if err != nil {
+		return nil, err
+	}
+	dest := make([]byte, len(protectionPadding))
+	cip.XORKeyStream(dest, protectionPadding)
 	return dest, nil
 }
 

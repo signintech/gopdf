@@ -311,7 +311,10 @@ func (gp *GoPdf) Close() error {
 
 func (gp *GoPdf) compilePdf() error {
 	gp.prepare()
-	gp.Close()
+	err := gp.Close()
+	if err != nil {
+		return err
+	}
 	max := len(gp.pdfObjs)
 	gp.buf.WriteString("%PDF-1.7\n\n")
 	linelens := make([]int, max)
@@ -319,7 +322,7 @@ func (gp *GoPdf) compilePdf() error {
 	for i < max {
 		linelens[i] = gp.buf.Len()
 		pdfObj := gp.pdfObjs[i]
-		err := pdfObj.build()
+		err = pdfObj.build()
 		if err != nil {
 			return err
 		}
@@ -335,9 +338,12 @@ func (gp *GoPdf) compilePdf() error {
 
 //GetBytesPdfReturnErr : get bytes of pdf file
 func (gp *GoPdf) GetBytesPdfReturnErr() ([]byte, error) {
-	gp.Close()
-	gp.compilePdf()
-	return gp.buf.Bytes(), nil
+	err := gp.Close()
+	if err != nil {
+		return nil, err
+	}
+	err = gp.compilePdf()
+	return gp.buf.Bytes(), err
 }
 
 //GetBytesPdf : get bytes of pdf file

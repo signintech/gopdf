@@ -57,3 +57,5 @@ lint.xml
 fontmaker/tmp/
 fontmaker/fontmaker
 fontmaker/ttf/
+
+*.orig

@@ -3,11 +3,10 @@ package gopdf
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
-	//"container/list"
-	"fmt"
 	"strconv"
 )
 
@@ -43,6 +42,9 @@ type GoPdf struct {
 
 	//protection
 	pdfProtection *PDFProtection
+
+	// Buffer for io.Reader compliance
+	buf bytes.Buffer
 }
 
 //SetLineWidth : set line width
@@ -296,29 +298,55 @@ func (gp *GoPdf) WritePdf(pdfPath string) {
 	ioutil.WriteFile(pdfPath, gp.GetBytesPdf(), 0644)
 }
 
-//GetBytesPdfReturnErr : get bytes of pdf file
-func (gp *GoPdf) GetBytesPdfReturnErr() ([]byte, error) {
-	gp.prepare()
-	buff := new(bytes.Buffer)
-	i := 0
-	max := len(gp.pdfObjs)
-	buff.WriteString("%PDF-1.7\n\n")
-	linelens := make([]int, max)
-	for i < max {
-		linelens[i] = buff.Len()
-		pdfObj := gp.pdfObjs[i]
-		err := pdfObj.build()
-		if err != nil {
-			return nil, err
+func (gp *GoPdf) Read(p []byte) (int, error) {
+	if gp.buf.Len() == 0 && gp.buf.Cap() == 0 {
+		if err := gp.compilePdf(); err != nil {
+			return 0, err
 		}
-		buff.WriteString(strconv.Itoa(i+1) + " 0 obj\n")
+	}
+	return gp.buf.Read(p)
+}
+
+func (gp *GoPdf) Close() error {
+	gp.buf = bytes.Buffer{}
+	return nil
+}
+
+func (gp *GoPdf) compilePdf() error {
+	gp.prepare()
+	err := gp.Close()
+	if err != nil {
+		return err
+	}
+	max := len(gp.pdfObjs)
+	gp.buf.WriteString("%PDF-1.7\n\n")
+	linelens := make([]int, max)
+	i := 0
+	for i < max {
+		linelens[i] = gp.buf.Len()
+		pdfObj := gp.pdfObjs[i]
+		err = pdfObj.build()
+		if err != nil {
+			return err
+		}
+		gp.buf.WriteString(strconv.Itoa(i+1) + " 0 obj\n")
 		buffbyte := pdfObj.getObjBuff().Bytes()
-		buff.Write(buffbyte)
-		buff.WriteString("endobj\n\n")
+		gp.buf.Write(buffbyte)
+		gp.buf.WriteString("endobj\n\n")
 		i++
 	}
-	gp.xref(linelens, buff, &i)
-	return buff.Bytes(), nil
+	gp.xref(linelens, &gp.buf, &i)
+	return nil
+}
+
+//GetBytesPdfReturnErr : get bytes of pdf file
+func (gp *GoPdf) GetBytesPdfReturnErr() ([]byte, error) {
+	err := gp.Close()
+	if err != nil {
+		return nil, err
+	}
+	err = gp.compilePdf()
+	return gp.buf.Bytes(), err
 }
 
 //GetBytesPdf : get bytes of pdf file

@@ -621,7 +621,23 @@ func (gp *GoPdf) prepare() {
 	}
 }
 
-func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) {
+func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) error {
+
+	isPDFProtection := false
+	idPDFProtection := -1
+	if gp.pdfProtection != nil {
+		isPDFProtection = true
+		idPDFProtection = *i + 1
+		var enObj EncryptionObj
+		if err := enObj.build(); err != nil {
+			return err
+		}
+		buff.WriteString(strconv.Itoa(idPDFProtection) + " 0 obj\n")
+		buff.Write(enObj.getObjBuff().Bytes())
+		buff.WriteString("endobj\n\n")
+		(*i)++
+	}
+
 	xrefbyteoffset := buff.Len()
 	buff.WriteString("xref\n")
 	buff.WriteString("0 " + strconv.Itoa((*i)+1) + "\n")
@@ -637,6 +653,10 @@ func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) {
 	buff.WriteString("<<\n")
 	buff.WriteString("/Size " + strconv.Itoa(max+1) + "\n")
 	buff.WriteString("/Root 1 0 R\n")
+	if isPDFProtection {
+		buff.WriteString(fmt.Sprintf("/Encrypt %d 0 R\n", idPDFProtection))
+		buff.WriteString("/ID [()()]\n")
+	}
 	buff.WriteString(">>\n")
 
 	buff.WriteString("startxref\n")
@@ -644,6 +664,8 @@ func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) {
 	buff.WriteString("\n%%EOF\n")
 
 	(*i)++
+
+	return nil
 }
 
 //ปรับ xref ให้เป็น 10 หลัก

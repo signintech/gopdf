@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/md5"
 	"crypto/rc4"
+	"encoding/binary"
 	"math/rand"
 	"time"
 )
@@ -31,7 +32,7 @@ type PDFProtection struct {
 	oValue    []byte //O entry in pdf document
 	pValue    int    //P entry in pdf document
 	//var $enc_obj_id;         //encryption object id
-
+	encryptionKey []byte
 }
 
 func (p *PDFProtection) setProtection(permissions int, userPass []byte, ownerPass []byte) error {
@@ -66,6 +67,14 @@ func (p *PDFProtection) generateencryptionkey(userPass []byte, ownerPass []byte,
 	return nil
 }
 
+func (p *PDFProtection) encryptionObj() *EncryptionObj {
+	var en EncryptionObj
+	en.oValue = p.oValue
+	en.pValue = p.pValue
+	en.uValue = p.uValue
+	return &en
+}
+
 func (p *PDFProtection) createOValue(userPassWithPadding []byte, ownerPassWithPadding []byte) ([]byte, error) {
 	tmp := md5.Sum(ownerPassWithPadding)
 	ownerRC4key := tmp[0:5]
@@ -88,8 +97,9 @@ func (p *PDFProtection) createUValue(userPassWithPadding []byte, oValue []byte, 
 	tmp.WriteByte(byte(0xff))
 	tmp.WriteByte(byte(0xff))
 
-	encryptionKey := md5.Sum(tmp.Bytes())
-	cip, err := rc4.NewCipher(encryptionKey[0:5])
+	tmp2 := md5.Sum(tmp.Bytes())
+	p.encryptionKey = tmp2[0:5]
+	cip, err := rc4.NewCipher(p.encryptionKey)
 	if err != nil {
 		return nil, err
 	}
@@ -106,4 +116,12 @@ func (p *PDFProtection) randomPass(strlen int) []byte {
 		result[i] = chars[rand.Intn(len(chars))]
 	}
 	return result
+}
+
+func (p *PDFProtection) objectkey(n int) []byte {
+	tmp := make([]byte, 8, 8)
+	binary.LittleEndian.PutUint32(tmp, uint32(n))
+	tmp2 := append(p.encryptionKey, tmp[0], tmp[1], tmp[2], 0, 0)
+	tmp3 := md5.Sum(tmp2)
+	return tmp3[0:10]
 }

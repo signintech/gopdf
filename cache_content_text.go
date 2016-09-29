@@ -112,7 +112,7 @@ func (c *cacheContentText) calX() (float64, error) {
 	return 0.0, errors.New("contentType not found")
 }
 
-func (c *cacheContentText) toStream() (*bytes.Buffer, error) {
+func (c *cacheContentText) toStream(protection *PDFProtection) (*bytes.Buffer, error) {
 
 	var stream bytes.Buffer
 	r := c.textColor.r
@@ -360,7 +360,7 @@ func (c *CacheContent) WriteTextToContent(text string) {
 }
 
 //ToStream create stream of content
-func (c *CacheContent) ToStream() (*bytes.Buffer, error) {
+func (c *CacheContent) ToStream(protection *PDFProtection) (*bytes.Buffer, error) {
 	c.cacheContentText.createContent()
-	return c.cacheContentText.toStream()
+	return c.cacheContentText.toStream(protection)
 }

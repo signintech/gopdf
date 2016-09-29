@@ -18,7 +18,7 @@ type cacheContentCurve struct {
 	style      string
 }
 
-func (c *cacheContentCurve) toStream() (*bytes.Buffer, error) {
+func (c *cacheContentCurve) toStream(protection *PDFProtection) (*bytes.Buffer, error) {
 
 	h := c.pageHeight
 	x0 := c.x0

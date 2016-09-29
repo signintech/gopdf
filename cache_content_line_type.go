@@ -9,7 +9,7 @@ type cacheContentLineType struct {
 	lineType string
 }
 
-func (c *cacheContentLineType) toStream() (*bytes.Buffer, error) {
+func (c *cacheContentLineType) toStream(protection *PDFProtection) (*bytes.Buffer, error) {
 	var buff bytes.Buffer
 	switch c.lineType {
 	case "dashed":

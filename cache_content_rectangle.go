@@ -14,7 +14,7 @@ type cacheContentRectangle struct {
 	style      string
 }
 
-func (c *cacheContentRectangle) toStream() (*bytes.Buffer, error) {
+func (c *cacheContentRectangle) toStream(protection *PDFProtection) (*bytes.Buffer, error) {
 
 	h := c.pageHeight
 	x := c.x

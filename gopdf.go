@@ -40,9 +40,6 @@ type GoPdf struct {
 
 	//IsUnderline bool
 
-	//protection
-	pdfProtection *PDFProtection
-
 	// Buffer for io.Reader compliance
 	buf bytes.Buffer
 }
@@ -260,6 +257,7 @@ func (gp *GoPdf) Start(config Config) {
 		return gp
 	})
 	gp.indexOfProcSet = gp.addObj(procset)
+
 }
 
 //SetFont : set font style support "" or "U"
@@ -543,11 +541,12 @@ func (gp *GoPdf) Curve(x0 float64, y0 float64, x1 float64, y1 float64, x2 float6
 	gp.getContent().AppendStreamCurve(x0, y0, x1, y1, x2, y2, x3, y3, style)
 }
 
+/*
 //SetProtection set permissions as well as user and owner passwords
 func (gp *GoPdf) SetProtection(permissions int, userPass []byte, ownerPass []byte) {
 	gp.pdfProtection = new(PDFProtection)
 	gp.pdfProtection.setProtection(permissions, userPass, ownerPass)
-}
+}*/
 
 /*---private---*/
 
@@ -621,14 +620,28 @@ func (gp *GoPdf) prepare() {
 	}
 }
 
+func (gp *GoPdf) protection() *PDFProtection {
+
+	if !gp.config.Protection.UseProtection {
+		return nil
+	}
+	var prot PDFProtection
+	prot.setProtection(
+		gp.config.Protection.Permissions,
+		gp.config.Protection.UserPass,
+		gp.config.Protection.OwnerPass,
+	)
+	return &prot
+}
+
 func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) error {
 
 	isPDFProtection := false
 	idPDFProtection := -1
-	if gp.pdfProtection != nil {
+	if gp.protection() != nil {
 		isPDFProtection = true
 		idPDFProtection = *i + 1
-		var enObj EncryptionObj
+		enObj := gp.protection().encryptionObj()
 		if err := enObj.build(); err != nil {
 			return err
 		}
@@ -694,6 +707,6 @@ func (gp *GoPdf) getContent() *ContentObj {
 	} else {
 		content = gp.pdfObjs[gp.indexOfContent].(*ContentObj)
 	}
-
+	content.protection = gp.protection()
 	return content
 }

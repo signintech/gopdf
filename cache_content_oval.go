@@ -13,7 +13,7 @@ type cacheContentOval struct {
 	y2         float64
 }
 
-func (c *cacheContentOval) toStream() (*bytes.Buffer, error) {
+func (c *cacheContentOval) toStream(protection *PDFProtection) (*bytes.Buffer, error) {
 
 	h := c.pageHeight
 	x1 := c.x1

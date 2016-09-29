@@ -31,6 +31,6 @@ func (e *EncryptionObj) build() error {
 	e.buffer.WriteString("/R 2\n")
 	e.buffer.WriteString(fmt.Sprintf("/O (%s)\n", e.oValue))
 	e.buffer.WriteString(fmt.Sprintf("/U (%s)\n", e.uValue))
-	e.buffer.WriteString(fmt.Sprintf("/P %d", e.pValue))
+	e.buffer.WriteString(fmt.Sprintf("/P %d\n", e.pValue))
 	return nil
 }

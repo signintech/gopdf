@@ -28,6 +28,22 @@ func TestSetProtection(t *testing.T) {
 		t.Errorf("wrong pValue")
 		return
 	}
+
+	var realObjKey4 = []byte{
+		0xb3, 0x9, 0xe6, 0x55, 0xd8, 0x23, 0xbf, 0xbb, 0xc5, 0xdf,
+	}
+	if !isSliceEq(pp.objectkey(4), realObjKey4) {
+		t.Errorf("wrong objectkey 4")
+		return
+	}
+
+	var realObjKey5 = []byte{
+		0xc4, 0x2c, 0x3e, 0x35, 0x92, 0xbe, 0x5e, 0x25, 0xdd, 0x1b,
+	}
+	if !isSliceEq(pp.objectkey(5), realObjKey5) {
+		t.Errorf("wrong objectkey 5")
+		return
+	}
 }
 
 func isSliceEq(a, b []byte) bool {

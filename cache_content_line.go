@@ -13,7 +13,7 @@ type cacheContentLine struct {
 	y2         float64
 }
 
-func (c *cacheContentLine) toStream() (*bytes.Buffer, error) {
+func (c *cacheContentLine) toStream(protection *PDFProtection) (*bytes.Buffer, error) {
 	var buff bytes.Buffer
 	h := c.pageHeight
 	x1 := c.x1

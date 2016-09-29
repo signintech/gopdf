@@ -14,7 +14,7 @@ type cacheContentColor struct {
 	r, g, b   uint8
 }
 
-func (c *cacheContentColor) toStream() (*bytes.Buffer, error) {
+func (c *cacheContentColor) toStream(protection *PDFProtection) (*bytes.Buffer, error) {
 	var buff bytes.Buffer
 	rFloat := float64(c.r) * 0.00392156862745
 	gFloat := float64(c.g) * 0.00392156862745

@@ -125,3 +125,13 @@ func (p *PDFProtection) objectkey(n int) []byte {
 	tmp3 := md5.Sum(tmp2)
 	return tmp3[0:10]
 }
+
+func rc4Cip(key []byte, src []byte) ([]byte, error) {
+	cip, err := rc4.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	dest := make([]byte, len(src))
+	cip.XORKeyStream(dest, src)
+	return dest, nil
+}

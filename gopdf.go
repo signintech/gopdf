@@ -321,13 +321,14 @@ func (gp *GoPdf) compilePdf() error {
 	linelens := make([]int, max)
 	i := 0
 	for i < max {
+		objID := i + 1
 		linelens[i] = gp.buf.Len()
 		pdfObj := gp.pdfObjs[i]
 		err = pdfObj.build()
 		if err != nil {
 			return err
 		}
-		gp.buf.WriteString(strconv.Itoa(i+1) + " 0 obj\n")
+		gp.buf.WriteString(strconv.Itoa(objID) + " 0 obj\n")
 		buffbyte := pdfObj.getObjBuff().Bytes()
 		gp.buf.Write(buffbyte)
 		gp.buf.WriteString("endobj\n\n")
@@ -707,6 +708,5 @@ func (gp *GoPdf) getContent() *ContentObj {
 	} else {
 		content = gp.pdfObjs[gp.indexOfContent].(*ContentObj)
 	}
-	content.protection = gp.protection()
 	return content
 }

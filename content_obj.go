@@ -13,8 +13,11 @@ type ContentObj struct { //impl IObj
 	stream    bytes.Buffer
 	listCache listCacheContent
 	//text bytes.Buffer
-	getRoot    func() *GoPdf
-	protection *PDFProtection
+	getRoot func() *GoPdf
+}
+
+func (c *ContentObj) protection() *PDFProtection {
+	return c.getRoot().protection()
 }
 
 func (c *ContentObj) init(funcGetRoot func() *GoPdf) {
@@ -22,13 +25,10 @@ func (c *ContentObj) init(funcGetRoot func() *GoPdf) {
 }
 
 func (c *ContentObj) build() error {
-	//fmt.Printf("%s\n", c.listCache.debug())
-	buff, err := c.listCache.toStream(c.protection)
+	buff, err := c.listCache.toStream(c.protection())
 	if err != nil {
 		return err
 	}
-	//fmt.Printf("%s\n", buff.String())
-	//c.stream.WriteTo(buff)
 	buff.WriteTo(&c.stream)
 	streamlen := c.stream.Len()
 	c.buffer.WriteString("<<\n")

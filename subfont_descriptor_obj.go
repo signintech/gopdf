@@ -23,7 +23,7 @@ func (s *SubfontDescriptorObj) getObjBuff() *bytes.Buffer {
 	return &s.buffer
 }
 
-func (s *SubfontDescriptorObj) build() error {
+func (s *SubfontDescriptorObj) build(objID int) error {
 
 	ttfp := s.PtrToSubsetFontObj.GetTTFParser()
 	//fmt.Printf("-->%d\n", ttfp.UnitsPerEm())
@@ -69,6 +69,6 @@ func (s *SubfontDescriptorObj) GetObjBuff() *bytes.Buffer {
 }
 
 //Build build buffer
-func (s *SubfontDescriptorObj) Build() error {
-	return s.build()
+func (s *SubfontDescriptorObj) Build(objID int) error {
+	return s.build(objID)
 }

@@ -16,7 +16,7 @@ type EmbedFontObj struct {
 func (e *EmbedFontObj) init(funcGetRoot func() *GoPdf) {
 }
 
-func (e *EmbedFontObj) build() error {
+func (e *EmbedFontObj) build(objID int) error {
 	b, err := ioutil.ReadFile(e.zfontpath)
 	if err != nil {
 		return err

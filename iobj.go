@@ -10,5 +10,5 @@ type IObj interface {
 	getType() string
 	getObjBuff() *bytes.Buffer
 	//สร้าง ข้อมูลใน pdf
-	build() error
+	build(objID int) error
 }

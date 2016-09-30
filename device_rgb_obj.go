@@ -23,7 +23,7 @@ func (d *DeviceRGBObj) getObjBuff() *bytes.Buffer {
 }
 
 //สร้าง ข้อมูลใน pdf
-func (d *DeviceRGBObj) build() error {
+func (d *DeviceRGBObj) build(objID int) error {
 
 	d.buffer.WriteString("<<\n")
 	d.buffer.WriteString("/Length " + strconv.Itoa(len(d.data)) + "\n")

@@ -24,7 +24,7 @@ func (c *ContentObj) init(funcGetRoot func() *GoPdf) {
 	c.getRoot = funcGetRoot
 }
 
-func (c *ContentObj) build() error {
+func (c *ContentObj) build(objID int) error {
 	buff, err := c.listCache.toStream(c.protection())
 	if err != nil {
 		return err
@@ -35,7 +35,16 @@ func (c *ContentObj) build() error {
 	c.buffer.WriteString("/Length " + strconv.Itoa(streamlen) + "\n")
 	c.buffer.WriteString(">>\n")
 	c.buffer.WriteString("stream\n")
-	c.buffer.Write(c.stream.Bytes())
+	if c.protection() != nil {
+		tmp, err := rc4Cip(c.protection().objectkey(objID), c.stream.Bytes())
+		if err != nil {
+			return err
+		}
+		c.buffer.Write(tmp)
+		c.buffer.WriteString("\n")
+	} else {
+		c.buffer.Write(c.stream.Bytes())
+	}
 	c.buffer.WriteString("endstream\n")
 	return nil
 }

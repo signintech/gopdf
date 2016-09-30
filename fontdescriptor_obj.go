@@ -14,7 +14,7 @@ func (f *FontDescriptorObj) init(funcGetRoot func() *GoPdf) {
 
 }
 
-func (f *FontDescriptorObj) build() error {
+func (f *FontDescriptorObj) build(objID int) error {
 
 	f.buffer.WriteString("<</Type /FontDescriptor /FontName /" + f.font.GetName() + " ")
 	descs := f.font.GetDesc()

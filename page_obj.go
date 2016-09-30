@@ -16,7 +16,7 @@ func (p *PageObj) init(funcGetRoot func() *GoPdf) {
 
 }
 
-func (p *PageObj) build() error {
+func (p *PageObj) build(objID int) error {
 
 	p.buffer.WriteString("<<\n")
 	p.buffer.WriteString("  /Type /" + p.getType() + "\n")

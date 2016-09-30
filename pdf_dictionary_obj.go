@@ -31,7 +31,7 @@ type PdfDictionaryObj struct {
 func (p *PdfDictionaryObj) init(funcGetRoot func() *GoPdf) {
 }
 
-func (p *PdfDictionaryObj) build() error {
+func (p *PdfDictionaryObj) build(objID int) error {
 	b, err := p.makeFont()
 	if err != nil {
 		//log.Panicf("%s", err.Error())
@@ -322,8 +322,8 @@ func (p *PdfDictionaryObj) GetOffset(glyph int) int {
 }
 
 //Build build buffer
-func (p *PdfDictionaryObj) Build() error {
-	return p.build()
+func (p *PdfDictionaryObj) Build(objID int) error {
+	return p.build(objID)
 }
 
 //GetObjBuff get buffer

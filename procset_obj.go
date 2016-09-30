@@ -18,7 +18,7 @@ func (pr *ProcSetObj) init(funcGetRoot func() *GoPdf) {
 	pr.getRoot = funcGetRoot
 }
 
-func (pr *ProcSetObj) build() error {
+func (pr *ProcSetObj) build(objID int) error {
 
 	pr.buffer.WriteString("<<\n")
 	pr.buffer.WriteString("/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]\n")

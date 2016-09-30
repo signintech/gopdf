@@ -19,7 +19,7 @@ func (p *PagesObj) init(funcGetRoot func() *GoPdf) {
 	p.getRoot = funcGetRoot
 }
 
-func (p *PagesObj) build() error {
+func (p *PagesObj) build(objID int) error {
 
 	height := fmt.Sprintf("%0.2f", p.getRoot().config.PageSize.H)
 	width := fmt.Sprintf("%0.2f", p.getRoot().config.PageSize.W)

@@ -24,7 +24,7 @@ func (i *ImageObj) init(funcGetRoot func() *GoPdf) {
 	//me.getRoot = funcGetRoot
 }
 
-func (i *ImageObj) build() error {
+func (i *ImageObj) build(objID int) error {
 
 	buff, err := buildImgProp(i.imginfo)
 	if err != nil {
@@ -158,6 +158,6 @@ func (i *ImageObj) Parse() error {
 }
 
 //Build build buffer
-func (i *ImageObj) Build() error {
-	return i.build()
+func (i *ImageObj) Build(objID int) error {
+	return i.build(objID)
 }

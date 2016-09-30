@@ -14,7 +14,7 @@ func (c *CatalogObj) init(funcGetRoot func() *GoPdf) {
 
 }
 
-func (c *CatalogObj) build() error {
+func (c *CatalogObj) build(objID int) error {
 	c.buffer.WriteString("<<\n")
 	c.buffer.WriteString("  /Type /" + c.getType() + "\n")
 	c.buffer.WriteString("  /Pages 2 0 R\n")

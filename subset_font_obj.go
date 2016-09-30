@@ -29,7 +29,7 @@ func (s *SubsetFontObj) init(funcGetRoot func() *GoPdf) {
 	s.funcKernOverride = nil
 }
 
-func (s *SubsetFontObj) build() error {
+func (s *SubsetFontObj) build(objID int) error {
 	//me.AddChars("จ")
 	s.buffer.WriteString("<<\n")
 	s.buffer.WriteString(fmt.Sprintf("/BaseFont /%s\n", CreateEmbeddedFontSubsetName(s.Family)))
@@ -238,6 +238,6 @@ func (s *SubsetFontObj) GetObjBuff() *bytes.Buffer {
 }
 
 //Build build buffer
-func (s *SubsetFontObj) Build() error {
-	return s.build()
+func (s *SubsetFontObj) Build(objID int) error {
+	return s.build(objID)
 }

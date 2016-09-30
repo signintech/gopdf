@@ -324,7 +324,7 @@ func (gp *GoPdf) compilePdf() error {
 		objID := i + 1
 		linelens[i] = gp.buf.Len()
 		pdfObj := gp.pdfObjs[i]
-		err = pdfObj.build()
+		err = pdfObj.build(objID)
 		if err != nil {
 			return err
 		}
@@ -643,11 +643,13 @@ func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) error {
 		isPDFProtection = true
 		idPDFProtection = *i + 1
 		enObj := gp.protection().encryptionObj()
-		if err := enObj.build(); err != nil {
+		if err := enObj.build(idPDFProtection); err != nil {
 			return err
 		}
 		buff.WriteString(strconv.Itoa(idPDFProtection) + " 0 obj\n")
+		buff.WriteString("<<\n")
 		buff.Write(enObj.getObjBuff().Bytes())
+		buff.WriteString(">>\n")
 		buff.WriteString("endobj\n\n")
 		(*i)++
 	}
@@ -672,7 +674,6 @@ func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) error {
 		buff.WriteString("/ID [()()]\n")
 	}
 	buff.WriteString(">>\n")
-
 	buff.WriteString("startxref\n")
 	buff.WriteString(strconv.Itoa(xrefbyteoffset))
 	buff.WriteString("\n%%EOF\n")

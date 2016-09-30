@@ -26,7 +26,7 @@ func (f *FontObj) init(funcGetRoot func() *GoPdf) {
 	//me.CountOfFont = -1
 }
 
-func (f *FontObj) build() error {
+func (f *FontObj) build(objID int) error {
 
 	baseFont := f.Family
 	if f.Font != nil {

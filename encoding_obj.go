@@ -18,7 +18,7 @@ func (e *EncodingObj) getType() string {
 func (e *EncodingObj) getObjBuff() *bytes.Buffer {
 	return &e.buffer
 }
-func (e *EncodingObj) build() error {
+func (e *EncodingObj) build(objID int) error {
 	e.buffer.WriteString("<</Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [")
 	e.buffer.WriteString(e.font.GetDiff())
 	e.buffer.WriteString("]>>\n")

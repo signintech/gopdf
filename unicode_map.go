@@ -16,7 +16,7 @@ func (u *UnicodeMap) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 	u.PtrToSubsetFontObj = ptr
 }
 
-func (u *UnicodeMap) build() error {
+func (u *UnicodeMap) build(objID int) error {
 	u.buffer.Write(u.pdfToUnicodeMap().Bytes())
 	return nil
 }
@@ -85,6 +85,6 @@ func (u *UnicodeMap) GetObjBuff() *bytes.Buffer {
 }
 
 //Build build buffer
-func (u *UnicodeMap) Build() error {
-	return u.build()
+func (u *UnicodeMap) Build(objID int) error {
+	return u.build(objID)
 }

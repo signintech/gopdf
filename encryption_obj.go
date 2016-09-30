@@ -25,7 +25,7 @@ func (e *EncryptionObj) getObjBuff() *bytes.Buffer {
 	return &e.buffer
 }
 
-func (e *EncryptionObj) build() error {
+func (e *EncryptionObj) build(objID int) error {
 	e.buffer.WriteString("/Filter /Standard\n")
 	e.buffer.WriteString("/V 1\n")
 	e.buffer.WriteString("/R 2\n")

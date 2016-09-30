@@ -24,7 +24,7 @@ func (s *SMask) getObjBuff() *bytes.Buffer {
 }
 
 //สร้าง ข้อมูลใน pdf
-func (s *SMask) build() error {
+func (s *SMask) build(objID int) error {
 
 	buff, err := buildImgProp(s.imgInfo)
 	if err != nil {

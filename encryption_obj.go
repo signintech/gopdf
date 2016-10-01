@@ -3,6 +3,7 @@ package gopdf
 import (
 	"bytes"
 	"fmt"
+	"strings"
 )
 
 //EncryptionObj  encryption object res
@@ -26,11 +27,22 @@ func (e *EncryptionObj) getObjBuff() *bytes.Buffer {
 }
 
 func (e *EncryptionObj) build(objID int) error {
+	e.buffer.WriteString("<<\n")
 	e.buffer.WriteString("/Filter /Standard\n")
 	e.buffer.WriteString("/V 1\n")
 	e.buffer.WriteString("/R 2\n")
-	e.buffer.WriteString(fmt.Sprintf("/O (%s)\n", e.oValue))
-	e.buffer.WriteString(fmt.Sprintf("/U (%s)\n", e.uValue))
+	e.buffer.WriteString(fmt.Sprintf("/O (%s)\n", e.escape(e.oValue)))
+	e.buffer.WriteString(fmt.Sprintf("/U (%s)\n", e.escape(e.uValue)))
 	e.buffer.WriteString(fmt.Sprintf("/P %d\n", e.pValue))
+	e.buffer.WriteString(">>\n")
 	return nil
+}
+
+func (e *EncryptionObj) escape(b []byte) string {
+	s := string(b)
+	s = strings.Replace(s, "\\", "\\\\", -1)
+	s = strings.Replace(s, "(", "\\(", -1)
+	s = strings.Replace(s, ")", "\\)", -1)
+	s = strings.Replace(s, "\r", "\\r", -1)
+	return s
 }

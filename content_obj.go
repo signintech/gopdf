@@ -30,6 +30,7 @@ func (c *ContentObj) build(objID int) error {
 		return err
 	}
 	buff.WriteTo(&c.stream)
+
 	streamlen := c.stream.Len()
 	c.buffer.WriteString("<<\n")
 	c.buffer.WriteString("/Length " + strconv.Itoa(streamlen) + "\n")

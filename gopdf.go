@@ -42,6 +42,10 @@ type GoPdf struct {
 
 	// Buffer for io.Reader compliance
 	buf bytes.Buffer
+
+	//pdf PProtection
+	pdfProtection   *PDFProtection
+	encryptionObjID int
 }
 
 //SetLineWidth : set line width
@@ -257,6 +261,10 @@ func (gp *GoPdf) Start(config Config) {
 		return gp
 	})
 	gp.indexOfProcSet = gp.addObj(procset)
+
+	if gp.isUseProtection() {
+		gp.pdfProtection = gp.createProtection()
+	}
 
 }
 
@@ -581,7 +589,30 @@ func (gp *GoPdf) resetCurrXY() {
 	gp.curr.Y = gp.topMargin
 }
 
+func (gp *GoPdf) isUseProtection() bool {
+	return gp.config.Protection.UseProtection
+}
+
+func (gp *GoPdf) createProtection() *PDFProtection {
+	var prot PDFProtection
+	prot.setProtection(
+		gp.config.Protection.Permissions,
+		gp.config.Protection.UserPass,
+		gp.config.Protection.OwnerPass,
+	)
+	return &prot
+}
+
+func (gp *GoPdf) protection() *PDFProtection {
+	return gp.pdfProtection
+}
+
 func (gp *GoPdf) prepare() {
+
+	if gp.isUseProtection() {
+		encObj := gp.pdfProtection.encryptionObj()
+		gp.addObj(encObj)
+	}
 
 	if gp.indexOfPagesObj != -1 {
 		indexCurrPage := -1
@@ -615,44 +646,15 @@ func (gp *GoPdf) prepare() {
 					}
 					j++
 				}
+			} else if objtype == "Encryption" {
+				gp.encryptionObjID = i + 1
 			}
 			i++
 		}
 	}
 }
 
-func (gp *GoPdf) protection() *PDFProtection {
-
-	if !gp.config.Protection.UseProtection {
-		return nil
-	}
-	var prot PDFProtection
-	prot.setProtection(
-		gp.config.Protection.Permissions,
-		gp.config.Protection.UserPass,
-		gp.config.Protection.OwnerPass,
-	)
-	return &prot
-}
-
 func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) error {
-
-	isPDFProtection := false
-	idPDFProtection := -1
-	if gp.protection() != nil {
-		isPDFProtection = true
-		idPDFProtection = *i + 1
-		enObj := gp.protection().encryptionObj()
-		if err := enObj.build(idPDFProtection); err != nil {
-			return err
-		}
-		buff.WriteString(strconv.Itoa(idPDFProtection) + " 0 obj\n")
-		buff.WriteString("<<\n")
-		buff.Write(enObj.getObjBuff().Bytes())
-		buff.WriteString(">>\n")
-		buff.WriteString("endobj\n\n")
-		(*i)++
-	}
 
 	xrefbyteoffset := buff.Len()
 	buff.WriteString("xref\n")
@@ -669,8 +671,8 @@ func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) error {
 	buff.WriteString("<<\n")
 	buff.WriteString("/Size " + strconv.Itoa(max+1) + "\n")
 	buff.WriteString("/Root 1 0 R\n")
-	if isPDFProtection {
-		buff.WriteString(fmt.Sprintf("/Encrypt %d 0 R\n", idPDFProtection))
+	if gp.isUseProtection() {
+		buff.WriteString(fmt.Sprintf("/Encrypt %d 0 R\n", gp.encryptionObjID))
 		buff.WriteString("/ID [()()]\n")
 	}
 	buff.WriteString(">>\n")

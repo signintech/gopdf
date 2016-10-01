@@ -5,19 +5,31 @@ import (
 	"fmt"
 )
 
+//UnicodeMap unicode map
 type UnicodeMap struct {
 	buffer             bytes.Buffer
 	PtrToSubsetFontObj *SubsetFontObj
+	getRoot            func() *GoPdf
 }
 
-func (u *UnicodeMap) init(funcGetRoot func() *GoPdf) {}
+func (u *UnicodeMap) init(funcGetRoot func() *GoPdf) {
+	u.getRoot = funcGetRoot
+}
+
+func (u *UnicodeMap) protection() *PDFProtection {
+	return u.getRoot().protection()
+}
 
 func (u *UnicodeMap) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 	u.PtrToSubsetFontObj = ptr
 }
 
 func (u *UnicodeMap) build(objID int) error {
-	u.buffer.Write(u.pdfToUnicodeMap().Bytes())
+	buff, err := u.pdfToUnicodeMap(objID)
+	if err != nil {
+		return err
+	}
+	u.buffer.Write(buff.Bytes())
 	return nil
 }
 
@@ -29,7 +41,7 @@ func (u *UnicodeMap) getObjBuff() *bytes.Buffer {
 	return &u.buffer
 }
 
-func (u *UnicodeMap) pdfToUnicodeMap() *bytes.Buffer {
+func (u *UnicodeMap) pdfToUnicodeMap(objID int) (*bytes.Buffer, error) {
 	//stream
 	characterToGlyphIndex := u.PtrToSubsetFontObj.CharacterToGlyphIndex
 	prefix :=
@@ -73,10 +85,19 @@ func (u *UnicodeMap) pdfToUnicodeMap() *bytes.Buffer {
 	streambuff.WriteString(fmt.Sprintf("/Length %d\n", length))
 	streambuff.WriteString(">>\n")
 	streambuff.WriteString("stream\n")
-	streambuff.Write(buff.Bytes())
+	if u.protection() != nil {
+		tmp, err := rc4Cip(u.protection().objectkey(objID), buff.Bytes())
+		if err != nil {
+			return nil, err
+		}
+		streambuff.Write(tmp)
+		//streambuff.WriteString("\n")
+	} else {
+		streambuff.Write(buff.Bytes())
+	}
 	streambuff.WriteString("endstream\n")
 
-	return &streambuff
+	return &streambuff, nil
 }
 
 //GetObjBuff get buffer

@@ -18,10 +18,15 @@ type ImageObj struct {
 
 	raw     []byte
 	imginfo imgInfo
+	getRoot func() *GoPdf
 }
 
 func (i *ImageObj) init(funcGetRoot func() *GoPdf) {
-	//me.getRoot = funcGetRoot
+	i.getRoot = funcGetRoot
+}
+
+func (i *ImageObj) protection() *PDFProtection {
+	return i.getRoot().protection()
 }
 
 func (i *ImageObj) build(objID int) error {
@@ -34,10 +39,19 @@ func (i *ImageObj) build(objID int) error {
 	if err != nil {
 		return err
 	}
-	//fmt.Printf("----------%d\n", len(i.imginfo.data))
+
 	i.buffer.WriteString(fmt.Sprintf("/Length %d\n>>\n", len(i.imginfo.data))) // /Length 62303>>\n
 	i.buffer.WriteString("stream\n")
-	i.buffer.Write(i.imginfo.data)
+	if i.protection() != nil {
+		tmp, err := rc4Cip(i.protection().objectkey(objID), i.imginfo.data)
+		if err != nil {
+			return err
+		}
+		i.buffer.Write(tmp)
+		i.buffer.WriteString("\n")
+	} else {
+		i.buffer.Write(i.imginfo.data)
+	}
 	i.buffer.WriteString("\nendstream\n")
 
 	return nil

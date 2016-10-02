@@ -9,11 +9,16 @@ import (
 type SMask struct {
 	buffer bytes.Buffer
 	imgInfo
-	data []byte
+	data    []byte
+	getRoot func() *GoPdf
 }
 
 func (s *SMask) init(funcGetRoot func() *GoPdf) {
+	s.getRoot = funcGetRoot
+}
 
+func (s *SMask) protection() *PDFProtection {
+	return s.getRoot().protection()
 }
 
 func (s *SMask) getType() string {
@@ -23,7 +28,6 @@ func (s *SMask) getObjBuff() *bytes.Buffer {
 	return &s.buffer
 }
 
-//สร้าง ข้อมูลใน pdf
 func (s *SMask) build(objID int) error {
 
 	buff, err := buildImgProp(s.imgInfo)
@@ -37,7 +41,16 @@ func (s *SMask) build(objID int) error {
 
 	s.buffer.WriteString(fmt.Sprintf("/Length %d\n>>\n", len(s.data))) // /Length 62303>>\n
 	s.buffer.WriteString("stream\n")
-	s.buffer.Write(s.data)
+	if s.protection() != nil {
+		tmp, err := rc4Cip(s.protection().objectkey(objID), s.data)
+		if err != nil {
+			return err
+		}
+		s.buffer.Write(tmp)
+		s.buffer.WriteString("\n")
+	} else {
+		s.buffer.Write(s.data)
+	}
 	s.buffer.WriteString("\nendstream\n")
 
 	return nil

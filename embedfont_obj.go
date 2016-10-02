@@ -11,9 +11,15 @@ type EmbedFontObj struct {
 	Data      string
 	zfontpath string
 	font      IFont
+	getRoot   func() *GoPdf
 }
 
 func (e *EmbedFontObj) init(funcGetRoot func() *GoPdf) {
+	e.getRoot = funcGetRoot
+}
+
+func (e *EmbedFontObj) protection() *PDFProtection {
+	return e.getRoot().protection()
 }
 
 func (e *EmbedFontObj) build(objID int) error {
@@ -26,7 +32,16 @@ func (e *EmbedFontObj) build(objID int) error {
 	e.buffer.WriteString("/Length1 " + strconv.Itoa(e.font.GetOriginalsize()) + "\n")
 	e.buffer.WriteString(">>\n")
 	e.buffer.WriteString("stream\n")
-	e.buffer.Write(b)
+	if e.protection() != nil {
+		tmp, err := rc4Cip(e.protection().objectkey(objID), b)
+		if err != nil {
+			return err
+		}
+		e.buffer.Write(tmp)
+		e.buffer.WriteString("\n")
+	} else {
+		e.buffer.Write(b)
+	}
 	e.buffer.WriteString("\nendstream\n")
 	return nil
 }

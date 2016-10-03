@@ -9,16 +9,21 @@ import (
 type SMask struct {
 	buffer bytes.Buffer
 	imgInfo
-	data    []byte
-	getRoot func() *GoPdf
+	data []byte
+	//getRoot func() *GoPdf
+	pdfProtection *PDFProtection
 }
 
 func (s *SMask) init(funcGetRoot func() *GoPdf) {
-	s.getRoot = funcGetRoot
+	//s.getRoot = funcGetRoot
+}
+
+func (s *SMask) setProtection(p *PDFProtection) {
+	s.pdfProtection = p
 }
 
 func (s *SMask) protection() *PDFProtection {
-	return s.getRoot().protection()
+	return s.pdfProtection
 }
 
 func (s *SMask) getType() string {

@@ -168,7 +168,7 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 	imgobj.init(func() *GoPdf {
 		return gp
 	})
-
+	imgobj.setProtection(gp.protection())
 	var err error
 	err = imgobj.SetImagePath(picPath)
 	if err != nil {
@@ -438,6 +438,7 @@ func (gp *GoPdf) AddTTFFontWithOption(family string, ttfpath string, option TtfO
 	unicodemap.init(func() *GoPdf {
 		return gp
 	})
+	unicodemap.setProtection(gp.protection())
 	unicodemap.SetPtrToSubsetFontObj(subsetFont)
 	unicodeindex := gp.addObj(unicodemap)
 
@@ -445,6 +446,7 @@ func (gp *GoPdf) AddTTFFontWithOption(family string, ttfpath string, option TtfO
 	pdfdic.init(func() *GoPdf {
 		return gp
 	})
+	pdfdic.setProtection(gp.protection())
 	pdfdic.SetPtrToSubsetFontObj(subsetFont)
 	pdfdicindex := gp.addObj(pdfdic)
 

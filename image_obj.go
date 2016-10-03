@@ -16,17 +16,22 @@ type ImageObj struct {
 	buffer bytes.Buffer
 	//imagepath string
 
-	raw     []byte
-	imginfo imgInfo
-	getRoot func() *GoPdf
+	raw           []byte
+	imginfo       imgInfo
+	pdfProtection *PDFProtection
+	//getRoot func() *GoPdf
 }
 
 func (i *ImageObj) init(funcGetRoot func() *GoPdf) {
-	i.getRoot = funcGetRoot
+	//i.getRoot = funcGetRoot
+}
+
+func (i *ImageObj) setProtection(p *PDFProtection) {
+	i.pdfProtection = p
 }
 
 func (i *ImageObj) protection() *PDFProtection {
-	return i.getRoot().protection()
+	return i.pdfProtection
 }
 
 func (i *ImageObj) build(objID int) error {
@@ -67,6 +72,7 @@ func (i *ImageObj) haveSMask() bool {
 
 func (i *ImageObj) createSMask() (*SMask, error) {
 	var smk SMask
+	smk.setProtection(i.protection())
 	smk.w = i.imginfo.w
 	smk.h = i.imginfo.h
 	smk.colspace = "DeviceGray"

@@ -9,17 +9,23 @@ import (
 type UnicodeMap struct {
 	buffer             bytes.Buffer
 	PtrToSubsetFontObj *SubsetFontObj
-	getRoot            func() *GoPdf
+	//getRoot            func() *GoPdf
+	pdfProtection *PDFProtection
 }
 
 func (u *UnicodeMap) init(funcGetRoot func() *GoPdf) {
-	u.getRoot = funcGetRoot
+	//u.getRoot = funcGetRoot
+}
+
+func (u *UnicodeMap) setProtection(p *PDFProtection) {
+	u.pdfProtection = p
 }
 
 func (u *UnicodeMap) protection() *PDFProtection {
-	return u.getRoot().protection()
+	return u.pdfProtection
 }
 
+//SetPtrToSubsetFontObj set pointer to SubsetFontObj
 func (u *UnicodeMap) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 	u.PtrToSubsetFontObj = ptr
 }

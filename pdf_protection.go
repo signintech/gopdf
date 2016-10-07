@@ -35,15 +35,20 @@ type PDFProtection struct {
 	encryptionKey []byte
 }
 
+//SetProtection set protection infomation
+func (p *PDFProtection) SetProtection(permissions int, userPass []byte, ownerPass []byte) error {
+	return p.setProtection(permissions, userPass, ownerPass)
+}
+
 func (p *PDFProtection) setProtection(permissions int, userPass []byte, ownerPass []byte) error {
 	protection := 192 | permissions
 	if ownerPass == nil || len(ownerPass) == 0 {
 		ownerPass = p.randomPass(24)
 	}
-	return p.generateencryptionkey(userPass, ownerPass, protection)
+	return p.generateEncryptionKey(userPass, ownerPass, protection)
 }
 
-func (p *PDFProtection) generateencryptionkey(userPass []byte, ownerPass []byte, protection int) error {
+func (p *PDFProtection) generateEncryptionKey(userPass []byte, ownerPass []byte, protection int) error {
 
 	userPass = append(userPass, protectionPadding...)
 	userPassWithPadding := userPass[0:32]
@@ -65,6 +70,11 @@ func (p *PDFProtection) generateencryptionkey(userPass []byte, ownerPass []byte,
 	p.pValue = -((protection ^ 255) + 1)
 
 	return nil
+}
+
+//EncryptionObj get Encryption Object
+func (p *PDFProtection) EncryptionObj() *EncryptionObj {
+	return p.encryptionObj()
 }
 
 func (p *PDFProtection) encryptionObj() *EncryptionObj {
@@ -116,6 +126,11 @@ func (p *PDFProtection) randomPass(strlen int) []byte {
 		result[i] = chars[rand.Intn(len(chars))]
 	}
 	return result
+}
+
+//Objectkey create object key from ObjID
+func (p *PDFProtection) Objectkey(objID int) []byte {
+	return p.objectkey(objID)
 }
 
 func (p *PDFProtection) objectkey(n int) []byte {

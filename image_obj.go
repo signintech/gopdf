@@ -23,7 +23,7 @@ type ImageObj struct {
 }
 
 func (i *ImageObj) init(funcGetRoot func() *GoPdf) {
-	//i.getRoot = funcGetRoot
+
 }
 
 func (i *ImageObj) setProtection(p *PDFProtection) {

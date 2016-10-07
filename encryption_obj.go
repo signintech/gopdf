@@ -46,3 +46,13 @@ func (e *EncryptionObj) escape(b []byte) string {
 	s = strings.Replace(s, "\r", "\\r", -1)
 	return s
 }
+
+//GetObjBuff get buffer
+func (e *EncryptionObj) GetObjBuff() *bytes.Buffer {
+	return e.getObjBuff()
+}
+
+//Build build buffer
+func (e *EncryptionObj) Build(objID int) error {
+	return e.build(objID)
+}

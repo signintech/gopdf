@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 )
 
 const subsetFont = "SubsetFont"
@@ -46,6 +47,10 @@ type GoPdf struct {
 	//pdf PProtection
 	pdfProtection   *PDFProtection
 	encryptionObjID int
+
+	//info
+	isUseInfo bool
+	info      *pdfInfoObj
 }
 
 //SetLineWidth : set line width
@@ -559,6 +564,22 @@ func (gp *GoPdf) SetProtection(permissions int, userPass []byte, ownerPass []byt
 	gp.pdfProtection.setProtection(permissions, userPass, ownerPass)
 }*/
 
+//Info pdf information
+func (gp *GoPdf) Info(author string,
+	creator string,
+	producer string,
+	creationDate time.Time,
+) {
+	info := pdfInfoObj{
+		Author:       author,
+		Creator:      creator,
+		Producer:     producer,
+		CreationDate: creationDate,
+	}
+	gp.info = &info
+	gp.isUseInfo = true
+}
+
 /*---private---*/
 
 //init
@@ -677,6 +698,11 @@ func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) error {
 		buff.WriteString(fmt.Sprintf("/Encrypt %d 0 R\n", gp.encryptionObjID))
 		buff.WriteString("/ID [()()]\n")
 	}
+	if gp.isUseInfo {
+		buff.WriteString(fmt.Sprintf("/Info <</Author <FEFF%s>\n", encodeUtf8(gp.info.Author)))
+		buff.WriteString(fmt.Sprintf("/Creator <FEFF%s>\n", encodeUtf8(gp.info.Creator)))
+		buff.WriteString(fmt.Sprintf("/Producer <FEFF%s>>>\n", encodeUtf8(gp.info.Creator)))
+	}
 	buff.WriteString(">>\n")
 	buff.WriteString("startxref\n")
 	buff.WriteString(strconv.Itoa(xrefbyteoffset))
@@ -714,4 +740,16 @@ func (gp *GoPdf) getContent() *ContentObj {
 		content = gp.pdfObjs[gp.indexOfContent].(*ContentObj)
 	}
 	return content
+}
+
+func encodeUtf8(str string) string {
+	var buff bytes.Buffer
+	for _, r := range str {
+		c := fmt.Sprintf("%X", r)
+		for len(c) < 4 {
+			c = "0" + c
+		}
+		buff.WriteString(c)
+	}
+	return buff.String()
 }

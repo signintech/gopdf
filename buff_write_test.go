@@ -2,6 +2,7 @@ package gopdf
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 )
 
@@ -30,3 +31,16 @@ func TestFloat(t *testing.T){
 		t.Errorf("!242680.68")
 	}
 }*/
+
+func TestEncodeUTF8(t *testing.T) {
+	str := "Boonchai Manasirisuk"
+	var buff bytes.Buffer
+	for _, r := range str {
+		c := fmt.Sprintf("%X", r)
+		for len(c) < 4 {
+			c = "0" + c
+		}
+		buff.WriteString(c)
+	}
+	fmt.Printf("%s\n", buff.String())
+}

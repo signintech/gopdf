@@ -701,7 +701,8 @@ func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) error {
 	if gp.isUseInfo {
 		buff.WriteString(fmt.Sprintf("/Info <</Author <FEFF%s>\n", encodeUtf8(gp.info.Author)))
 		buff.WriteString(fmt.Sprintf("/Creator <FEFF%s>\n", encodeUtf8(gp.info.Creator)))
-		buff.WriteString(fmt.Sprintf("/Producer <FEFF%s>>>\n", encodeUtf8(gp.info.Creator)))
+		buff.WriteString(fmt.Sprintf("/Producer <FEFF%s>\n", encodeUtf8(gp.info.Creator)))
+		buff.WriteString(fmt.Sprintf("/CreationDate(D:%s)>>\n", infodate(gp.info.CreationDate)))
 	}
 	buff.WriteString(">>\n")
 	buff.WriteString("startxref\n")
@@ -752,4 +753,9 @@ func encodeUtf8(str string) string {
 		buff.WriteString(c)
 	}
 	return buff.String()
+}
+
+func infodate(t time.Time) string {
+	ft := t.Format("20060102150405-07'00'")
+	return ft
 }

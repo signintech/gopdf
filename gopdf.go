@@ -50,7 +50,7 @@ type GoPdf struct {
 
 	//info
 	isUseInfo bool
-	info      *pdfInfoObj
+	info      *PdfInfo
 }
 
 //SetLineWidth : set line width
@@ -564,22 +564,11 @@ func (gp *GoPdf) SetProtection(permissions int, userPass []byte, ownerPass []byt
 	gp.pdfProtection.setProtection(permissions, userPass, ownerPass)
 }*/
 
-//Info pdf information
-/*
-func (gp *GoPdf) Info(author string,
-	creator string,
-	producer string,
-	creationDate time.Time,
-) {
-	info := pdfInfoObj{
-		Author:       author,
-		Creator:      creator,
-		Producer:     producer,
-		CreationDate: creationDate,
-	}
+//SetInfo set Document Information Dictionary
+func (gp *GoPdf) SetInfo(info PdfInfo) {
 	gp.info = &info
 	gp.isUseInfo = true
-}*/
+}
 
 /*---private---*/
 
@@ -700,10 +689,7 @@ func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) error {
 		buff.WriteString("/ID [()()]\n")
 	}
 	if gp.isUseInfo {
-		buff.WriteString(fmt.Sprintf("/Info <</Author <FEFF%s>\n", encodeUtf8(gp.info.Author)))
-		buff.WriteString(fmt.Sprintf("/Creator <FEFF%s>\n", encodeUtf8(gp.info.Creator)))
-		buff.WriteString(fmt.Sprintf("/Producer <FEFF%s>\n", encodeUtf8(gp.info.Creator)))
-		buff.WriteString(fmt.Sprintf("/CreationDate(D:%s)>>\n", infodate(gp.info.CreationDate)))
+		gp.bindInfo(buff)
 	}
 	buff.WriteString(">>\n")
 	buff.WriteString("startxref\n")
@@ -713,6 +699,37 @@ func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) error {
 	(*i)++
 
 	return nil
+}
+
+func (gp *GoPdf) bindInfo(buff *bytes.Buffer) {
+	var zerotime time.Time
+	buff.WriteString("/Info <<\n")
+
+	if gp.info.Author != "" {
+		buff.WriteString(fmt.Sprintf("/Author <FEFF%s>\n", encodeUtf8(gp.info.Author)))
+	}
+
+	if gp.info.Title != "" {
+		buff.WriteString(fmt.Sprintf("/Title <FEFF%s>\n", encodeUtf8(gp.info.Title)))
+	}
+
+	if gp.info.Subject != "" {
+		buff.WriteString(fmt.Sprintf("/Subject <FEFF%s>\n", encodeUtf8(gp.info.Subject)))
+	}
+
+	if gp.info.Creator != "" {
+		buff.WriteString(fmt.Sprintf("/Creator <FEFF%s>\n", encodeUtf8(gp.info.Creator)))
+	}
+
+	if gp.info.Producer != "" {
+		buff.WriteString(fmt.Sprintf("/Producer <FEFF%s>\n", encodeUtf8(gp.info.Producer)))
+	}
+
+	if !zerotime.Equal(gp.info.CreationDate) {
+		buff.WriteString(fmt.Sprintf("/CreationDate(D:%s)>>\n", infodate(gp.info.CreationDate)))
+	}
+
+	buff.WriteString(" >>\n")
 }
 
 //ปรับ xref ให้เป็น 10 หลัก

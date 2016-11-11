@@ -565,6 +565,7 @@ func (gp *GoPdf) SetProtection(permissions int, userPass []byte, ownerPass []byt
 }*/
 
 //Info pdf information
+/*
 func (gp *GoPdf) Info(author string,
 	creator string,
 	producer string,
@@ -578,7 +579,7 @@ func (gp *GoPdf) Info(author string,
 	}
 	gp.info = &info
 	gp.isUseInfo = true
-}
+}*/
 
 /*---private---*/
 

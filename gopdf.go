@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -421,20 +422,20 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 	return nil
 }
 
-//AddTTFFontWithOption : add font file
-func (gp *GoPdf) AddTTFFontWithOption(family string, ttfpath string, option TtfOption) error {
+//AddTTFFontByReader add font file
+func (gp *GoPdf) AddTTFFontByReader(family string, rd io.Reader) error {
+	return gp.AddTTFFontByReaderWithOption(family, rd, defaultTtfFontOption())
+}
 
-	if _, err := os.Stat(ttfpath); os.IsNotExist(err) {
-		return err
-	}
-
+//AddTTFFontByReaderWithOption add font file
+func (gp *GoPdf) AddTTFFontByReaderWithOption(family string, rd io.Reader, option TtfOption) error {
 	subsetFont := new(SubsetFontObj)
 	subsetFont.init(func() *GoPdf {
 		return gp
 	})
 	subsetFont.SetTtfFontOption(option)
 	subsetFont.SetFamily(family)
-	err := subsetFont.SetTTFByPath(ttfpath)
+	err := subsetFont.SetTTFByReader(rd)
 	if err != nil {
 		return err
 	}
@@ -484,6 +485,20 @@ func (gp *GoPdf) AddTTFFontWithOption(family string, ttfpath string, option TtfO
 		}
 	}
 	return nil
+}
+
+//AddTTFFontWithOption : add font file
+func (gp *GoPdf) AddTTFFontWithOption(family string, ttfpath string, option TtfOption) error {
+
+	if _, err := os.Stat(ttfpath); os.IsNotExist(err) {
+		return err
+	}
+	data, err := ioutil.ReadFile(ttfpath)
+	if err != nil {
+		return err
+	}
+	rd := bytes.NewReader(data)
+	return gp.AddTTFFontByReaderWithOption(family, rd, option)
 }
 
 //AddTTFFont : add font file

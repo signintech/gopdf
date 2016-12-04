@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"io"
+
 	"github.com/signintech/gopdf/fontmaker/core"
 )
 
@@ -91,6 +93,17 @@ func (s *SubsetFontObj) SetTTFByPath(ttfpath string) error {
 	useKerning := s.ttfFontOption.UseKerning
 	s.ttfp.SetUseKerning(useKerning)
 	err := s.ttfp.Parse(ttfpath)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//SetTTFByReader set ttf
+func (s *SubsetFontObj) SetTTFByReader(rd io.Reader) error {
+	useKerning := s.ttfFontOption.UseKerning
+	s.ttfp.SetUseKerning(useKerning)
+	err := s.ttfp.ParseByReader(rd)
 	if err != nil {
 		return err
 	}

@@ -52,6 +52,9 @@ type GoPdf struct {
 	//info
 	isUseInfo bool
 	info      *PdfInfo
+
+	//js
+	indexOfEmbedJs int
 }
 
 //SetLineWidth : set line width
@@ -583,6 +586,16 @@ func (gp *GoPdf) SetProtection(permissions int, userPass []byte, ownerPass []byt
 func (gp *GoPdf) SetInfo(info PdfInfo) {
 	gp.info = &info
 	gp.isUseInfo = true
+}
+
+//SetJs embed JavaScript inside the PDF
+func (gp *GoPdf) SetJs(jsStr string) {
+	var ejs EmbedJs
+	var ejsc EmbedJsContent
+	ejsc.setJs(jsStr)
+	indexOfEmbedJsContent := gp.addObj(&ejsc)
+	ejs.setIndexOfEmbedJsContent(indexOfEmbedJsContent)
+	gp.indexOfEmbedJs = gp.addObj(&ejs)
 }
 
 /*---private---*/

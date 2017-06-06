@@ -61,3 +61,4 @@ fontmaker/ttf/
 *.orig
 
 .vscode
+test/out/

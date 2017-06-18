@@ -2,6 +2,7 @@ package gopdf
 
 import (
 	"bytes"
+	"fmt"
 	//"fmt"
 )
 
@@ -10,10 +11,15 @@ type PageObj struct { //impl IObj
 	buffer          bytes.Buffer
 	Contents        string
 	ResourcesRelate string
+	pageOption      PageOption
 }
 
 func (p *PageObj) init(funcGetRoot func() *GoPdf) {
 
+}
+
+func (p *PageObj) setOption(opt PageOption) {
+	p.pageOption = opt
 }
 
 func (p *PageObj) build(objID int) error {
@@ -33,6 +39,11 @@ func (p *PageObj) build(objID int) error {
 	me.buffer.WriteString("    >>\n")*/
 	//me.buffer.WriteString("  >>\n")
 	p.buffer.WriteString("  /Contents " + p.Contents + "\n") //sample  Contents 8 0 R
+	if !p.pageOption.isEmpty() {
+		height := fmt.Sprintf("%0.2f", p.pageOption.PageSize.H)
+		width := fmt.Sprintf("%0.2f", p.pageOption.PageSize.W)
+		p.buffer.WriteString(" /MediaBox [ 0 0 " + width + " " + height + " ]\n")
+	}
 	p.buffer.WriteString(">>\n")
 	return nil
 }

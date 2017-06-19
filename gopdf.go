@@ -228,10 +228,24 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 
 //AddPage : add new page
 func (gp *GoPdf) AddPage() {
+	emptyOpt := PageOption{}
+	gp.AddPageWithOption(emptyOpt)
+}
+
+//AddPageWithOption  : add new page with option
+func (gp *GoPdf) AddPageWithOption(opt PageOption) {
 	page := new(PageObj)
 	page.init(func() *GoPdf {
 		return gp
 	})
+
+	if !opt.isEmpty() { //use page option
+		page.setOption(opt)
+		gp.curr.pageSize = opt.PageSize
+	} else { //use default
+		gp.curr.pageSize = gp.config.PageSize
+	}
+
 	page.ResourcesRelate = strconv.Itoa(gp.indexOfProcSet+1) + " 0 R"
 	index := gp.addObj(page)
 	if gp.indexOfFirstPageObj == -1 {

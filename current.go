@@ -35,6 +35,9 @@ type Current struct {
 	grayStroke float64
 
 	lineWidth float64
+
+	//current page size
+	pageSize Rect
 }
 
 func (c *Current) setTextColor(rgb Rgb) {

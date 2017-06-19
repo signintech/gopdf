@@ -83,7 +83,7 @@ func (c *ContentObj) AppendStreamText(text string) error {
 		setXCount:      setXCount,
 		x:              x,
 		y:              y,
-		pageheight:     c.getRoot().config.PageSize.H,
+		pageheight:     c.getRoot().curr.pageSize.H,
 		contentType:    ContentTypeText,
 		lineWidth:      c.getRoot().curr.lineWidth,
 	}
@@ -121,7 +121,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOp
 		setXCount:      setXCount,
 		x:              x,
 		y:              y,
-		pageheight:     c.getRoot().config.PageSize.H,
+		pageheight:     c.getRoot().curr.pageSize.H,
 		contentType:    ContentTypeCell,
 		cellOpt:        cellOpt,
 		lineWidth:      c.getRoot().curr.lineWidth,
@@ -139,7 +139,7 @@ func (c *ContentObj) AppendStreamLine(x1 float64, y1 float64, x2 float64, y2 flo
 	//h := c.getRoot().config.PageSize.H
 	//c.stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", x1, h-y1, x2, h-y2))
 	var cache cacheContentLine
-	cache.pageHeight = c.getRoot().config.PageSize.H
+	cache.pageHeight = c.getRoot().curr.pageSize.H
 	cache.x1 = x1
 	cache.y1 = y1
 	cache.x2 = x2
@@ -150,7 +150,7 @@ func (c *ContentObj) AppendStreamLine(x1 float64, y1 float64, x2 float64, y2 flo
 //AppendStreamRectangle : draw rectangle from lower-left corner (x, y) with specif width/height
 func (c *ContentObj) AppendStreamRectangle(x float64, y float64, wdth float64, hght float64, style string) {
 	var cache cacheContentRectangle
-	cache.pageHeight = c.getRoot().config.PageSize.H
+	cache.pageHeight = c.getRoot().curr.pageSize.H
 	cache.x = x
 	cache.y = y
 	cache.width = wdth
@@ -162,7 +162,7 @@ func (c *ContentObj) AppendStreamRectangle(x float64, y float64, wdth float64, h
 //AppendStreamOval append oval
 func (c *ContentObj) AppendStreamOval(x1 float64, y1 float64, x2 float64, y2 float64) {
 	var cache cacheContentOval
-	cache.pageHeight = c.getRoot().config.PageSize.H
+	cache.pageHeight = c.getRoot().curr.pageSize.H
 	cache.x1 = x1
 	cache.y1 = y1
 	cache.x2 = x2
@@ -181,7 +181,7 @@ func (c *ContentObj) AppendStreamOval(x1 float64, y1 float64, x2 float64, y2 flo
 //		DF or FD: draw and fill
 func (c *ContentObj) AppendStreamCurve(x0 float64, y0 float64, x1 float64, y1 float64, x2 float64, y2 float64, x3 float64, y3 float64, style string) {
 	var cache cacheContentCurve
-	cache.pageHeight = c.getRoot().config.PageSize.H
+	cache.pageHeight = c.getRoot().curr.pageSize.H
 	cache.x0 = x0
 	cache.y0 = y0
 	cache.x1 = x1
@@ -250,7 +250,7 @@ func (c *ContentObj) AppendStreamSetColorFill(r uint8, g uint8, b uint8) {
 //AppendStreamImage append image
 func (c *ContentObj) AppendStreamImage(index int, x float64, y float64, rect *Rect) {
 	//fmt.Printf("index = %d",index)
-	h := c.getRoot().config.PageSize.H
+	h := c.getRoot().curr.pageSize.H
 	c.stream.WriteString(fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", rect.W, rect.H, x, h-(y+rect.H), index+1))
 }
 

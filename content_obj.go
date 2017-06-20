@@ -2,10 +2,10 @@ package gopdf
 
 import (
 	"bytes"
+	"compress/zlib"
 	"fmt"
 	"strconv"
 	"strings"
-	"compress/zlib"
 )
 
 //ContentObj content object
@@ -30,16 +30,17 @@ func (c *ContentObj) build(objID int) error {
 	if err != nil {
 		return err
 	}
-        //zipvar buff bytes.Buffer
-        var zbuff bytes.Buffer
-        gzipwriter := zlib.NewWriter(&zbuff)
+	//zipvar buff bytes.Buffer
+	var zbuff bytes.Buffer
+	gzipwriter := zlib.NewWriter(&zbuff)
+	c.stream.WriteTo(gzipwriter)
 	buff.WriteTo(gzipwriter)
-        gzipwriter.Close()
+	gzipwriter.Close()
 
-        c.buffer.WriteString("<<\n/Filter /FlateDecode\n")
-        c.buffer.WriteString("/Length " + strconv.Itoa(zbuff.Len()) + "\n")
-        c.buffer.WriteString(">>\n")
-        c.buffer.WriteString("stream\n")
+	c.buffer.WriteString("<<\n/Filter /FlateDecode\n")
+	c.buffer.WriteString("/Length " + strconv.Itoa(zbuff.Len()) + "\n")
+	c.buffer.WriteString(">>\n")
+	c.buffer.WriteString("stream\n")
 
 	if c.protection() != nil {
 		tmp, err := rc4Cip(c.protection().objectkey(objID), zbuff.Bytes())

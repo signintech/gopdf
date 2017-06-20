@@ -157,6 +157,11 @@ func (gp *GoPdf) GetY() float64 {
 	return gp.curr.Y
 }
 
+//Img : draw image by ImgReader
+func (gp *GoPdf) Img(img ImgReader, x float64, y float64, rect *Rect) {
+
+}
+
 //Image : draw image
 func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 

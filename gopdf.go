@@ -701,12 +701,12 @@ func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) error {
 	xrefbyteoffset := buff.Len()
 	buff.WriteString("xref\n")
 	buff.WriteString("0 " + strconv.Itoa((*i)+1) + "\n")
-	buff.WriteString("0000000000 65535 f\n")
+	buff.WriteString("0000000000 65535 f \n")
 	j := 0
 	max := len(linelens)
 	for j < max {
 		linelen := linelens[j]
-		buff.WriteString(gp.formatXrefline(linelen) + " 00000 n\n")
+		buff.WriteString(gp.formatXrefline(linelen) + " 00000 n \n")
 		j++
 	}
 	buff.WriteString("trailer\n")

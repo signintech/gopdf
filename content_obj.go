@@ -2,6 +2,7 @@ package gopdf
 
 import (
 	"bytes"
+	"compress/zlib"
 	"fmt"
 	"strconv"
 	"strings"
@@ -29,22 +30,28 @@ func (c *ContentObj) build(objID int) error {
 	if err != nil {
 		return err
 	}
-	buff.WriteTo(&c.stream)
+	//zipvar buff bytes.Buffer
+	var zbuff bytes.Buffer
+	gzipwriter := zlib.NewWriter(&zbuff)
+	c.stream.WriteTo(gzipwriter)
+	buff.WriteTo(gzipwriter)
+	gzipwriter.Close()
 
-	streamlen := c.stream.Len()
-	c.buffer.WriteString("<<\n")
-	c.buffer.WriteString("/Length " + strconv.Itoa(streamlen) + "\n")
+	c.buffer.WriteString("<<\n/Filter /FlateDecode\n")
+	c.buffer.WriteString("/Length " + strconv.Itoa(zbuff.Len()) + "\n")
 	c.buffer.WriteString(">>\n")
 	c.buffer.WriteString("stream\n")
+
 	if c.protection() != nil {
-		tmp, err := rc4Cip(c.protection().objectkey(objID), c.stream.Bytes())
+		tmp, err := rc4Cip(c.protection().objectkey(objID), zbuff.Bytes())
 		if err != nil {
 			return err
 		}
 		c.buffer.Write(tmp)
 		c.buffer.WriteString("\n")
 	} else {
-		c.buffer.Write(c.stream.Bytes())
+		c.buffer.Write(zbuff.Bytes())
+		c.buffer.WriteString("\n")
 	}
 	c.buffer.WriteString("endstream\n")
 	return nil

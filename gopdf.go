@@ -157,9 +157,10 @@ func (gp *GoPdf) GetY() float64 {
 	return gp.curr.Y
 }
 
-//Img : draw image by ImgReader
-func (gp *GoPdf) Img(img ImgReader, x float64, y float64, rect *Rect) {
-
+//ImageByHolder : draw image by ImageHolder
+func (gp *GoPdf) ImageByHolder(img ImageHolder, x float64, y float64, rect *Rect) error {
+	//TODO: !!!!
+	return nil
 }
 
 //Image : draw image

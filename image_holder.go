@@ -14,12 +14,12 @@ type ImageHolder interface {
 	io.Reader
 }
 
-//ImageHolderByBytes create ImageHolder by bytes
+//ImageHolderByBytes create ImageHolder by []byte
 func ImageHolderByBytes(b []byte) (ImageHolder, error) {
 	return newImageBuff(b)
 }
 
-//ImageHolderByPath create ImageHolder by bytes
+//ImageHolderByPath create ImageHolder by image path
 func ImageHolderByPath(path string) (ImageHolder, error) {
 	return newImageFile(path)
 }

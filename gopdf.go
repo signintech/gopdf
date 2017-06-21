@@ -159,17 +159,10 @@ func (gp *GoPdf) GetY() float64 {
 
 //ImageByHolder : draw image by ImageHolder
 func (gp *GoPdf) ImageByHolder(img ImageHolder, x float64, y float64, rect *Rect) error {
-	//TODO: !!!!
-	return nil
-}
 
-//Image : draw image
-func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
-
-	//check
 	cacheImageIndex := -1
 	for _, imgcache := range gp.curr.ImgCaches {
-		if picPath == imgcache.Path {
+		if img.ID() == imgcache.Path {
 			cacheImageIndex = imgcache.Index
 			break
 		}
@@ -181,8 +174,9 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 		return gp
 	})
 	imgobj.setProtection(gp.protection())
+
 	var err error
-	err = imgobj.SetImagePath(picPath)
+	err = imgobj.SetImage(img)
 	if err != nil {
 		return err
 	}
@@ -205,7 +199,7 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 			//เก็บข้อมูลรูปเอาไว้
 			var imgcache ImageCache
 			imgcache.Index = gp.curr.CountOfImg
-			imgcache.Path = picPath
+			imgcache.Path = img.ID()
 			gp.curr.ImgCaches = append(gp.curr.ImgCaches, imgcache)
 			gp.curr.CountOfImg++
 		}
@@ -230,6 +224,15 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 		gp.getContent().AppendStreamImage(cacheImageIndex, x, y, rect)
 	}
 	return nil
+}
+
+//Image : draw image
+func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
+	imgh, err := ImageHolderByPath(picPath)
+	if err != nil {
+		return err
+	}
+	return gp.ImageByHolder(imgh, x, y, rect)
 }
 
 //AddPage : add new page

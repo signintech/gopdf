@@ -49,7 +49,7 @@ func (c *Current) textColor() Rgb {
 }
 
 type ImageCache struct {
-	Path  string
+	Path  string //ID or Path
 	Index int
 }
 

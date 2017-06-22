@@ -127,7 +127,7 @@ func (i *ImageObj) SetImage(r io.Reader) error {
 //GetRect get rect of img
 func (i *ImageObj) GetRect() *Rect {
 
-	m, _, err := image.Decode(bytes.NewBuffer(i.raw))
+	m, _, err := image.Decode(bytes.NewReader(i.raw))
 	if err != nil {
 		return nil
 	}

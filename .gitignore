@@ -63,3 +63,5 @@ fontmaker/ttf/
 .vscode
 test/out/
 test/debug.test
+*.test
+*.out

@@ -30,7 +30,7 @@ func BenchmarkPdfWithImageHolder(b *testing.B) {
 		return
 	}
 
-	bytesOfImg, err := ioutil.ReadFile("./test/res/gopher02.png")
+	bytesOfImg, err := ioutil.ReadFile("./test/res/chilli.jpg")
 	if err != nil {
 		b.Error(err)
 		return

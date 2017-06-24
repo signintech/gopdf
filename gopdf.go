@@ -168,25 +168,31 @@ func (gp *GoPdf) ImageByHolder(img ImageHolder, x float64, y float64, rect *Rect
 		}
 	}
 
-	//create img object
-	imgobj := new(ImageObj)
-	imgobj.init(func() *GoPdf {
-		return gp
-	})
-	imgobj.setProtection(gp.protection())
-
-	var err error
-	err = imgobj.SetImage(img)
-	if err != nil {
-		return err
-	}
-
-	if rect == nil {
-		rect = imgobj.GetRect()
-	}
-
 	if cacheImageIndex == -1 { //new image
-		err := imgobj.parse()
+
+		//create img object
+		imgobj := new(ImageObj)
+		imgobj.init(func() *GoPdf {
+			return gp
+		})
+		imgobj.setProtection(gp.protection())
+
+		err := imgobj.SetImage(img)
+		if err != nil {
+			return err
+		}
+
+		var imgRect *Rect
+		if rect == nil {
+			imgRect, err = imgobj.getRect()
+			if err != nil {
+				return err
+			}
+		} else {
+			imgRect = rect
+		}
+
+		err = imgobj.parse()
 		if err != nil {
 			return err
 		}
@@ -194,12 +200,13 @@ func (gp *GoPdf) ImageByHolder(img ImageHolder, x float64, y float64, rect *Rect
 		if gp.indexOfProcSet != -1 {
 			//ยัดรูป
 			procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
-			gp.getContent().AppendStreamImage(gp.curr.CountOfImg, x, y, rect)
+			gp.getContent().AppendStreamImage(gp.curr.CountOfImg, x, y, imgRect)
 			procset.RealteXobjs = append(procset.RealteXobjs, RealteXobject{IndexOfObj: index})
 			//เก็บข้อมูลรูปเอาไว้
 			var imgcache ImageCache
 			imgcache.Index = gp.curr.CountOfImg
 			imgcache.Path = img.ID()
+			imgcache.Rect = imgRect
 			gp.curr.ImgCaches = append(gp.curr.ImgCaches, imgcache)
 			gp.curr.CountOfImg++
 		}
@@ -221,7 +228,13 @@ func (gp *GoPdf) ImageByHolder(img ImageHolder, x float64, y float64, rect *Rect
 		}
 
 	} else { //same img
-		gp.getContent().AppendStreamImage(cacheImageIndex, x, y, rect)
+		var imgRect *Rect
+		if rect == nil {
+			imgRect = gp.curr.ImgCaches[cacheImageIndex].Rect
+		} else {
+			imgRect = rect
+		}
+		gp.getContent().AppendStreamImage(cacheImageIndex, x, y, imgRect)
 	}
 	return nil
 }

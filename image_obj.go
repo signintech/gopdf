@@ -8,6 +8,7 @@ import (
 	_ "image/png"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 )
 
@@ -16,7 +17,7 @@ type ImageObj struct {
 	buffer bytes.Buffer
 	//imagepath string
 
-	raw           []byte
+	rawImgReader  *bytes.Reader
 	imginfo       imgInfo
 	pdfProtection *PDFProtection
 	//getRoot func() *GoPdf
@@ -115,11 +116,12 @@ func (i *ImageObj) SetImagePath(path string) error {
 
 //SetImage set image
 func (i *ImageObj) SetImage(r io.Reader) error {
-	var err error
-	i.raw, err = ioutil.ReadAll(r)
+
+	data, err := ioutil.ReadAll(r)
 	if err != nil {
 		return err
 	}
+	i.rawImgReader = bytes.NewReader(data)
 
 	return nil
 }
@@ -127,9 +129,20 @@ func (i *ImageObj) SetImage(r io.Reader) error {
 //GetRect get rect of img
 func (i *ImageObj) GetRect() *Rect {
 
-	m, _, err := image.Decode(bytes.NewReader(i.raw))
+	rect, err := i.getRect()
 	if err != nil {
-		return nil
+		log.Fatalf("%+v", err)
+	}
+	return rect
+}
+
+//GetRect get rect of img
+func (i *ImageObj) getRect() (*Rect, error) {
+
+	i.rawImgReader.Seek(0, 0)
+	m, _, err := image.Decode(i.rawImgReader)
+	if err != nil {
+		return nil, err
 	}
 
 	imageRect := m.Bounds()
@@ -153,12 +166,13 @@ func (i *ImageObj) GetRect() *Rect {
 	rect.H = float64(h)
 	rect.W = float64(w)
 
-	return rect
+	return rect, nil
 }
 
 func (i *ImageObj) parse() error {
 
-	imginfo, err := parseImg(i.raw)
+	i.rawImgReader.Seek(0, 0)
+	imginfo, err := parseImg(i.rawImgReader)
 	if err != nil {
 		return err
 	}

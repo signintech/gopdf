@@ -74,10 +74,11 @@ func haveSMask(imginfo imgInfo) bool {
 	return false
 }
 
-func parseImg(raw []byte) (imgInfo, error) {
+func parseImg(raw *bytes.Reader) (imgInfo, error) {
 	//fmt.Printf("----------\n")
 	var info imgInfo
-	imgConfig, formatname, err := image.DecodeConfig(bytes.NewBuffer(raw))
+	raw.Seek(0, 0)
+	imgConfig, formatname, err := image.DecodeConfig(raw)
 	if err != nil {
 		return info, err
 	}
@@ -89,7 +90,12 @@ func parseImg(raw []byte) (imgInfo, error) {
 		if err != nil {
 			return info, err
 		}
-		info.data = raw
+		raw.Seek(0, 0)
+		info.data, err = ioutil.ReadAll(raw)
+		if err != nil {
+			return info, err
+		}
+
 	} else if formatname == "png" {
 		err = paesePng(raw, &info, imgConfig)
 		if err != nil {
@@ -124,8 +130,8 @@ func parseImgJpg(info *imgInfo, imgConfig image.Config) error {
 var pngMagicNumber = []byte{0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a}
 var pngIHDR = []byte{0x49, 0x48, 0x44, 0x52}
 
-func paesePng(raw []byte, info *imgInfo, imgConfig image.Config) error {
-	f := bytes.NewReader(raw)
+func paesePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
+	//f := bytes.NewReader(raw)
 	f.Seek(0, 0)
 	b, err := readBytes(f, 8)
 	if err != nil {

@@ -2,6 +2,7 @@ package gopdf
 
 import (
 	"bytes"
+	"compress/zlib" // for constants
 	"errors"
 	"fmt"
 	"io"
@@ -49,6 +50,9 @@ type GoPdf struct {
 	pdfProtection   *PDFProtection
 	encryptionObjID int
 
+	// content streams only
+	compressLevel int
+
 	//info
 	isUseInfo bool
 	info      *PdfInfo
@@ -58,6 +62,31 @@ type GoPdf struct {
 func (gp *GoPdf) SetLineWidth(width float64) {
 	gp.curr.lineWidth = width
 	gp.getContent().AppendStreamSetLineWidth(width)
+}
+
+//SetCompressLevel : set compress Level for content streams
+// Possible values for level:
+//    -2 HuffmanOnly, -1 DefaultCompression (which is level 6)
+//     0 No compression,
+//     1 fastest compression, but not very good ratio
+//     9 best compression, but slowest
+func (gp *GoPdf) SetCompressLevel(level int) {
+	errfmt := "compress level too %s, using %s instead\n"
+	if level < zlib.HuffmanOnly {
+		fmt.Fprintf(os.Stderr, errfmt, "small", "DefaultCompression")
+		level = zlib.DefaultCompression
+	} else if level > zlib.BestCompression {
+		fmt.Fprintf(os.Stderr, errfmt, "big", "BestCompression")
+		level = zlib.BestCompression
+		return
+	}
+	// sanity check complete
+	gp.compressLevel = level
+}
+
+//SetNoCompression: compressLevel = 0
+func (gp *GoPdf) SetNoCompression() {
+	gp.compressLevel = zlib.NoCompression
 }
 
 //SetLineType : set line type  ("dashed" ,"dotted")
@@ -646,6 +675,9 @@ func (gp *GoPdf) init() {
 	//No underline
 	//gp.IsUnderline = false
 	gp.curr.lineWidth = 1
+
+	// default to zlib.DefaultCompression
+	gp.compressLevel = zlib.DefaultCompression
 }
 
 func (gp *GoPdf) resetCurrXY() {

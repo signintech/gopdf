@@ -30,28 +30,48 @@ func (c *ContentObj) build(objID int) error {
 	if err != nil {
 		return err
 	}
-	//zipvar buff bytes.Buffer
-	var zbuff bytes.Buffer
-	gzipwriter := zlib.NewWriter(&zbuff)
-	c.stream.WriteTo(gzipwriter)
-	buff.WriteTo(gzipwriter)
-	gzipwriter.Close()
+	isFlate := (c.getRoot().compressLevel != zlib.NoCompression)
 
-	c.buffer.WriteString("<<\n/Filter /FlateDecode\n")
-	c.buffer.WriteString("/Length " + strconv.Itoa(zbuff.Len()) + "\n")
+	//zipvar buff bytes.Buffer
+	var cPtr *bytes.Buffer // "Pointer to content"
+	if isFlate {
+		var zbuff bytes.Buffer
+		zwriter, err := zlib.NewWriterLevel(&zbuff,
+			c.getRoot().compressLevel)
+		if err != nil {
+			// should never happen...
+			return err
+		}
+		c.stream.WriteTo(zwriter)
+		buff.WriteTo(zwriter)
+		zwriter.Close()
+		cPtr = &zbuff
+	} else {
+		// zlib compressLevel = 0 adds header and thus
+		// needs /FlateDecode => pass through
+		buff.WriteTo(&c.stream)
+		cPtr = &c.stream
+	}
+	streamlen := (*cPtr).Len()
+	c.buffer.WriteString("<<\n")
+	if isFlate {
+		c.buffer.WriteString("/Filter/FlateDecode")
+	}
+	c.buffer.WriteString("/Length " + strconv.Itoa(streamlen) + "\n")
 	c.buffer.WriteString(">>\n")
 	c.buffer.WriteString("stream\n")
-
 	if c.protection() != nil {
-		tmp, err := rc4Cip(c.protection().objectkey(objID), zbuff.Bytes())
+		tmp, err := rc4Cip(c.protection().objectkey(objID), (*cPtr).Bytes())
 		if err != nil {
 			return err
 		}
 		c.buffer.Write(tmp)
 		c.buffer.WriteString("\n")
 	} else {
-		c.buffer.Write(zbuff.Bytes())
-		c.buffer.WriteString("\n")
+		c.buffer.Write((*cPtr).Bytes())
+		if isFlate {
+			c.buffer.WriteString("\n")
+		}
 	}
 	c.buffer.WriteString("endstream\n")
 	return nil

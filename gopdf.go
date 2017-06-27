@@ -72,7 +72,7 @@ func (gp *GoPdf) SetLineWidth(width float64) {
 //     9 best compression, but slowest
 func (gp *GoPdf) SetCompressLevel(level int) {
 	errfmt := "compress level too %s, using %s instead\n"
-	if level < zlib.HuffmanOnly {
+	if level < -2 { //-2 = zlib.HuffmanOnly
 		fmt.Fprintf(os.Stderr, errfmt, "small", "DefaultCompression")
 		level = zlib.DefaultCompression
 	} else if level > zlib.BestCompression {
@@ -84,7 +84,7 @@ func (gp *GoPdf) SetCompressLevel(level int) {
 	gp.compressLevel = level
 }
 
-//SetNoCompression: compressLevel = 0
+//SetNoCompression : compressLevel = 0
 func (gp *GoPdf) SetNoCompression() {
 	gp.compressLevel = zlib.NoCompression
 }

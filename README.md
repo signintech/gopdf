@@ -4,12 +4,13 @@ gopdf
 gopdf is a simple library for generating PDF document written in Go lang.
 
 
-#### Changelogs
+#### Features
 
-**2015-08-07**
-
-- Add support for Unicode subfont embedding. (Chinese, Korean and Japanese fonts are now supported.)
-- No longer need to create font maps.
+- Support for Unicode subfont embedding. (Chinese, Korean, Japanese and Musical Symbols fonts are now supported.)
+- Draw line, oval, rect, curve
+- Draw image ( jpg, png )
+- PDF password protection
+- Support font [kerning](https://en.wikipedia.org/wiki/Kerning)
 
 
 ## Installation
@@ -18,40 +19,40 @@ gopdf is a simple library for generating PDF document written in Go lang.
  ```
 
 
-## Sample code : Print text 
+### Print text 
 
-  ```go
+```go
   
-  package main
-  import (
+package main
+import (
 	"log"
 	"github.com/signintech/gopdf"
-  )
+)
 
-  func main() {
+func main() {
 
-    pdf := gopdf.GoPdf{}
-    pdf.Start(gopdf.Config{ PageSize: gopdf.Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
-    pdf.AddPage()
-    err := pdf.AddTTFFont("HDZB_5", "../ttf/wts11.ttf")
-    if err != nil {
-        log.Print(err.Error())
-        return
-    }
-    
-    err = pdf.SetFont("HDZB_5", "", 14)
-    if err != nil {
-        log.Print(err.Error())
-        return
-    }
-    pdf.Cell(nil, "您好")
-    pdf.WritePdf("hello.pdf")
+	pdf := gopdf.GoPdf{}
+	pdf.Start(gopdf.Config{ PageSize: gopdf.Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf.AddPage()
+	err := pdf.AddTTFFont("wts11", "../ttf/wts11.ttf")
+	if err != nil {
+		log.Print(err.Error())
+		return
+	}
 
-  }
+	err = pdf.SetFont("wts11", "", 14)
+	if err != nil {
+		log.Print(err.Error())
+		return
+	}
+	pdf.Cell(nil, "您好")
+	pdf.WritePdf("hello.pdf")
 
-  ```
+}
+
+```
   
-## Sample code : Image
+### Image
   
 ```go
 
@@ -85,6 +86,50 @@ func main() {
 	pdf.WritePdf("image.pdf")
 }
   
+```
+
+### Draw line
+```go
+pdf.SetLineWidth(2)
+pdf.SetLineType("dashed")
+pdf.Line(10, 30, 585, 30)
+```
+
+### Draw oval
+```go
+pdf.SetLineWidth(1)
+pdf.Oval(100, 200, 500, 500)
+```
+
+### Password protection
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/signintech/gopdf"
+)
+
+
+func main() {
+
+	pdf := gopdf.GoPdf{}
+	pdf.Start(gopdf.Config{
+		PageSize: gopdf.Rect{W: 595.28, H: 841.89}, //595.28, 841.89 = A4
+		Protection: gopdf.PDFProtectionConfig{
+			UseProtection: true,
+			Permissions: gopdf.PermissionsPrint | gopdf.PermissionsCopy | gopdf.PermissionsModify,
+			OwnerPass:   []byte("123456"),
+			UserPass:    []byte("123456789")},
+	})
+
+	pdf.AddPage()
+	pdf.AddTTFFont("loma", "../ttf/loma.ttf")
+	pdf.Cell(nil,"Hi")
+	pdf.WritePdf("protect.pdf")
+}
+
 ```
   
 visit https://github.com/oneplus1000/gopdfsample for more samples.

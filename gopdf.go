@@ -84,7 +84,7 @@ func (gp *GoPdf) SetCompressLevel(level int) {
 	gp.compressLevel = level
 }
 
-//SetNoCompression: compressLevel = 0
+//SetNoCompression : compressLevel = 0
 func (gp *GoPdf) SetNoCompression() {
 	gp.compressLevel = zlib.NoCompression
 }

@@ -6,11 +6,11 @@ gopdf is a simple library for generating PDF document written in Go lang.
 
 #### Features
 
-- Support for Unicode subfont embedding. (Chinese, Korean, Japanese and Musical Symbols fonts are now supported.)
+- Unicode subfont embedding. (Chinese, Japanese, Korean, etc.)
 - Draw line, oval, rect, curve
 - Draw image ( jpg, png )
-- PDF password protection
-- Support font [kerning](https://en.wikipedia.org/wiki/Kerning)
+- Password protection
+- Font [kerning](https://en.wikipedia.org/wiki/Kerning)
 
 
 ## Installation

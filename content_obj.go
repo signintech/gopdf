@@ -3,7 +3,6 @@ package gopdf
 import (
 	"bytes"
 	"compress/zlib"
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -278,7 +277,13 @@ func (c *ContentObj) AppendStreamSetColorFill(r uint8, g uint8, b uint8) {
 func (c *ContentObj) AppendStreamImage(index int, x float64, y float64, rect *Rect) {
 	//fmt.Printf("index = %d",index)
 	h := c.getRoot().curr.pageSize.H
-	c.stream.WriteString(fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", rect.W, rect.H, x, h-(y+rect.H), index+1))
+	var cache cacheContentImage
+	cache.h = h
+	cache.x = x
+	cache.y = y
+	cache.rect = *rect
+	c.listCache.append(&cache)
+	//c.stream.WriteString(fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", rect.W, rect.H, x, h-(y+rect.H), index+1))
 }
 
 //ContentObj_CalTextHeight calculate height of text

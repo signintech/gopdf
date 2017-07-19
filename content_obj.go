@@ -282,6 +282,7 @@ func (c *ContentObj) AppendStreamImage(index int, x float64, y float64, rect *Re
 	cache.x = x
 	cache.y = y
 	cache.rect = *rect
+	cache.index = index
 	c.listCache.append(&cache)
 	//c.stream.WriteString(fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", rect.W, rect.H, x, h-(y+rect.H), index+1))
 }

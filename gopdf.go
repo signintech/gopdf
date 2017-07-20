@@ -860,3 +860,5 @@ func infodate(t time.Time) string {
 	ft := t.Format("20060102150405-07'00'")
 	return ft
 }
+
+//tool for validate pdf https://www.pdf-online.com/osa/validate.aspx

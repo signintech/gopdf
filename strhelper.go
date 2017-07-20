@@ -1,6 +1,9 @@
 package gopdf
 
-import "math/big"
+import (
+	"math/big"
+	"strings"
+)
 
 //StrHelperGetStringWidth get string width
 func StrHelperGetStringWidth(str string, fontSize int, ifont IFont) float64 {
@@ -17,7 +20,8 @@ func StrHelperGetStringWidth(str string, fontSize int, ifont IFont) float64 {
 
 //CreateEmbeddedFontSubsetName create Embedded font (subset font) name
 func CreateEmbeddedFontSubsetName(name string) string {
-	//TODO ทำด้วย  :-)
+	name = strings.Replace(name, " ", "+", -1)
+	name = strings.Replace(name, "/", "+", -1)
 	return name
 }
 

@@ -18,7 +18,7 @@ type SubsetFontObj struct {
 	buffer                bytes.Buffer
 	ttfp                  core.TTFParser
 	Family                string
-	CharacterToGlyphIndex map[rune]uint
+	CharacterToGlyphIndex *MapOfCharacterToGlyphIndex
 	CountOfFont           int
 	indexObjCIDFont       int
 	indexObjUnicodeMap    int
@@ -27,7 +27,7 @@ type SubsetFontObj struct {
 }
 
 func (s *SubsetFontObj) init(funcGetRoot func() *GoPdf) {
-	s.CharacterToGlyphIndex = make(map[rune]uint)
+	s.CharacterToGlyphIndex = NewMapOfCharacterToGlyphIndex() //make(map[rune]uint)
 	s.funcKernOverride = nil
 }
 
@@ -113,32 +113,43 @@ func (s *SubsetFontObj) SetTTFByReader(rd io.Reader) error {
 //AddChars add char to map CharacterToGlyphIndex
 func (s *SubsetFontObj) AddChars(txt string) error {
 	for _, runeValue := range txt {
-		if _, ok := s.CharacterToGlyphIndex[runeValue]; ok {
+		if s.CharacterToGlyphIndex.KeyExists(runeValue) {
 			continue
 		}
 		glyphIndex, err := s.CharCodeToGlyphIndex(runeValue)
 		if err != nil {
 			return err
 		}
-		s.CharacterToGlyphIndex[runeValue] = glyphIndex
+		s.CharacterToGlyphIndex.Set(runeValue, glyphIndex) // [runeValue] = glyphIndex
 	}
 	return nil
 }
 
 //CharIndex index of char in glyph table
 func (s *SubsetFontObj) CharIndex(r rune) (uint, error) {
-	//fmt.Printf("len = %d\n", len(s.CharacterToGlyphIndex))
-	if index, ok := s.CharacterToGlyphIndex[r]; ok {
-		return index, nil
+	/*
+		if index, ok := s.CharacterToGlyphIndex[r]; ok {
+			return index, nil
+		}
+		return 0, ErrCharNotFound
+	*/
+	glyIndex, ok := s.CharacterToGlyphIndex.Val(r)
+	if ok {
+		return glyIndex, nil
 	}
 	return 0, ErrCharNotFound
 }
 
 //CharWidth with of char
 func (s *SubsetFontObj) CharWidth(r rune) (uint, error) {
-	glyphIndex := s.CharacterToGlyphIndex
+	/*glyphIndex := s.CharacterToGlyphIndex
 	if index, ok := glyphIndex[r]; ok {
 		return s.GlyphIndexToPdfWidth(index), nil
+	}
+	return 0, ErrCharNotFound*/
+	glyIndex, ok := s.CharacterToGlyphIndex.Val(r)
+	if ok {
+		return s.GlyphIndexToPdfWidth(glyIndex), nil
 	}
 	return 0, ErrCharNotFound
 }

@@ -96,7 +96,7 @@ func (p *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 
 	numGlyphs := int(ttfp.NumGlyphs())
 
-	_, glyphArray := p.completeGlyphClosure(p.PtrToSubsetFontObj.CharacterToGlyphIndex)
+	glyphArray := p.completeGlyphClosure(p.PtrToSubsetFontObj.CharacterToGlyphIndex)
 	glyphCount := len(glyphArray)
 	sort.Ints(glyphArray)
 
@@ -250,10 +250,11 @@ func (p *PdfDictionaryObj) makeFont() ([]byte, error) {
 	return buff.Bytes(), nil
 }
 
-func (p *PdfDictionaryObj) completeGlyphClosure(glyphs map[rune]uint) (map[rune]uint, []int) {
+func (p *PdfDictionaryObj) completeGlyphClosure(mapOfglyphs *MapOfCharacterToGlyphIndex) []int {
 	var glyphArray []int
 	//copy
 	isContainZero := false
+	glyphs := mapOfglyphs.AllVals()
 	for _, v := range glyphs {
 		glyphArray = append(glyphArray, int(v))
 		if v == 0 {
@@ -270,7 +271,7 @@ func (p *PdfDictionaryObj) completeGlyphClosure(glyphs map[rune]uint) (map[rune]
 		p.AddCompositeGlyphs(&glyphArray, glyphArray[i])
 		i++
 	}
-	return glyphs, glyphArray
+	return glyphArray
 }
 
 //AddCompositeGlyphs add composite glyph

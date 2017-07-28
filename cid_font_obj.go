@@ -27,9 +27,9 @@ func (ci *CIDFontObj) build(objID int) error {
 	ci.buffer.WriteString(fmt.Sprintf("/FontDescriptor %d 0 R\n", ci.indexObjSubfontDescriptor+1)) //TODO fix
 	ci.buffer.WriteString("/Subtype /CIDFontType2\n")
 	ci.buffer.WriteString("/Type /Font\n")
-	characterToGlyphIndex := ci.PtrToSubsetFontObj.CharacterToGlyphIndex
+	glyphIndexs := ci.PtrToSubsetFontObj.CharacterToGlyphIndex.AllVals()
 	ci.buffer.WriteString("/W [")
-	for _, v := range characterToGlyphIndex {
+	for _, v := range glyphIndexs {
 		width := ci.PtrToSubsetFontObj.GlyphIndexToPdfWidth(v)
 		ci.buffer.WriteString(fmt.Sprintf("%d[%d]", v, width))
 	}

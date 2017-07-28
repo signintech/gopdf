@@ -49,7 +49,7 @@ func (u *UnicodeMap) getObjBuff() *bytes.Buffer {
 
 func (u *UnicodeMap) pdfToUnicodeMap(objID int) (*bytes.Buffer, error) {
 	//stream
-	characterToGlyphIndex := u.PtrToSubsetFontObj.CharacterToGlyphIndex
+	//characterToGlyphIndex := u.PtrToSubsetFontObj.CharacterToGlyphIndex
 	prefix :=
 		"/CIDInit /ProcSet findresource begin\n" +
 			"12 dict begin\n" +
@@ -58,10 +58,13 @@ func (u *UnicodeMap) pdfToUnicodeMap(objID int) (*bytes.Buffer, error) {
 			"/CMapName /Adobe-Identity-UCS def /CMapType 2 def\n"
 	suffix := "endcmap CMapName currentdict /CMap defineresource pop end end"
 
-	glyphIndexToCharacter := make(map[int]rune)
+	glyphIndexToCharacter := newMapGlyphIndexToCharacter() //make(map[int]rune)
 	lowIndex := 65536
 	hiIndex := -1
-	for k, v := range characterToGlyphIndex {
+
+	keys := u.PtrToSubsetFontObj.CharacterToGlyphIndex.AllKeys()
+	for _, k := range keys {
+		v, _ := u.PtrToSubsetFontObj.CharacterToGlyphIndex.Val(k)
 		index := int(v)
 		if index < lowIndex {
 			lowIndex = index
@@ -69,7 +72,8 @@ func (u *UnicodeMap) pdfToUnicodeMap(objID int) (*bytes.Buffer, error) {
 		if index > hiIndex {
 			hiIndex = index
 		}
-		glyphIndexToCharacter[index] = k
+		//glyphIndexToCharacter[index] = k
+		glyphIndexToCharacter.set(index, k)
 	}
 
 	var buff bytes.Buffer
@@ -77,8 +81,10 @@ func (u *UnicodeMap) pdfToUnicodeMap(objID int) (*bytes.Buffer, error) {
 	buff.WriteString("1 begincodespacerange\n")
 	buff.WriteString(fmt.Sprintf("<%04X><%04X>\n", lowIndex, hiIndex))
 	buff.WriteString("endcodespacerange\n")
-	buff.WriteString(fmt.Sprintf("%d beginbfrange\n", len(glyphIndexToCharacter)))
-	for k, v := range glyphIndexToCharacter {
+	buff.WriteString(fmt.Sprintf("%d beginbfrange\n", glyphIndexToCharacter.size()))
+	indexs := glyphIndexToCharacter.allIndexs()
+	for _, k := range indexs {
+		v, _ := glyphIndexToCharacter.runeByIndex(k)
 		buff.WriteString(fmt.Sprintf("<%04X><%04X><%04X>\n", k, k, v))
 	}
 	buff.WriteString("endbfrange\n")
@@ -114,4 +120,40 @@ func (u *UnicodeMap) GetObjBuff() *bytes.Buffer {
 //Build build buffer
 func (u *UnicodeMap) Build(objID int) error {
 	return u.build(objID)
+}
+
+type mapGlyphIndexToCharacter struct {
+	runes  []rune
+	indexs []int
+}
+
+func newMapGlyphIndexToCharacter() *mapGlyphIndexToCharacter {
+	var m mapGlyphIndexToCharacter
+	return &m
+}
+
+func (m *mapGlyphIndexToCharacter) set(index int, r rune) {
+	m.runes = append(m.runes, r)
+	m.indexs = append(m.indexs, index)
+}
+
+func (m *mapGlyphIndexToCharacter) size() int {
+	return len(m.indexs)
+}
+
+func (m *mapGlyphIndexToCharacter) allIndexs() []int {
+	return m.indexs
+}
+
+func (m *mapGlyphIndexToCharacter) runeByIndex(index int) (rune, bool) {
+	var r rune
+	ok := false
+	for i, idx := range m.indexs {
+		if idx == index {
+			r = m.runes[i]
+			ok = true
+			break
+		}
+	}
+	return r, ok
 }

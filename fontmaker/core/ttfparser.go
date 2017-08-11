@@ -786,7 +786,7 @@ func (t *TTFParser) FTell(fd *bytes.Reader) (uint, error) {
 	return uint(offset), err
 }
 
-//ParseHead parse hmtx table  https://www.microsoft.com/typography/otspec/hmtx.htm
+//ParseHmtx parse hmtx table  https://www.microsoft.com/typography/otspec/hmtx.htm
 func (t *TTFParser) ParseHmtx(fd *bytes.Reader) error {
 
 	t.Seek(fd, "hmtx")
@@ -954,6 +954,7 @@ func (t *TTFParser) ParseMaxp(fd *bytes.Reader) error {
 	return nil
 }
 
+//ErrTableNotFound error table not found
 var ErrTableNotFound = errors.New("table not found")
 
 //Seek seek by tag

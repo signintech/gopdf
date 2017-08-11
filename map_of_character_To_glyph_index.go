@@ -2,38 +2,47 @@ package gopdf
 
 //MapOfCharacterToGlyphIndex map of CharacterToGlyphIndex
 type MapOfCharacterToGlyphIndex struct {
-	Keys []rune
-	Vals []uint
+	keyIndexs map[rune]int //for search index in keys
+	Keys      []rune
+	Vals      []uint
 }
 
 //NewMapOfCharacterToGlyphIndex new CharacterToGlyphIndex
 func NewMapOfCharacterToGlyphIndex() *MapOfCharacterToGlyphIndex {
 	var m MapOfCharacterToGlyphIndex
+	m.keyIndexs = make(map[rune]int)
 	return &m
 }
 
 //KeyExists key is exists?
 func (m *MapOfCharacterToGlyphIndex) KeyExists(k rune) bool {
-	for _, key := range m.Keys {
+	/*for _, key := range m.Keys {
 		if k == key {
 			return true
 		}
+	}*/
+	if _, ok := m.keyIndexs[k]; ok {
+		return true
 	}
 	return false
 }
 
 //Set set key and value to map
 func (m *MapOfCharacterToGlyphIndex) Set(k rune, v uint) {
+	m.keyIndexs[k] = len(m.Keys)
 	m.Keys = append(m.Keys, k)
 	m.Vals = append(m.Vals, v)
 }
 
 //Index get index by key
 func (m *MapOfCharacterToGlyphIndex) Index(k rune) (int, bool) {
-	for i, key := range m.Keys {
+	/*for i, key := range m.Keys {
 		if k == key {
 			return i, true
 		}
+	}*/
+	if index, ok := m.keyIndexs[k]; ok {
+		return index, true
 	}
 	return -1, false
 }

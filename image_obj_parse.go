@@ -384,12 +384,12 @@ func paesePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 }
 
 func compress(data []byte) ([]byte, error) {
-	buff := GetBuffer()
-	defer PutBuffer(buff)
+	var results []byte
+	var buff bytes.Buffer
+	zwr, err := zlib.NewWriterLevel(&buff, zlib.BestSpeed)
 
-	zwr, err := zlib.NewWriterLevel(buff, zlib.BestSpeed)
 	if err != nil {
-		return nil, err
+		return results, err
 	}
 	_, err = zwr.Write(data)
 	if err != nil {

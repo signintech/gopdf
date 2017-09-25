@@ -44,7 +44,6 @@ func (c *ContentObj) write(w io.Writer, objID int) error {
 	}
 
 	streamlen := buff.Len()
-	println(streamlen)
 
 	io.WriteString(w, "<<\n")
 	if isFlate {

@@ -40,15 +40,13 @@ func writeImgProp(w io.Writer, imginfo imgInfo) error {
 	if imginfo.trns != nil && len(imginfo.trns) > 0 {
 		j := 0
 		max := len(imginfo.trns)
-		var trns bytes.Buffer
+		io.WriteString(w, "/Mask [")
 		for j < max {
-			//trn := int(imginfo.trns[j])
-			//trns.WriteByte(imginfo.trns[j])
 			fmt.Fprintf(w, "%d ", imginfo.trns[j])
 			fmt.Fprintf(w, "%d ", imginfo.trns[j])
 			j++
 		}
-		fmt.Fprintf(w, "/Mask [%s]\n", trns.String())
+		io.WriteString(w, "]\n")
 	}
 
 	if haveSMask(imginfo) {

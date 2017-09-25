@@ -1,6 +1,6 @@
 package gopdf
 
-import "bytes"
+import "io"
 
 type listCacheContent struct {
 	caches []iCacheContent
@@ -62,27 +62,11 @@ func (l *listCacheContent) appendContentText(cache cacheContentText, text string
 	return x, y, nil
 }
 
-func (l *listCacheContent) toStream(protection *PDFProtection) (*bytes.Buffer, error) {
-	var buff bytes.Buffer
+func (l *listCacheContent) write(w io.Writer, protection *PDFProtection) error {
 	for _, cache := range l.caches {
-		stream, err := cache.toStream(protection)
-		if err != nil {
-			return nil, err
-		}
-		_, err = stream.WriteTo(&buff)
-		if err != nil {
-			return nil, err
+		if err := cache.write(w, protection); err != nil {
+			return err
 		}
 	}
-	return &buff, nil
+	return nil
 }
-
-/*
-func (l *listCacheContent) debug() string {
-	var buff bytes.Buffer
-	for _, cache := range l.caches {
-		buff.WriteString(cache.text.String())
-		buff.WriteString("\n")
-	}
-	return buff.String()
-}*/

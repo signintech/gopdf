@@ -1,11 +1,11 @@
 package gopdf
 
 import (
-	"bytes"
 	"compress/zlib"
 	"errors"
+	"fmt"
+	"io"
 	"sort"
-	"strconv"
 
 	"github.com/signintech/gopdf/fontmaker/core"
 )
@@ -24,7 +24,6 @@ var ErrNotSupportShortIndexYet = errors.New("not suport none short index yet")
 
 //PdfDictionaryObj pdf dictionary object
 type PdfDictionaryObj struct {
-	buffer             bytes.Buffer
 	PtrToSubsetFontObj *SubsetFontObj
 	//getRoot            func() *GoPdf
 	pdfProtection *PDFProtection
@@ -42,7 +41,7 @@ func (p *PdfDictionaryObj) protection() *PDFProtection {
 	return p.pdfProtection
 }
 
-func (p *PdfDictionaryObj) build(objID int) error {
+func (p *PdfDictionaryObj) write(w io.Writer, objID int) error {
 	b, err := p.makeFont()
 	if err != nil {
 		//log.Panicf("%s", err.Error())
@@ -50,39 +49,38 @@ func (p *PdfDictionaryObj) build(objID int) error {
 	}
 
 	//zipvar buff bytes.Buffer
-	var zbuff bytes.Buffer
-	gzipwriter := zlib.NewWriter(&zbuff)
+	zbuff := GetBuffer()
+	defer PutBuffer(zbuff)
+
+	gzipwriter := zlib.NewWriter(zbuff)
 	_, err = gzipwriter.Write(b)
 	if err != nil {
 		return err
 	}
 	gzipwriter.Close()
 
-	p.buffer.WriteString("<</Length " + strconv.Itoa(zbuff.Len()) + "\n")
-	p.buffer.WriteString("/Filter /FlateDecode\n")
-	p.buffer.WriteString("/Length1 " + strconv.Itoa(len(b)) + "\n")
-	p.buffer.WriteString(">>\n")
-	p.buffer.WriteString("stream\n")
+	fmt.Fprintf(w, "<</Length %d\n", zbuff.Len())
+	io.WriteString(w, "/Filter /FlateDecode\n")
+	fmt.Fprintf(w, "/Length1 %d\n", len(b))
+	io.WriteString(w, ">>\n")
+	io.WriteString(w, "stream\n")
 	if p.protection() != nil {
 		tmp, err := rc4Cip(p.protection().objectkey(objID), zbuff.Bytes())
 		if err != nil {
 			return err
 		}
-		p.buffer.Write(tmp)
+		w.Write(tmp)
 		//p.buffer.WriteString("\n")
 	} else {
-		p.buffer.Write(zbuff.Bytes())
+		w.Write(zbuff.Bytes())
 	}
-	p.buffer.WriteString("\nendstream\n")
+	io.WriteString(w, "\nendstream\n")
+
 	return nil
 }
 
 func (p *PdfDictionaryObj) getType() string {
 	return "PdfDictionary"
-}
-
-func (p *PdfDictionaryObj) getObjBuff() *bytes.Buffer {
-	return &p.buffer
 }
 
 //SetPtrToSubsetFontObj set subsetFontObj pointer
@@ -340,16 +338,6 @@ func (p *PdfDictionaryObj) GetOffset(glyph int) int {
 	glyf := ttfp.GetTables()["glyf"]
 	offset := int(glyf.Offset + ttfp.LocaTable[glyph])
 	return offset
-}
-
-//Build build buffer
-func (p *PdfDictionaryObj) Build(objID int) error {
-	return p.build(objID)
-}
-
-//GetObjBuff get buffer
-func (p *PdfDictionaryObj) GetObjBuff() *bytes.Buffer {
-	return p.getObjBuff()
 }
 
 //CheckSum check sum

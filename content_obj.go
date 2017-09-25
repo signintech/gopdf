@@ -1,16 +1,14 @@
 package gopdf
 
 import (
-	"bytes"
 	"compress/zlib"
-	"strconv"
+	"fmt"
+	"io"
 	"strings"
 )
 
 //ContentObj content object
 type ContentObj struct { //impl IObj
-	buffer    bytes.Buffer
-	stream    bytes.Buffer
 	listCache listCacheContent
 	//text bytes.Buffer
 	getRoot func() *GoPdf
@@ -24,64 +22,57 @@ func (c *ContentObj) init(funcGetRoot func() *GoPdf) {
 	c.getRoot = funcGetRoot
 }
 
-func (c *ContentObj) build(objID int) error {
-	buff, err := c.listCache.toStream(c.protection())
-	if err != nil {
-		return err
-	}
-	isFlate := (c.getRoot().compressLevel != zlib.NoCompression)
+func (c *ContentObj) write(w io.Writer, objID int) error {
+	buff := GetBuffer()
+	defer PutBuffer(buff)
 
-	//zipvar buff bytes.Buffer
-	var cPtr *bytes.Buffer // "Pointer to content"
+	isFlate := (c.getRoot().compressLevel != zlib.NoCompression)
 	if isFlate {
-		var zbuff bytes.Buffer
-		zwriter, err := zlib.NewWriterLevel(&zbuff,
-			c.getRoot().compressLevel)
+		ww, err := zlib.NewWriterLevel(buff, c.getRoot().compressLevel)
 		if err != nil {
 			// should never happen...
 			return err
 		}
-		c.stream.WriteTo(zwriter)
-		buff.WriteTo(zwriter)
-		zwriter.Close()
-		cPtr = &zbuff
+		if err := c.listCache.write(ww, c.protection()); err != nil {
+			return err
+		}
+		ww.Close()
 	} else {
-		// zlib compressLevel = 0 adds header and thus
-		// needs /FlateDecode => pass through
-		buff.WriteTo(&c.stream)
-		cPtr = &c.stream
+		if err := c.listCache.write(buff, c.protection()); err != nil {
+			return err
+		}
 	}
-	streamlen := (*cPtr).Len()
-	c.buffer.WriteString("<<\n")
+
+	streamlen := buff.Len()
+	println(streamlen)
+
+	io.WriteString(w, "<<\n")
 	if isFlate {
-		c.buffer.WriteString("/Filter/FlateDecode")
+		io.WriteString(w, "/Filter/FlateDecode")
 	}
-	c.buffer.WriteString("/Length " + strconv.Itoa(streamlen) + "\n")
-	c.buffer.WriteString(">>\n")
-	c.buffer.WriteString("stream\n")
+	fmt.Fprintf(w, "/Length %d\n", streamlen)
+	io.WriteString(w, ">>\n")
+	io.WriteString(w, "stream\n")
 	if c.protection() != nil {
-		tmp, err := rc4Cip(c.protection().objectkey(objID), (*cPtr).Bytes())
+		tmp, err := rc4Cip(c.protection().objectkey(objID), buff.Bytes())
 		if err != nil {
 			return err
 		}
-		c.buffer.Write(tmp)
-		c.buffer.WriteString("\n")
+		w.Write(tmp)
+		io.WriteString(w, "\n")
 	} else {
-		c.buffer.Write((*cPtr).Bytes())
+		buff.WriteTo(w)
 		if isFlate {
-			c.buffer.WriteString("\n")
+			io.WriteString(w, "\n")
 		}
 	}
-	c.buffer.WriteString("endstream\n")
+	io.WriteString(w, "endstream\n")
+
 	return nil
 }
 
 func (c *ContentObj) getType() string {
 	return "Content"
-}
-
-func (c *ContentObj) getObjBuff() *bytes.Buffer {
-	return &(c.buffer)
 }
 
 //AppendStreamText append text

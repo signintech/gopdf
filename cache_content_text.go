@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"strconv"
+	"io"
 	"strings"
 )
 
@@ -112,54 +112,47 @@ func (c *cacheContentText) calX() (float64, error) {
 	return 0.0, errors.New("contentType not found")
 }
 
-func (c *cacheContentText) toStream(protection *PDFProtection) (*bytes.Buffer, error) {
-
-	var stream bytes.Buffer
+func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	r := c.textColor.r
 	g := c.textColor.g
 	b := c.textColor.b
 	x, err := c.calX()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	y, err := c.calY()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	stream.WriteString("BT\n")
-	stream.WriteString(fmt.Sprintf("%0.2f %0.2f TD\n", x, y))
-	stream.WriteString("/F" + strconv.Itoa(c.fontCountIndex) + " " + strconv.Itoa(c.fontSize) + " Tf\n")
+	io.WriteString(w, "BT\n")
+	fmt.Fprintf(w, "%0.2f %0.2f TD\n", x, y)
+	fmt.Fprintf(w, "/F%d %d Tf\n", c.fontCountIndex, c.fontSize)
 	if r+g+b != 0 {
 		rFloat := float64(r) * 0.00392156862745
 		gFloat := float64(g) * 0.00392156862745
 		bFloat := float64(b) * 0.00392156862745
-		rgb := fmt.Sprintf("%0.2f %0.2f %0.2f rg\n", rFloat, gFloat, bFloat)
-		stream.WriteString(rgb)
+		fmt.Fprintf(w, "%0.2f %0.2f %0.2f rg\n", rFloat, gFloat, bFloat)
 	} else {
 		//c.AppendStreamSetGrayFill(grayFill)
 	}
 
-	stream.WriteString("[<" + c.content.String() + ">] TJ\n")
-	stream.WriteString("ET\n")
+	io.WriteString(w, "[<"+c.content.String()+">] TJ\n")
+	io.WriteString(w, "ET\n")
 
 	if strings.ToUpper(c.fontStyle) == "U" {
-		underlineStream, err := c.underline(c.x, c.y, c.x+c.cellWidthPdfUnit, c.y)
+		err := c.underline(w, c.x, c.y, c.x+c.cellWidthPdfUnit, c.y)
 		if err != nil {
-			return nil, err
-		}
-		_, err = underlineStream.WriteTo(&stream)
-		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	c.drawBorder(&stream)
+	c.drawBorder(w)
 
-	return &stream, nil
+	return nil
 }
 
-func (c *cacheContentText) drawBorder(stream *bytes.Buffer) error {
+func (c *cacheContentText) drawBorder(w io.Writer) error {
 
 	//stream.WriteString(fmt.Sprintf("%.2f w\n", 0.1))
 	lineOffset := c.lineWidth * 0.5
@@ -170,7 +163,7 @@ func (c *cacheContentText) drawBorder(stream *bytes.Buffer) error {
 		startY := c.pageHeight() - c.y
 		endX := c.x + c.cellWidthPdfUnit + lineOffset
 		endY := startY
-		_, err := stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY))
+		_, err := fmt.Fprintf(w, "%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY)
 		if err != nil {
 			return err
 		}
@@ -181,7 +174,7 @@ func (c *cacheContentText) drawBorder(stream *bytes.Buffer) error {
 		startY := c.pageHeight() - c.y
 		endX := c.x
 		endY := startY - c.cellHeightPdfUnit
-		_, err := stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY))
+		_, err := fmt.Fprintf(w, "%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY)
 		if err != nil {
 			return err
 		}
@@ -192,7 +185,7 @@ func (c *cacheContentText) drawBorder(stream *bytes.Buffer) error {
 		startY := c.pageHeight() - c.y
 		endX := c.x + c.cellWidthPdfUnit
 		endY := startY - c.cellHeightPdfUnit
-		_, err := stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY))
+		_, err := fmt.Fprintf(w, "%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY)
 		if err != nil {
 			return err
 		}
@@ -203,7 +196,7 @@ func (c *cacheContentText) drawBorder(stream *bytes.Buffer) error {
 		startY := c.pageHeight() - c.y - c.cellHeightPdfUnit
 		endX := c.x + c.cellWidthPdfUnit + lineOffset
 		endY := startY
-		_, err := stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY))
+		_, err := fmt.Fprintf(w, "%0.2f %0.2f m %0.2f %0.2f l s\n", startX, startY, endX, endY)
 		if err != nil {
 			return err
 		}
@@ -212,23 +205,22 @@ func (c *cacheContentText) drawBorder(stream *bytes.Buffer) error {
 	return nil
 }
 
-func (c *cacheContentText) underline(startX float64, startY float64, endX float64, endY float64) (*bytes.Buffer, error) {
+func (c *cacheContentText) underline(w io.Writer, startX float64, startY float64, endX float64, endY float64) error {
 
 	if c.fontSubset == nil {
-		return nil, errors.New("error AppendUnderline not found font")
+		return errors.New("error AppendUnderline not found font")
 	}
 	unitsPerEm := float64(c.fontSubset.ttfp.UnitsPerEm())
 	h := c.pageHeight()
 	ut := float64(c.fontSubset.GetUt())
 	up := float64(c.fontSubset.GetUp())
-	var buff bytes.Buffer
 	textH := ContentObj_CalTextHeight(c.fontSize)
 	arg3 := float64(h) - (float64(startY) - ((up / unitsPerEm) * float64(c.fontSize))) - textH
 	arg4 := (ut / unitsPerEm) * float64(c.fontSize)
-	buff.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f -%0.2f re f\n", startX, arg3, endX-startX, arg4))
+	fmt.Fprintf(w, "%0.2f %0.2f %0.2f -%0.2f re f\n", startX, arg3, endX-startX, arg4)
 	//fmt.Printf("arg3=%f arg4=%f\n", arg3, arg4)
 
-	return &buff, nil
+	return nil
 }
 
 func (c *cacheContentText) createContent() (float64, float64, error) {
@@ -357,10 +349,4 @@ func (c *CacheContent) Setup(rectangle *Rect,
 //WriteTextToContent write text to content
 func (c *CacheContent) WriteTextToContent(text string) {
 	c.cacheContentText.text.WriteString(text)
-}
-
-//ToStream create stream of content
-func (c *CacheContent) ToStream(protection *PDFProtection) (*bytes.Buffer, error) {
-	c.cacheContentText.createContent()
-	return c.cacheContentText.toStream(protection)
 }

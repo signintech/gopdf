@@ -1,8 +1,8 @@
 package gopdf
 
 import (
-	"bytes"
 	"fmt"
+	"io"
 )
 
 const grayTypeFill = "g"
@@ -13,8 +13,7 @@ type cacheContentGray struct {
 	scale    float64
 }
 
-func (c *cacheContentGray) toStream(protection *PDFProtection) (*bytes.Buffer, error) {
-	var buff bytes.Buffer
-	buff.WriteString(fmt.Sprintf("%.2f %s\n", c.scale, c.grayType))
-	return &buff, nil
+func (c *cacheContentGray) write(w io.Writer, protection *PDFProtection) error {
+	fmt.Fprintf(w, "%.2f %s\n", c.scale, c.grayType)
+	return nil
 }

@@ -1,13 +1,12 @@
 package gopdf
 
 import (
-	"bytes"
 	"fmt"
+	"io"
 )
 
 //ProcSetObj pdf procSet object
 type ProcSetObj struct {
-	buffer bytes.Buffer
 	//Font
 	Realtes     RelateFonts
 	RealteXobjs RealteXobjects
@@ -18,11 +17,11 @@ func (pr *ProcSetObj) init(funcGetRoot func() *GoPdf) {
 	pr.getRoot = funcGetRoot
 }
 
-func (pr *ProcSetObj) build(objID int) error {
+func (pr *ProcSetObj) write(w io.Writer, objID int) error {
 
-	pr.buffer.WriteString("<<\n")
-	pr.buffer.WriteString("/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]\n")
-	pr.buffer.WriteString("/Font <<\n")
+	io.WriteString(w, "<<\n")
+	io.WriteString(w, "/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]\n")
+	io.WriteString(w, "/Font <<\n")
 	//me.buffer.WriteString("/F1 9 0 R
 	//me.buffer.WriteString("/F2 12 0 R
 	//me.buffer.WriteString("/F3 15 0 R
@@ -30,29 +29,25 @@ func (pr *ProcSetObj) build(objID int) error {
 	max := len(pr.Realtes)
 	for i < max {
 		realte := pr.Realtes[i]
-		pr.buffer.WriteString(fmt.Sprintf("      /F%d %d 0 R\n", realte.CountOfFont+1, realte.IndexOfObj+1))
+		fmt.Fprintf(w, "      /F%d %d 0 R\n", realte.CountOfFont+1, realte.IndexOfObj+1)
 		i++
 	}
-	pr.buffer.WriteString(">>\n")
-	pr.buffer.WriteString("/XObject <<\n")
+	io.WriteString(w, ">>\n")
+	io.WriteString(w, "/XObject <<\n")
 	i = 0
 	max = len(pr.RealteXobjs)
 	for i < max {
-		pr.buffer.WriteString(fmt.Sprintf("/I%d %d 0 R\n", pr.getRoot().curr.CountOfL+1, pr.RealteXobjs[i].IndexOfObj+1))
+		fmt.Fprintf(w, "/I%d %d 0 R\n", pr.getRoot().curr.CountOfL+1, pr.RealteXobjs[i].IndexOfObj+1)
 		pr.getRoot().curr.CountOfL++
 		i++
 	}
-	pr.buffer.WriteString(">>\n")
-	pr.buffer.WriteString(">>\n")
+	io.WriteString(w, ">>\n")
+	io.WriteString(w, ">>\n")
 	return nil
 }
 
 func (pr *ProcSetObj) getType() string {
 	return "ProcSet"
-}
-
-func (pr *ProcSetObj) getObjBuff() *bytes.Buffer {
-	return &(pr.buffer)
 }
 
 type RelateFonts []RelateFont

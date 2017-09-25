@@ -1,12 +1,11 @@
 package gopdf
 
 import (
-	"bytes"
+	"io"
 )
 
 type EncodingObj struct {
-	buffer bytes.Buffer
-	font   IFont
+	font IFont
 }
 
 func (e *EncodingObj) init(funcGetRoot func() *GoPdf) {
@@ -15,13 +14,10 @@ func (e *EncodingObj) init(funcGetRoot func() *GoPdf) {
 func (e *EncodingObj) getType() string {
 	return "Encoding"
 }
-func (e *EncodingObj) getObjBuff() *bytes.Buffer {
-	return &e.buffer
-}
-func (e *EncodingObj) build(objID int) error {
-	e.buffer.WriteString("<</Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [")
-	e.buffer.WriteString(e.font.GetDiff())
-	e.buffer.WriteString("]>>\n")
+func (e *EncodingObj) write(w io.Writer, objID int) error {
+	io.WriteString(w, "<</Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [")
+	io.WriteString(w, e.font.GetDiff())
+	io.WriteString(w, "]>>\n")
 	return nil
 }
 

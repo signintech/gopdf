@@ -1,14 +1,12 @@
 package gopdf
 
 import (
-	"bytes"
+	"io"
 )
 
 //IObj inteface for all pdf object
 type IObj interface {
 	init(func() *GoPdf)
 	getType() string
-	getObjBuff() *bytes.Buffer
-	//สร้าง ข้อมูลใน pdf
-	build(objID int) error
+	write(w io.Writer, objID int) error
 }

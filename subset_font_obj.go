@@ -1,7 +1,6 @@
 package gopdf
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 
@@ -15,7 +14,6 @@ var ErrCharNotFound = errors.New("char not found")
 
 //SubsetFontObj pdf subsetFont object
 type SubsetFontObj struct {
-	buffer                bytes.Buffer
 	ttfp                  core.TTFParser
 	Family                string
 	CharacterToGlyphIndex *MapOfCharacterToGlyphIndex
@@ -31,16 +29,16 @@ func (s *SubsetFontObj) init(funcGetRoot func() *GoPdf) {
 	s.funcKernOverride = nil
 }
 
-func (s *SubsetFontObj) build(objID int) error {
+func (s *SubsetFontObj) write(w io.Writer, objID int) error {
 	//me.AddChars("จ")
-	s.buffer.WriteString("<<\n")
-	s.buffer.WriteString(fmt.Sprintf("/BaseFont /%s\n", CreateEmbeddedFontSubsetName(s.Family)))
-	s.buffer.WriteString(fmt.Sprintf("/DescendantFonts [%d 0 R]\n", s.indexObjCIDFont+1))
-	s.buffer.WriteString("/Encoding /Identity-H\n")
-	s.buffer.WriteString("/Subtype /Type0\n")
-	s.buffer.WriteString(fmt.Sprintf("/ToUnicode %d 0 R\n", s.indexObjUnicodeMap+1))
-	s.buffer.WriteString("/Type /Font\n")
-	s.buffer.WriteString(">>\n")
+	io.WriteString(w, "<<\n")
+	fmt.Fprintf(w, "/BaseFont /%s\n", CreateEmbeddedFontSubsetName(s.Family))
+	fmt.Fprintf(w, "/DescendantFonts [%d 0 R]\n", s.indexObjCIDFont+1)
+	io.WriteString(w, "/Encoding /Identity-H\n")
+	io.WriteString(w, "/Subtype /Type0\n")
+	fmt.Fprintf(w, "/ToUnicode %d 0 R\n", s.indexObjUnicodeMap+1)
+	io.WriteString(w, "/Type /Font\n")
+	io.WriteString(w, ">>\n")
 	return nil
 }
 
@@ -158,10 +156,6 @@ func (s *SubsetFontObj) getType() string {
 	return "SubsetFont"
 }
 
-func (s *SubsetFontObj) getObjBuff() *bytes.Buffer {
-	return &s.buffer
-}
-
 func (s *SubsetFontObj) charCodeToGlyphIndexFormat12(r rune) (uint, error) {
 
 	value := uint(r)
@@ -254,14 +248,4 @@ func (s *SubsetFontObj) GetUt() int {
 //GetUp underline postion
 func (s *SubsetFontObj) GetUp() int {
 	return s.ttfp.UnderlinePosition()
-}
-
-//GetObjBuff get buffer
-func (s *SubsetFontObj) GetObjBuff() *bytes.Buffer {
-	return s.getObjBuff()
-}
-
-//Build build buffer
-func (s *SubsetFontObj) Build(objID int) error {
-	return s.build(objID)
 }

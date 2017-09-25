@@ -8,33 +8,33 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"io"
 	"io/ioutil"
 	"strings"
 )
 
-func buildImgProp(imginfo imgInfo) (*bytes.Buffer, error) {
+func writeImgProp(w io.Writer, imginfo imgInfo) error {
 
-	var buffer bytes.Buffer
-	buffer.WriteString("<</Type /XObject\n")
-	buffer.WriteString("/Subtype /Image\n")
-	buffer.WriteString(fmt.Sprintf("/Width %d\n", imginfo.w))  // /Width 675\n"
-	buffer.WriteString(fmt.Sprintf("/Height %d\n", imginfo.h)) //  /Height 942\n"
+	io.WriteString(w, "<</Type /XObject\n")
+	io.WriteString(w, "/Subtype /Image\n")
+	fmt.Fprintf(w, "/Width %d\n", imginfo.w)  // /Width 675\n"
+	fmt.Fprintf(w, "/Height %d\n", imginfo.h) //  /Height 942\n"
 	if isColspaceIndexed(imginfo) {
 		size := len(imginfo.pal)/3 - 1
-		buffer.WriteString(fmt.Sprintf("/ColorSpace [/Indexed /DeviceRGB %d %d 0 R]\n", size, imginfo.deviceRGBObjID+1))
+		fmt.Fprintf(w, "/ColorSpace [/Indexed /DeviceRGB %d %d 0 R]\n", size, imginfo.deviceRGBObjID+1)
 	} else {
-		buffer.WriteString(fmt.Sprintf("/ColorSpace /%s\n", imginfo.colspace))
+		fmt.Fprintf(w, "/ColorSpace /%s\n", imginfo.colspace)
 		if imginfo.colspace == "DeviceCMYK" {
-			buffer.WriteString("/Decode [1 0 1 0 1 0 1 0]\n")
+			io.WriteString(w, "/Decode [1 0 1 0 1 0 1 0]\n")
 		}
 	}
-	buffer.WriteString(fmt.Sprintf("/BitsPerComponent %s\n", imginfo.bitsPerComponent))
+	fmt.Fprintf(w, "/BitsPerComponent %s\n", imginfo.bitsPerComponent)
 	if strings.TrimSpace(imginfo.filter) != "" {
-		buffer.WriteString(fmt.Sprintf("/Filter /%s\n", imginfo.filter))
+		fmt.Fprintf(w, "/Filter /%s\n", imginfo.filter)
 	}
 
 	if strings.TrimSpace(imginfo.decodeParms) != "" {
-		buffer.WriteString(fmt.Sprintf("/DecodeParms <<%s>>\n", imginfo.decodeParms))
+		fmt.Fprintf(w, "/DecodeParms <<%s>>\n", imginfo.decodeParms)
 	}
 
 	if imginfo.trns != nil && len(imginfo.trns) > 0 {
@@ -44,20 +44,18 @@ func buildImgProp(imginfo imgInfo) (*bytes.Buffer, error) {
 		for j < max {
 			//trn := int(imginfo.trns[j])
 			//trns.WriteByte(imginfo.trns[j])
-			trns.WriteString(fmt.Sprintf("%d", imginfo.trns[j]))
-			trns.WriteString(" ")
-			trns.WriteString(fmt.Sprintf("%d", imginfo.trns[j]))
-			trns.WriteString(" ")
+			fmt.Fprintf(w, "%d ", imginfo.trns[j])
+			fmt.Fprintf(w, "%d ", imginfo.trns[j])
 			j++
 		}
-		buffer.WriteString(fmt.Sprintf("/Mask [%s]\n", trns.String()))
+		fmt.Fprintf(w, "/Mask [%s]\n", trns.String())
 	}
 
 	if haveSMask(imginfo) {
-		buffer.WriteString(fmt.Sprintf("/SMask %d 0 R\n", imginfo.smarkObjID+1))
+		fmt.Fprintf(w, "/SMask %d 0 R\n", imginfo.smarkObjID+1)
 	}
 
-	return &buffer, nil
+	return nil
 }
 
 func isColspaceIndexed(imginfo imgInfo) bool {
@@ -386,15 +384,16 @@ func paesePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 }
 
 func compress(data []byte) ([]byte, error) {
-	var results []byte
-	var buff bytes.Buffer
-	zwr, err := zlib.NewWriterLevel(&buff, zlib.BestSpeed)
+	buff := GetBuffer()
+	defer PutBuffer(buff)
+
+	zwr, err := zlib.NewWriterLevel(buff, zlib.BestSpeed)
 	if err != nil {
-		return results, err
+		return nil, err
 	}
 	_, err = zwr.Write(data)
 	if err != nil {
-		return results, err
+		return nil, err
 	}
 	zwr.Close()
 	return buff.Bytes(), nil

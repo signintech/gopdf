@@ -1,11 +1,11 @@
 package gopdf
 
 import (
-	"bytes"
+	"fmt"
+	"io"
 )
 
 type FontDescriptorObj struct {
-	buffer            bytes.Buffer
 	font              IFont
 	fontFileObjRelate string
 }
@@ -14,35 +14,31 @@ func (f *FontDescriptorObj) init(funcGetRoot func() *GoPdf) {
 
 }
 
-func (f *FontDescriptorObj) build(objID int) error {
+func (f *FontDescriptorObj) write(w io.Writer, objID int) error {
 
-	f.buffer.WriteString("<</Type /FontDescriptor /FontName /" + f.font.GetName() + " ")
+	fmt.Fprintf(w, "<</Type /FontDescriptor /FontName /%s ", f.font.GetName())
 	descs := f.font.GetDesc()
 	i := 0
 	max := len(descs)
 	for i < max {
-		f.buffer.WriteString("/" + descs[i].Key + " " + descs[i].Val + " ")
+		fmt.Fprintf(w, "/%s %s ", descs[i].Key, descs[i].Val)
 		i++
 	}
 
 	if f.getType() == "Type1" {
-		f.buffer.WriteString("/FontFile ")
+		io.WriteString(w, "/FontFile ")
 	} else {
-		f.buffer.WriteString("/FontFile2 ")
+		io.WriteString(w, "/FontFile2 ")
 	}
 
-	f.buffer.WriteString(f.fontFileObjRelate)
-	f.buffer.WriteString(">>\n")
+	io.WriteString(w, f.fontFileObjRelate)
+	io.WriteString(w, ">>\n")
 
 	return nil
 }
 
 func (f *FontDescriptorObj) getType() string {
 	return "FontDescriptor"
-}
-
-func (f *FontDescriptorObj) getObjBuff() *bytes.Buffer {
-	return &(f.buffer)
 }
 
 func (f *FontDescriptorObj) SetFont(font IFont) {

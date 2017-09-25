@@ -60,7 +60,7 @@ func initTesting() error {
 	return nil
 }
 
-func _TestPdfWithImageHolder(t *testing.T) {
+func TestPdfWithImageHolder(t *testing.T) {
 	err := initTesting()
 	if err != nil {
 		t.Error(err)

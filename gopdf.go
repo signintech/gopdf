@@ -403,13 +403,8 @@ func (gp *GoPdf) compilePdf() error {
 		objID := i + 1
 		linelens[i] = gp.buf.Len()
 		pdfObj := gp.pdfObjs[i]
-		err = pdfObj.build(objID)
-		if err != nil {
-			return err
-		}
 		gp.buf.WriteString(strconv.Itoa(objID) + " 0 obj\n")
-		buffbyte := pdfObj.getObjBuff().Bytes()
-		gp.buf.Write(buffbyte)
+		pdfObj.write(&gp.buf, objID)
 		gp.buf.WriteString("endobj\n\n")
 		i++
 	}

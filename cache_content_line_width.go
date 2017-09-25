@@ -1,16 +1,15 @@
 package gopdf
 
 import (
-	"bytes"
 	"fmt"
+	"io"
 )
 
 type cacheContentLineWidth struct {
 	width float64
 }
 
-func (c *cacheContentLineWidth) toStream(protection *PDFProtection) (*bytes.Buffer, error) {
-	var buff bytes.Buffer
-	buff.WriteString(fmt.Sprintf("%.2f w\n", c.width))
-	return &buff, nil
+func (c *cacheContentLineWidth) write(w io.Writer, protection *PDFProtection) error {
+	fmt.Fprintf(w, "%.2f w\n", c.width)
+	return nil
 }

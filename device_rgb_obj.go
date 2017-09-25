@@ -1,13 +1,12 @@
 package gopdf
 
 import (
-	"bytes"
-	"strconv"
+	"fmt"
+	"io"
 )
 
 //DeviceRGBObj  DeviceRGB
 type DeviceRGBObj struct {
-	buffer  bytes.Buffer
 	data    []byte
 	getRoot func() *GoPdf
 }
@@ -23,28 +22,25 @@ func (d *DeviceRGBObj) protection() *PDFProtection {
 func (d *DeviceRGBObj) getType() string {
 	return "devicergb"
 }
-func (d *DeviceRGBObj) getObjBuff() *bytes.Buffer {
-	return &d.buffer
-}
 
 //สร้าง ข้อมูลใน pdf
-func (d *DeviceRGBObj) build(objID int) error {
+func (d *DeviceRGBObj) write(w io.Writer, objID int) error {
 
-	d.buffer.WriteString("<<\n")
-	d.buffer.WriteString("/Length " + strconv.Itoa(len(d.data)) + "\n")
-	d.buffer.WriteString(">>\n")
-	d.buffer.WriteString("stream\n")
+	io.WriteString(w, "<<\n")
+	fmt.Fprintf(w, "/Length %d\n", len(d.data))
+	io.WriteString(w, ">>\n")
+	io.WriteString(w, "stream\n")
 	if d.protection() != nil {
 		tmp, err := rc4Cip(d.protection().objectkey(objID), d.data)
 		if err != nil {
 			return err
 		}
-		d.buffer.Write(tmp)
-		d.buffer.WriteString("\n")
+		w.Write(tmp)
+		io.WriteString(w, "\n")
 	} else {
-		d.buffer.Write(d.data)
+		w.Write(d.data)
 	}
-	d.buffer.WriteString("endstream\n")
+	io.WriteString(w, "endstream\n")
 
 	return nil
 }

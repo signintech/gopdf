@@ -41,10 +41,7 @@ func (l *listCacheContent) appendContentText(cache cacheContentText, text string
 	}
 
 	//start add text
-	_, err := cacheFont.text.WriteString(text)
-	if err != nil {
-		return x, y, err
-	}
+	cacheFont.text += text
 
 	//re-create contnet
 	textWidthPdfUnit, textHeightPdfUnit, err := cacheFont.createContent()

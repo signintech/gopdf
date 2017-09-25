@@ -636,7 +636,7 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 		return 0, err
 	}
 
-	_, _, textWidthPdfUnit, err := createContent(gp.curr.Font_ISubset, text, gp.curr.Font_Size, nil, nil)
+	_, _, textWidthPdfUnit, err := createContent(gp.curr.Font_ISubset, text, gp.curr.Font_Size, nil)
 	if err != nil {
 		return 0, err
 	}

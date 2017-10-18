@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 )
 
 //ContentTypeCell cell
@@ -21,7 +20,7 @@ type cacheContentText struct {
 	grayFill       float64
 	fontCountIndex int //Curr.Font_FontCount+1
 	fontSize       int
-	fontStyle      string
+	fontStyle      int
 	setXCount      int //จำนวนครั้งที่ใช้ setX
 	x, y           float64
 	fontSubset     *SubsetFontObj
@@ -143,7 +142,7 @@ func (c *cacheContentText) toStream(protection *PDFProtection) (*bytes.Buffer, e
 	stream.WriteString("[<" + c.content.String() + ">] TJ\n")
 	stream.WriteString("ET\n")
 
-	if strings.ToUpper(c.fontStyle) == "U" {
+	if c.fontStyle&Underline == Underline {
 		underlineStream, err := c.underline(c.x, c.y, c.x+c.cellWidthPdfUnit, c.y)
 		if err != nil {
 			return nil, err
@@ -327,7 +326,7 @@ func (c *CacheContent) Setup(rectangle *Rect,
 	grayFill float64,
 	fontCountIndex int, //Curr.Font_FontCount+1
 	fontSize int,
-	fontStyle string,
+	fontStyle int,
 	setXCount int, //จำนวนครั้งที่ใช้ setX
 	x, y float64,
 	fontSubset *SubsetFontObj,

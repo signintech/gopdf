@@ -339,8 +339,9 @@ func (gp *GoPdf) Start(config Config) {
 
 }
 
-//SetFont : set font style support "" or "U"
-func (gp *GoPdf) SetFont(family string, style string, size int) error {
+// SetFontWithStyle : set font style support Regular or Underline
+// for Bold|Italic should be loaded apropriate fonts with same styles defined
+func (gp *GoPdf) SetFontWithStyle(family string, style int, size int) error {
 
 	found := false
 	i := 0
@@ -350,7 +351,7 @@ func (gp *GoPdf) SetFont(family string, style string, size int) error {
 			obj := gp.pdfObjs[i]
 			sub, ok := obj.(*SubsetFontObj)
 			if ok {
-				if sub.GetFamily() == family {
+				if sub.GetFamily() == family && sub.GetTtfFontOption().Style == style&^Underline {
 					gp.curr.Font_Size = size
 					gp.curr.Font_Style = style
 					gp.curr.Font_FontCount = sub.CountOfFont
@@ -368,6 +369,12 @@ func (gp *GoPdf) SetFont(family string, style string, size int) error {
 	}
 
 	return nil
+}
+
+//SetFont : set font style support "" or "U"
+// for "B" and "I" should be loaded apropriate fonts with same styles defined
+func (gp *GoPdf) SetFont(family string, style string, size int) error {
+	return gp.SetFontWithStyle(family, getConvertedStyle(style), size)
 }
 
 //WritePdf : wirte pdf file
@@ -543,8 +550,8 @@ func (gp *GoPdf) AddTTFFontByReaderWithOption(family string, rd io.Reader, optio
 
 	if gp.indexOfProcSet != -1 {
 		procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
-		if !procset.Realtes.IsContainsFamily(family) {
-			procset.Realtes = append(procset.Realtes, RelateFont{Family: family, IndexOfObj: index, CountOfFont: gp.curr.CountOfFont})
+		if !procset.Realtes.IsContainsFamilyAndStyle(family, option.Style&^Underline) {
+			procset.Realtes = append(procset.Realtes, RelateFont{Family: family, IndexOfObj: index, CountOfFont: gp.curr.CountOfFont, Style: option.Style&^Underline})
 			subsetFont.CountOfFont = gp.curr.CountOfFont
 			gp.curr.CountOfFont++
 		}

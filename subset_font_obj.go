@@ -69,6 +69,11 @@ func (s *SubsetFontObj) SetTtfFontOption(option TtfOption) {
 	s.ttfFontOption = option
 }
 
+//GetTtfFontOption get TtfOption must set before SetTTFByPath
+func (s *SubsetFontObj) GetTtfFontOption() TtfOption {
+	return s.ttfFontOption
+}
+
 //KernValueByLeft find kern value from kern table by left
 func (s *SubsetFontObj) KernValueByLeft(left uint) (bool, *core.KernValue) {
 

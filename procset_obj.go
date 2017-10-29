@@ -69,12 +69,26 @@ func (re *RelateFonts) IsContainsFamily(family string) bool {
 	return false
 }
 
+// IsContainsFamilyAndStyle - checks if already exists font with same name and style
+func (re *RelateFonts) IsContainsFamilyAndStyle(family string, style int) bool {
+	i := 0
+	max := len(*re)
+	for i < max {
+		if (*re)[i].Family == family && (*re)[i].Style == style  {
+			return true
+		}
+		i++
+	}
+	return false
+}
+
 type RelateFont struct {
 	Family string
 	//etc /F1
 	CountOfFont int
 	//etc  5 0 R
 	IndexOfObj int
+	Style      int // Regular|Bold|Italic
 }
 
 type RealteXobjects []RealteXobject

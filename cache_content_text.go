@@ -164,7 +164,7 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	io.WriteString(w, "ET\n")
 
 	if c.fontStyle&Underline == Underline {
-		underlineStream, err := c.underline(c.x, c.y, c.x+c.cellWidthPdfUnit, c.y)
+		err := c.underline(w, c.x, c.y, c.x+c.cellWidthPdfUnit, c.y)
 		if err != nil {
 			return err
 		}

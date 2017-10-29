@@ -1,13 +1,12 @@
 package gopdf
 
 import (
-	"bytes"
 	"fmt"
+	"io"
 )
 
 //SMask smask
 type SMask struct {
-	buffer bytes.Buffer
 	imgInfo
 	data []byte
 	//getRoot func() *GoPdf
@@ -29,34 +28,27 @@ func (s *SMask) protection() *PDFProtection {
 func (s *SMask) getType() string {
 	return "smask"
 }
-func (s *SMask) getObjBuff() *bytes.Buffer {
-	return &s.buffer
-}
 
-func (s *SMask) build(objID int) error {
+func (s *SMask) write(w io.Writer, objID int) error {
 
-	buff, err := buildImgProp(s.imgInfo)
-	if err != nil {
-		return err
-	}
-	_, err = buff.WriteTo(&s.buffer)
+	err := writeImgProp(w, s.imgInfo)
 	if err != nil {
 		return err
 	}
 
-	s.buffer.WriteString(fmt.Sprintf("/Length %d\n>>\n", len(s.data))) // /Length 62303>>\n
-	s.buffer.WriteString("stream\n")
+	fmt.Fprintf(w, "/Length %d\n>>\n", len(s.data)) // /Length 62303>>\n
+	io.WriteString(w, "stream\n")
 	if s.protection() != nil {
 		tmp, err := rc4Cip(s.protection().objectkey(objID), s.data)
 		if err != nil {
 			return err
 		}
-		s.buffer.Write(tmp)
-		s.buffer.WriteString("\n")
+		w.Write(tmp)
+		io.WriteString(w, "\n")
 	} else {
-		s.buffer.Write(s.data)
+		w.Write(s.data)
 	}
-	s.buffer.WriteString("\nendstream\n")
+	io.WriteString(w, "\nendstream\n")
 
 	return nil
 }

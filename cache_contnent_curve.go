@@ -1,8 +1,8 @@
 package gopdf
 
 import (
-	"bytes"
 	"fmt"
+	"io"
 )
 
 type cacheContentCurve struct {
@@ -18,7 +18,7 @@ type cacheContentCurve struct {
 	style      string
 }
 
-func (c *cacheContentCurve) toStream(protection *PDFProtection) (*bytes.Buffer, error) {
+func (c *cacheContentCurve) write(w io.Writer, protection *PDFProtection) error {
 
 	h := c.pageHeight
 	x0 := c.x0
@@ -31,19 +31,18 @@ func (c *cacheContentCurve) toStream(protection *PDFProtection) (*bytes.Buffer, 
 	y3 := c.y3
 	style := c.style
 
-	var buff bytes.Buffer
 	//cp := 0.55228
-	buff.WriteString(fmt.Sprintf("%0.2f %0.2f m\n", x0, h-y0))
-	buff.WriteString(fmt.Sprintf(
+	fmt.Fprintf(w, "%0.2f %0.2f m\n", x0, h-y0)
+	fmt.Fprintf(w,
 		"%0.2f %0.2f %0.2f %0.2f %0.2f %0.2f c",
 		x1, h-y1, x2, h-y2, x3, h-y3,
-	))
+	)
 	op := "S"
 	if style == "F" {
 		op = "f"
 	} else if style == "FD" || style == "DF" {
 		op = "B"
 	}
-	buff.WriteString(fmt.Sprintf(" %s\n", op))
-	return &buff, nil
+	fmt.Fprintf(w, " %s\n", op)
+	return nil
 }

@@ -1,14 +1,12 @@
 package gopdf
 
 import (
-	"bytes"
 	"fmt"
-	//"fmt"
+	"io"
 )
 
 //PageObj pdf page object
 type PageObj struct { //impl IObj
-	buffer          bytes.Buffer
 	Contents        string
 	ResourcesRelate string
 	pageOption      PageOption
@@ -22,12 +20,12 @@ func (p *PageObj) setOption(opt PageOption) {
 	p.pageOption = opt
 }
 
-func (p *PageObj) build(objID int) error {
+func (p *PageObj) write(w io.Writer, objID int) error {
 
-	p.buffer.WriteString("<<\n")
-	p.buffer.WriteString("  /Type /" + p.getType() + "\n")
-	p.buffer.WriteString("  /Parent 2 0 R\n")
-	p.buffer.WriteString("  /Resources " + p.ResourcesRelate + "\n")
+	io.WriteString(w, "<<\n")
+	fmt.Fprintf(w, "  /Type /%s\n", p.getType())
+	io.WriteString(w, "  /Parent 2 0 R\n")
+	fmt.Fprintf(w, "  /Resources %s\n", p.ResourcesRelate)
 	/*me.buffer.WriteString("    /Font <<\n")
 	i := 0
 	max := len(me.Realtes)
@@ -38,20 +36,14 @@ func (p *PageObj) build(objID int) error {
 	}
 	me.buffer.WriteString("    >>\n")*/
 	//me.buffer.WriteString("  >>\n")
-	p.buffer.WriteString("  /Contents " + p.Contents + "\n") //sample  Contents 8 0 R
+	fmt.Fprintf(w, "  /Contents %s\n", p.Contents) //sample  Contents 8 0 R
 	if !p.pageOption.isEmpty() {
-		height := fmt.Sprintf("%0.2f", p.pageOption.PageSize.H)
-		width := fmt.Sprintf("%0.2f", p.pageOption.PageSize.W)
-		p.buffer.WriteString(" /MediaBox [ 0 0 " + width + " " + height + " ]\n")
+		fmt.Fprintf(w, " /MediaBox [ 0 0 %0.2f %0.2f ]\n", p.pageOption.PageSize.W, p.pageOption.PageSize.H)
 	}
-	p.buffer.WriteString(">>\n")
+	io.WriteString(w, ">>\n")
 	return nil
 }
 
 func (p *PageObj) getType() string {
 	return "Page"
-}
-
-func (p *PageObj) getObjBuff() *bytes.Buffer {
-	return &(p.buffer)
 }

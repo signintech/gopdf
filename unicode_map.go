@@ -1,13 +1,12 @@
 package gopdf
 
 import (
-	"bytes"
 	"fmt"
+	"io"
 )
 
 //UnicodeMap unicode map
 type UnicodeMap struct {
-	buffer             bytes.Buffer
 	PtrToSubsetFontObj *SubsetFontObj
 	//getRoot            func() *GoPdf
 	pdfProtection *PDFProtection
@@ -30,24 +29,11 @@ func (u *UnicodeMap) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 	u.PtrToSubsetFontObj = ptr
 }
 
-func (u *UnicodeMap) build(objID int) error {
-	buff, err := u.pdfToUnicodeMap(objID)
-	if err != nil {
-		return err
-	}
-	u.buffer.Write(buff.Bytes())
-	return nil
-}
-
 func (u *UnicodeMap) getType() string {
 	return "Unicode"
 }
 
-func (u *UnicodeMap) getObjBuff() *bytes.Buffer {
-	return &u.buffer
-}
-
-func (u *UnicodeMap) pdfToUnicodeMap(objID int) (*bytes.Buffer, error) {
+func (u *UnicodeMap) write(w io.Writer, objID int) error {
 	//stream
 	//characterToGlyphIndex := u.PtrToSubsetFontObj.CharacterToGlyphIndex
 	prefix :=
@@ -76,50 +62,40 @@ func (u *UnicodeMap) pdfToUnicodeMap(objID int) (*bytes.Buffer, error) {
 		glyphIndexToCharacter.set(index, k)
 	}
 
-	var buff bytes.Buffer
+	buff := GetBuffer()
+	defer PutBuffer(buff)
+
 	buff.WriteString(prefix)
 	buff.WriteString("1 begincodespacerange\n")
-	buff.WriteString(fmt.Sprintf("<%04X><%04X>\n", lowIndex, hiIndex))
+	fmt.Fprintf(buff, "<%04X><%04X>\n", lowIndex, hiIndex)
 	buff.WriteString("endcodespacerange\n")
-	buff.WriteString(fmt.Sprintf("%d beginbfrange\n", glyphIndexToCharacter.size()))
+	fmt.Fprintf(buff, "%d beginbfrange\n", glyphIndexToCharacter.size())
 	indexs := glyphIndexToCharacter.allIndexs()
 	for _, k := range indexs {
 		v, _ := glyphIndexToCharacter.runeByIndex(k)
-		buff.WriteString(fmt.Sprintf("<%04X><%04X><%04X>\n", k, k, v))
+		fmt.Fprintf(buff, "<%04X><%04X><%04X>\n", k, k, v)
 	}
 	buff.WriteString("endbfrange\n")
 	buff.WriteString(suffix)
 	buff.WriteString("\n")
 
-	length := buff.Len()
-	var streambuff bytes.Buffer
-	streambuff.WriteString("<<\n")
-	streambuff.WriteString(fmt.Sprintf("/Length %d\n", length))
-	streambuff.WriteString(">>\n")
-	streambuff.WriteString("stream\n")
+	io.WriteString(w, "<<\n")
+	fmt.Fprintf(w, "/Length %d\n", buff.Len())
+	io.WriteString(w, ">>\n")
+	io.WriteString(w, "stream\n")
 	if u.protection() != nil {
 		tmp, err := rc4Cip(u.protection().objectkey(objID), buff.Bytes())
 		if err != nil {
-			return nil, err
+			return err
 		}
-		streambuff.Write(tmp)
+		w.Write(tmp)
 		//streambuff.WriteString("\n")
 	} else {
-		streambuff.Write(buff.Bytes())
+		buff.WriteTo(w)
 	}
-	streambuff.WriteString("endstream\n")
+	io.WriteString(w, "endstream\n")
 
-	return &streambuff, nil
-}
-
-//GetObjBuff get buffer
-func (u *UnicodeMap) GetObjBuff() *bytes.Buffer {
-	return u.getObjBuff()
-}
-
-//Build build buffer
-func (u *UnicodeMap) Build(objID int) error {
-	return u.build(objID)
+	return nil
 }
 
 type mapGlyphIndexToCharacter struct {

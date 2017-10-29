@@ -1,8 +1,8 @@
 package gopdf
 
 import (
-	"bytes"
 	"fmt"
+	"io"
 )
 
 type cacheContentImage struct {
@@ -13,8 +13,7 @@ type cacheContentImage struct {
 	rect  Rect
 }
 
-func (c *cacheContentImage) toStream(protection *PDFProtection) (*bytes.Buffer, error) {
-	var buff bytes.Buffer
-	buff.WriteString(fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", c.rect.W, c.rect.H, c.x, c.h-(c.y+c.rect.H), c.index+1))
-	return &buff, nil
+func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error {
+	fmt.Fprintf(w, "q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", c.rect.W, c.rect.H, c.x, c.h-(c.y+c.rect.H), c.index+1)
+	return nil
 }

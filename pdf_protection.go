@@ -1,7 +1,6 @@
 package gopdf
 
 import (
-	"bytes"
 	"crypto/md5"
 	"crypto/rc4"
 	"encoding/binary"
@@ -98,16 +97,12 @@ func (p *PDFProtection) createOValue(userPassWithPadding []byte, ownerPassWithPa
 }
 
 func (p *PDFProtection) createUValue(userPassWithPadding []byte, oValue []byte, protection int) ([]byte, error) {
+	m := md5.New()
+	m.Write(userPassWithPadding)
+	m.Write(oValue)
+	m.Write([]byte{byte(protection), byte(0xff), byte(0xff), byte(0xff)})
 
-	var tmp bytes.Buffer
-	tmp.Write(userPassWithPadding)
-	tmp.Write(oValue)
-	tmp.WriteByte(byte(protection))
-	tmp.WriteByte(byte(0xff))
-	tmp.WriteByte(byte(0xff))
-	tmp.WriteByte(byte(0xff))
-
-	tmp2 := md5.Sum(tmp.Bytes())
+	tmp2 := m.Sum(nil)
 	p.encryptionKey = tmp2[0:5]
 	cip, err := rc4.NewCipher(p.encryptionKey)
 	if err != nil {

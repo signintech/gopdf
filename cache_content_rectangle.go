@@ -1,8 +1,8 @@
 package gopdf
 
 import (
-	"bytes"
 	"fmt"
+	"io"
 )
 
 type cacheContentRectangle struct {
@@ -14,7 +14,7 @@ type cacheContentRectangle struct {
 	style      string
 }
 
-func (c *cacheContentRectangle) toStream(protection *PDFProtection) (*bytes.Buffer, error) {
+func (c *cacheContentRectangle) write(w io.Writer, protection *PDFProtection) error {
 
 	h := c.pageHeight
 	x := c.x
@@ -22,9 +22,7 @@ func (c *cacheContentRectangle) toStream(protection *PDFProtection) (*bytes.Buff
 	width := c.width
 	height := c.height
 
-	var buff bytes.Buffer
 	op := parseStyle(c.style)
-	buff.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re %s\n", x, h-y, width, height, op))
-	//buff.WriteString(fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re b\n", x, h-y, width, height))
-	return &buff, nil
+	fmt.Fprintf(w, "%0.2f %0.2f %0.2f %0.2f re %s\n", x, h-y, width, height, op)
+	return nil
 }

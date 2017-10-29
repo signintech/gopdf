@@ -1,23 +1,22 @@
 package gopdf
 
 import (
-	"bytes"
 	"fmt"
+	"io"
 )
 
 type cacheContentLineType struct {
 	lineType string
 }
 
-func (c *cacheContentLineType) toStream(protection *PDFProtection) (*bytes.Buffer, error) {
-	var buff bytes.Buffer
+func (c *cacheContentLineType) write(w io.Writer, protection *PDFProtection) error {
 	switch c.lineType {
 	case "dashed":
-		buff.WriteString(fmt.Sprint("[5] 2 d\n"))
+		fmt.Fprint(w, "[5] 2 d\n")
 	case "dotted":
-		buff.WriteString(fmt.Sprint("[2 3] 11 d\n"))
+		fmt.Fprint(w, "[2 3] 11 d\n")
 	default:
-		buff.WriteString(fmt.Sprint("[] 0 d\n"))
+		fmt.Fprint(w, "[] 0 d\n")
 	}
-	return &buff, nil
+	return nil
 }

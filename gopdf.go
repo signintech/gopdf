@@ -382,9 +382,13 @@ func (gp *GoPdf) WritePdf(pdfPath string) {
 	ioutil.WriteFile(pdfPath, gp.GetBytesPdf(), 0644)
 }
 
+func (gp *GoPdf) Write(w io.Writer) error {
+	return gp.compilePdf(w)
+}
+
 func (gp *GoPdf) Read(p []byte) (int, error) {
 	if gp.buf.Len() == 0 && gp.buf.Cap() == 0 {
-		if err := gp.compilePdf(); err != nil {
+		if err := gp.compilePdf(&gp.buf); err != nil {
 			return 0, err
 		}
 	}
@@ -396,32 +400,45 @@ func (gp *GoPdf) Close() error {
 	return nil
 }
 
-func (gp *GoPdf) compilePdf() error {
+func (gp *GoPdf) compilePdf(w io.Writer) error {
 	gp.prepare()
 	err := gp.Close()
 	if err != nil {
 		return err
 	}
 	max := len(gp.pdfObjs)
-	gp.buf.WriteString("%PDF-1.7\n\n")
+	io.WriteString(w, "%PDF-1.7\n\n")
 	linelens := make([]int, max)
 	i := 0
+	writer := newCountingWriter(w)
 	for i < max {
 		objID := i + 1
-		linelens[i] = gp.buf.Len()
+		linelens[i] = writer.offset
 		pdfObj := gp.pdfObjs[i]
-		err = pdfObj.build(objID)
-		if err != nil {
-			return err
-		}
-		gp.buf.WriteString(strconv.Itoa(objID) + " 0 obj\n")
-		buffbyte := pdfObj.getObjBuff().Bytes()
-		gp.buf.Write(buffbyte)
-		gp.buf.WriteString("endobj\n\n")
+		fmt.Fprintf(writer, "%d 0 obj\n", objID)
+		pdfObj.write(writer, objID)
+		io.WriteString(writer, "endobj\n\n")
 		i++
 	}
-	gp.xref(linelens, &gp.buf, &i)
+	gp.xref(writer, writer.offset, linelens, i)
 	return nil
+}
+
+type (
+	countingWriter struct {
+		offset int
+		writer io.Writer
+	}
+)
+
+func newCountingWriter(w io.Writer) *countingWriter {
+	return &countingWriter{writer: w}
+}
+
+func (cw *countingWriter) Write(b []byte) (int, error) {
+	n, err := cw.writer.Write(b)
+	cw.offset += n
+	return n, err
 }
 
 //GetBytesPdfReturnErr : get bytes of pdf file
@@ -430,7 +447,7 @@ func (gp *GoPdf) GetBytesPdfReturnErr() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = gp.compilePdf()
+	err = gp.compilePdf(&gp.buf)
 	return gp.buf.Bytes(), err
 }
 
@@ -626,7 +643,7 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 		return 0, err
 	}
 
-	_, _, textWidthPdfUnit, err := createContent(gp.curr.Font_ISubset, text, gp.curr.Font_Size, nil, nil)
+	_, _, textWidthPdfUnit, err := createContent(gp.curr.Font_ISubset, text, gp.curr.Font_Size, nil)
 	if err != nil {
 		return 0, err
 	}
@@ -757,69 +774,66 @@ func (gp *GoPdf) prepare() {
 	}
 }
 
-func (gp *GoPdf) xref(linelens []int, buff *bytes.Buffer, i *int) error {
+func (gp *GoPdf) xref(w io.Writer, xrefbyteoffset int, linelens []int, i int) error {
 
-	xrefbyteoffset := buff.Len()
-	buff.WriteString("xref\n")
-	buff.WriteString("0 " + strconv.Itoa((*i)+1) + "\n")
-	buff.WriteString("0000000000 65535 f \n")
+	io.WriteString(w, "xref\n")
+	fmt.Fprintf(w, "0 %d\n", i+1)
+	io.WriteString(w, "0000000000 65535 f \n")
 	j := 0
 	max := len(linelens)
 	for j < max {
 		linelen := linelens[j]
-		buff.WriteString(gp.formatXrefline(linelen) + " 00000 n \n")
+		fmt.Fprintf(w, "%s 00000 n \n", gp.formatXrefline(linelen))
 		j++
 	}
-	buff.WriteString("trailer\n")
-	buff.WriteString("<<\n")
-	buff.WriteString("/Size " + strconv.Itoa(max+1) + "\n")
-	buff.WriteString("/Root 1 0 R\n")
+	io.WriteString(w, "trailer\n")
+	io.WriteString(w, "<<\n")
+	fmt.Fprintf(w, "/Size %d\n", max+1)
+	io.WriteString(w, "/Root 1 0 R\n")
 	if gp.isUseProtection() {
-		buff.WriteString(fmt.Sprintf("/Encrypt %d 0 R\n", gp.encryptionObjID))
-		buff.WriteString("/ID [()()]\n")
+		fmt.Fprintf(w, "/Encrypt %d 0 R\n", gp.encryptionObjID)
+		io.WriteString(w, "/ID [()()]\n")
 	}
 	if gp.isUseInfo {
-		gp.bindInfo(buff)
+		gp.writeInfo(w)
 	}
-	buff.WriteString(">>\n")
-	buff.WriteString("startxref\n")
-	buff.WriteString(strconv.Itoa(xrefbyteoffset))
-	buff.WriteString("\n%%EOF\n")
-
-	(*i)++
+	io.WriteString(w, ">>\n")
+	io.WriteString(w, "startxref\n")
+	fmt.Fprintf(w, "%d", xrefbyteoffset)
+	io.WriteString(w, "\n%%EOF\n")
 
 	return nil
 }
 
-func (gp *GoPdf) bindInfo(buff *bytes.Buffer) {
+func (gp *GoPdf) writeInfo(w io.Writer) {
 	var zerotime time.Time
-	buff.WriteString("/Info <<\n")
+	io.WriteString(w, "/Info <<\n")
 
 	if gp.info.Author != "" {
-		buff.WriteString(fmt.Sprintf("/Author <FEFF%s>\n", encodeUtf8(gp.info.Author)))
+		fmt.Fprintf(w, "/Author <FEFF%s>\n", encodeUtf8(gp.info.Author))
 	}
 
 	if gp.info.Title != "" {
-		buff.WriteString(fmt.Sprintf("/Title <FEFF%s>\n", encodeUtf8(gp.info.Title)))
+		fmt.Fprintf(w, "/Title <FEFF%s>\n", encodeUtf8(gp.info.Title))
 	}
 
 	if gp.info.Subject != "" {
-		buff.WriteString(fmt.Sprintf("/Subject <FEFF%s>\n", encodeUtf8(gp.info.Subject)))
+		fmt.Fprintf(w, "/Subject <FEFF%s>\n", encodeUtf8(gp.info.Subject))
 	}
 
 	if gp.info.Creator != "" {
-		buff.WriteString(fmt.Sprintf("/Creator <FEFF%s>\n", encodeUtf8(gp.info.Creator)))
+		fmt.Fprintf(w, "/Creator <FEFF%s>\n", encodeUtf8(gp.info.Creator))
 	}
 
 	if gp.info.Producer != "" {
-		buff.WriteString(fmt.Sprintf("/Producer <FEFF%s>\n", encodeUtf8(gp.info.Producer)))
+		fmt.Fprintf(w, "/Producer <FEFF%s>\n", encodeUtf8(gp.info.Producer))
 	}
 
 	if !zerotime.Equal(gp.info.CreationDate) {
-		buff.WriteString(fmt.Sprintf("/CreationDate(D:%s)>>\n", infodate(gp.info.CreationDate)))
+		fmt.Fprintf(w, "/CreationDate(D:%s)>>\n", infodate(gp.info.CreationDate))
 	}
 
-	buff.WriteString(" >>\n")
+	io.WriteString(w, " >>\n")
 }
 
 //ปรับ xref ให้เป็น 10 หลัก

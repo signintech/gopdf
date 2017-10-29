@@ -1,8 +1,8 @@
 package gopdf
 
 import (
-	"bytes"
 	"fmt"
+	"io"
 )
 
 type cacheContentLine struct {
@@ -13,13 +13,7 @@ type cacheContentLine struct {
 	y2         float64
 }
 
-func (c *cacheContentLine) toStream(protection *PDFProtection) (*bytes.Buffer, error) {
-	var buff bytes.Buffer
-	h := c.pageHeight
-	x1 := c.x1
-	y1 := c.y1
-	x2 := c.x2
-	y2 := c.y2
-	buff.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", x1, h-y1, x2, h-y2))
-	return &buff, nil
+func (c *cacheContentLine) write(w io.Writer, protection *PDFProtection) error {
+	fmt.Fprintf(w, "%0.2f %0.2f m %0.2f %0.2f l s\n", c.x1, c.pageHeight-c.y1, c.x2, c.pageHeight-c.y2)
+	return nil
 }

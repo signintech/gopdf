@@ -14,7 +14,6 @@ import (
 
 //ImageObj image object
 type ImageObj struct {
-	buffer bytes.Buffer
 	//imagepath string
 
 	rawImgReader  *bytes.Reader
@@ -35,30 +34,26 @@ func (i *ImageObj) protection() *PDFProtection {
 	return i.pdfProtection
 }
 
-func (i *ImageObj) build(objID int) error {
+func (i *ImageObj) write(w io.Writer, objID int) error {
 
-	buff, err := buildImgProp(i.imginfo)
-	if err != nil {
-		return err
-	}
-	_, err = buff.WriteTo(&i.buffer)
+	err := writeImgProp(w, i.imginfo)
 	if err != nil {
 		return err
 	}
 
-	i.buffer.WriteString(fmt.Sprintf("/Length %d\n>>\n", len(i.imginfo.data))) // /Length 62303>>\n
-	i.buffer.WriteString("stream\n")
+	fmt.Fprintf(w, "/Length %d\n>>\n", len(i.imginfo.data)) // /Length 62303>>\n
+	io.WriteString(w, "stream\n")
 	if i.protection() != nil {
 		tmp, err := rc4Cip(i.protection().objectkey(objID), i.imginfo.data)
 		if err != nil {
 			return err
 		}
-		i.buffer.Write(tmp)
-		i.buffer.WriteString("\n")
+		w.Write(tmp)
+		io.WriteString(w, "\n")
 	} else {
-		i.buffer.Write(i.imginfo.data)
+		w.Write(i.imginfo.data)
 	}
-	i.buffer.WriteString("\nendstream\n")
+	io.WriteString(w, "\nendstream\n")
 
 	return nil
 }
@@ -92,10 +87,6 @@ func (i *ImageObj) createDeviceRGB() (*DeviceRGBObj, error) {
 
 func (i *ImageObj) getType() string {
 	return "Image"
-}
-
-func (i *ImageObj) getObjBuff() *bytes.Buffer {
-	return &(i.buffer)
 }
 
 //SetImagePath set image path
@@ -181,17 +172,7 @@ func (i *ImageObj) parse() error {
 	return nil
 }
 
-//GetObjBuff get buffer
-func (i *ImageObj) GetObjBuff() *bytes.Buffer {
-	return i.getObjBuff()
-}
-
 //Parse parse img
 func (i *ImageObj) Parse() error {
 	return i.parse()
-}
-
-//Build build buffer
-func (i *ImageObj) Build(objID int) error {
-	return i.build(objID)
 }

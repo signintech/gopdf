@@ -1,7 +1,9 @@
 package gopdf
 
-import "bytes"
+import (
+	"io"
+)
 
 type iCacheContent interface {
-	toStream(protection *PDFProtection) (*bytes.Buffer, error)
+	write(w io.Writer, protection *PDFProtection) error
 }

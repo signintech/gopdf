@@ -255,6 +255,8 @@ func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect,
 		glyphindex, err := f.CharIndex(r)
 		if err != nil {
 			return 0, 0, 0, err
+		} else if glyphindex == 0 {
+			continue
 		}
 
 		pairvalPdfUnit := 0

@@ -122,7 +122,9 @@ func (s *SubsetFontObj) AddChars(txt string) error {
 			continue
 		}
 		glyphIndex, err := s.CharCodeToGlyphIndex(runeValue)
-		if err != nil {
+		if glyphIndex == 0 {
+			continue
+		} else if err != nil {
 			return err
 		}
 		s.CharacterToGlyphIndex.Set(runeValue, glyphIndex) // [runeValue] = glyphIndex
@@ -142,7 +144,7 @@ func (s *SubsetFontObj) CharIndex(r rune) (uint, error) {
 	if ok {
 		return glyIndex, nil
 	}
-	return 0, ErrCharNotFound
+	return 0, nil //ErrCharNotFound
 }
 
 //CharWidth with of char

@@ -407,10 +407,12 @@ func (gp *GoPdf) compilePdf(w io.Writer) error {
 		return err
 	}
 	max := len(gp.pdfObjs)
-	io.WriteString(w, "%PDF-1.7\n\n")
+	writer := newCountingWriter(w)
+	//io.WriteString(w, "%PDF-1.7\n\n")
+	fmt.Fprint(writer, "%PDF-1.7\n\n")
 	linelens := make([]int, max)
 	i := 0
-	writer := newCountingWriter(w)
+
 	for i < max {
 		objID := i + 1
 		linelens[i] = writer.offset
@@ -568,7 +570,7 @@ func (gp *GoPdf) AddTTFFontByReaderWithOption(family string, rd io.Reader, optio
 	if gp.indexOfProcSet != -1 {
 		procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
 		if !procset.Realtes.IsContainsFamilyAndStyle(family, option.Style&^Underline) {
-			procset.Realtes = append(procset.Realtes, RelateFont{Family: family, IndexOfObj: index, CountOfFont: gp.curr.CountOfFont, Style: option.Style&^Underline})
+			procset.Realtes = append(procset.Realtes, RelateFont{Family: family, IndexOfObj: index, CountOfFont: gp.curr.CountOfFont, Style: option.Style &^ Underline})
 			subsetFont.CountOfFont = gp.curr.CountOfFont
 			gp.curr.CountOfFont++
 		}

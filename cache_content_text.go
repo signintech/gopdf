@@ -154,6 +154,14 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 				fmt.Fprintf(w, ">%d<", (-1)*pairvalPdfUnit)
 			}
 		}
+		if c.fontSubset.funcTextriseOverride != nil {
+			val := textrise(c.fontSubset, leftRune, r, leftRuneIndex, glyphindex, c.fontSize)
+			//pairvalPdfUnit = convertTTFUnit2PDFUnit(int(pairval), unitsPerEm)
+			io.WriteString(w, ">] TJ\n")
+			io.WriteString(w, fmt.Sprintf("%.2f Ts\n", val))
+			io.WriteString(w, "[<")
+
+		}
 
 		fmt.Fprintf(w, "%04X", glyphindex)
 		leftRune = r
@@ -161,6 +169,19 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	}
 
 	io.WriteString(w, ">] TJ\n")
+	//just test
+	/*
+		io.WriteString(w, "[<")
+		io.WriteString(w, "007B")
+		io.WriteString(w, ">] TJ\n")
+		io.WriteString(w, "-4 Ts\n[<")
+		io.WriteString(w, "00BE")
+		io.WriteString(w, ">] TJ\n")
+		io.WriteString(w, "0 Ts\n[<")
+		io.WriteString(w, "0091")
+		io.WriteString(w, ">] TJ\n")
+	*/
+	//end just test
 	io.WriteString(w, "ET\n")
 
 	if c.fontStyle&Underline == Underline {
@@ -319,6 +340,20 @@ func kern(f *SubsetFontObj, leftRune rune, rightRune rune, leftIndex uint, right
 			leftIndex,
 			rightIndex,
 			pairVal,
+		)
+	}
+	return pairVal
+}
+
+func textrise(f *SubsetFontObj, leftRune rune, rightRune rune, leftIndex uint, rightIndex uint, fontSize int) float32 {
+	pairVal := float32(0)
+	if f.funcTextriseOverride != nil {
+		pairVal = f.funcTextriseOverride(
+			leftRune,
+			rightRune,
+			leftIndex,
+			rightIndex,
+			fontSize,
 		)
 	}
 	return pairVal

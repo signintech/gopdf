@@ -597,6 +597,31 @@ func (gp *GoPdf) AddTTFFont(family string, ttfpath string) error {
 	return gp.AddTTFFontWithOption(family, ttfpath, defaultTtfFontOption())
 }
 
+//TextriseOverride override text rise
+//Text rise, Trise , specifies the distance, in unscaled text space units,
+//to move the baseline up or down from its default location.
+//Positive values of text rise move the baseline up.
+//Adjustments to the baseline are useful for drawing superscripts or subscripts.
+//The default location of the baseline can be restored by setting the text rise to 0.
+func (gp *GoPdf) TextriseOverride(family string, fn FuncTextriseOverride) error {
+	i := 0
+	max := len(gp.pdfObjs)
+	for i < max {
+		if gp.pdfObjs[i].getType() == subsetFont {
+			obj := gp.pdfObjs[i]
+			sub, ok := obj.(*SubsetFontObj)
+			if ok {
+				if sub.GetFamily() == family {
+					sub.funcTextriseOverride = fn
+					return nil
+				}
+			}
+		}
+		i++
+	}
+	return errors.New("font family not found")
+}
+
 //KernOverride override kern value
 func (gp *GoPdf) KernOverride(family string, fn FuncKernOverride) error {
 	i := 0

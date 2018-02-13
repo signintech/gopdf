@@ -24,6 +24,11 @@ type SubsetFontObj struct {
 	indexObjUnicodeMap    int
 	ttfFontOption         TtfOption
 	funcKernOverride      FuncKernOverride
+	funcTextriseOverride  FuncTextriseOverride
+}
+
+func (s *SubsetFontObj) SetFuncTextriseOverride(funcTextriseOverride FuncTextriseOverride) {
+	s.funcTextriseOverride = funcTextriseOverride
 }
 
 func (s *SubsetFontObj) init(funcGetRoot func() *GoPdf) {

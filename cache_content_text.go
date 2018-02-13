@@ -139,7 +139,8 @@ func (c *cacheContentText) toStream(protection *PDFProtection) (*bytes.Buffer, e
 		//c.AppendStreamSetGrayFill(grayFill)
 	}
 
-	stream.WriteString("[<" + c.content.String() + ">] TJ\n")
+	//stream.WriteString("[<" + c.content.String() + ">] TJ\n")
+	stream.WriteString(c.content.String())
 	stream.WriteString("ET\n")
 
 	if c.fontStyle&Underline == Underline {
@@ -250,6 +251,7 @@ func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect,
 	var leftRuneIndex uint
 	sumWidth := int(0)
 	//fmt.Printf("unitsPerEm = %d", unitsPerEm)
+	out.WriteString("[<")
 	for i, r := range text {
 
 		glyphindex, err := f.CharIndex(r)
@@ -266,6 +268,13 @@ func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect,
 			}
 		}
 
+		if f.funcTextriseOverride != nil {
+			val := textrise(f, leftRune, r, leftRuneIndex, glyphindex, fontSize)
+			out.WriteString(">] TJ\n")
+			out.WriteString(fmt.Sprintf("%.2f Ts\n", val))
+			out.WriteString("[<")
+		}
+
 		if out != nil {
 			out.WriteString(fmt.Sprintf("%04X", glyphindex))
 		}
@@ -278,6 +287,7 @@ func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect,
 		leftRune = r
 		leftRuneIndex = glyphindex
 	}
+	out.WriteString(">] TJ\n")
 
 	cellWidthPdfUnit := float64(0)
 	cellHeightPdfUnit := float64(0)
@@ -310,6 +320,20 @@ func kern(f *SubsetFontObj, leftRune rune, rightRune rune, leftIndex uint, right
 			leftIndex,
 			rightIndex,
 			pairVal,
+		)
+	}
+	return pairVal
+}
+
+func textrise(f *SubsetFontObj, leftRune rune, rightRune rune, leftIndex uint, rightIndex uint, fontSize int) float32 {
+	pairVal := float32(0)
+	if f.funcTextriseOverride != nil {
+		pairVal = f.funcTextriseOverride(
+			leftRune,
+			rightRune,
+			leftIndex,
+			rightIndex,
+			fontSize,
 		)
 	}
 	return pairVal

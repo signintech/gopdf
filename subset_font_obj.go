@@ -31,6 +31,10 @@ func (s *SubsetFontObj) SetFuncTextriseOverride(funcTextriseOverride FuncTextris
 	s.funcTextriseOverride = funcTextriseOverride
 }
 
+func (s *SubsetFontObj) SetFuncKernOverride(funcKernOverride FuncKernOverride) {
+	s.funcKernOverride = funcKernOverride
+}
+
 func (s *SubsetFontObj) init(funcGetRoot func() *GoPdf) {
 	s.CharacterToGlyphIndex = NewMapOfCharacterToGlyphIndex() //make(map[rune]uint)
 	s.funcKernOverride = nil

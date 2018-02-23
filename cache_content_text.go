@@ -252,6 +252,7 @@ func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect,
 	sumWidth := int(0)
 	//fmt.Printf("unitsPerEm = %d", unitsPerEm)
 	out.WriteString("[<")
+	runeIndex := 0
 	for i, r := range text {
 
 		glyphindex, err := f.CharIndex(r)
@@ -269,7 +270,8 @@ func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect,
 		}
 
 		if f.funcTextriseOverride != nil {
-			val := textrise(f, leftRune, r, leftRuneIndex, glyphindex, fontSize)
+			fmt.Printf("gopdf i=%d\n", runeIndex)
+			val := textrise(f, leftRune, r, leftRuneIndex, glyphindex, fontSize, text, runeIndex)
 			out.WriteString(">] TJ\n")
 			out.WriteString(fmt.Sprintf("%.2f Ts\n", val))
 			out.WriteString("[<")
@@ -286,6 +288,7 @@ func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect,
 		sumWidth += int(width) + int(pairvalPdfUnit)
 		leftRune = r
 		leftRuneIndex = glyphindex
+		runeIndex++
 	}
 	out.WriteString(">] TJ\n")
 
@@ -301,6 +304,7 @@ func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect,
 		cellHeightPdfUnit = rectangle.H
 	}
 	textWidthPdfUnit := float64(sumWidth) * (float64(fontSize) / 1000.0)
+
 	return cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, nil
 }
 
@@ -325,15 +329,15 @@ func kern(f *SubsetFontObj, leftRune rune, rightRune rune, leftIndex uint, right
 	return pairVal
 }
 
-func textrise(f *SubsetFontObj, leftRune rune, rightRune rune, leftIndex uint, rightIndex uint, fontSize int) float32 {
+func textrise(f *SubsetFontObj, leftRune rune, rightRune rune, leftIndex uint, rightIndex uint, fontSize int, allText string, currTextIndex int) float32 {
 	pairVal := float32(0)
 	if f.funcTextriseOverride != nil {
 		pairVal = f.funcTextriseOverride(
 			leftRune,
 			rightRune,
-			leftIndex,
-			rightIndex,
 			fontSize,
+			allText,
+			currTextIndex,
 		)
 	}
 	return pairVal

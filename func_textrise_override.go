@@ -4,7 +4,7 @@ package gopdf
 type FuncTextriseOverride func(
 	leftRune rune,
 	rightRune rune,
-	leftPair uint,
-	rightPair uint,
 	fontsize int,
+	allText string,
+	currTextIndex int,
 ) float32

@@ -24,6 +24,7 @@ type GoPdf struct {
 
 	pdfObjs []IObj
 	config  Config
+	anchors map[string]anchorOption
 
 	/*---index ของ obj สำคัญๆ เก็บเพื่อลด loop ตอนค้นหา---*/
 	//index ของ obj pages
@@ -513,6 +514,22 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 	return nil
 }
 
+//AddLink
+func (gp *GoPdf) AddExternalLink(url string, x, y, w, h float64) {
+	page := gp.pdfObjs[gp.curr.IndexOfPageObj].(*PageObj)
+	page.Links = append(page.Links, linkOption{x, gp.config.PageSize.H - y, w, h, url, ""})
+}
+
+func (gp *GoPdf) AddInternalLink(anchor string, x, y, w, h float64) {
+	page := gp.pdfObjs[gp.curr.IndexOfPageObj].(*PageObj)
+	page.Links = append(page.Links, linkOption{x, gp.config.PageSize.H - y, w, h, "", anchor})
+}
+
+func (gp *GoPdf) SetAnchor(name string) {
+	y := gp.config.PageSize.H - gp.GetY() + float64(gp.curr.Font_Size)
+	gp.anchors[name] = anchorOption{gp.curr.IndexOfPageObj, y}
+}
+
 //AddTTFFontByReader add font file
 func (gp *GoPdf) AddTTFFontByReader(family string, rd io.Reader) error {
 	return gp.AddTTFFontByReaderWithOption(family, rd, defaultTtfFontOption())
@@ -692,6 +709,7 @@ func (gp *GoPdf) init() {
 	gp.curr.CountOfL = 0
 	gp.curr.CountOfImg = 0 //img
 	gp.curr.ImgCaches = *new([]ImageCache)
+	gp.anchors = make(map[string]anchorOption)
 
 	//init index
 	gp.indexOfPagesObj = -1

@@ -74,7 +74,7 @@ type TTFParser struct {
 	groupingTables []CmapFormat12GroupingTable
 
 	//data of font
-	cahceFontData []byte
+	cacheFontData []byte
 
 	//kerning
 	useKerning bool //user config for use or not use kerning
@@ -224,14 +224,14 @@ func (t *TTFParser) parse(rd io.Reader) error {
 	if err != nil {
 		return err
 	}
-	//t.cahceFontData = fontdata
+	//t.cacheFontData = fontdata
 	fd := bytes.NewReader(fontdata)
 
 	version, err := t.Read(fd, 4)
 	if err != nil {
 		return err
 	}
-	if !t.CompareBytes(version, []byte{0x00, 0x01, 0x00, 0x00}) {
+	if !bytes.Equal(version, []byte{0x00, 0x01, 0x00, 0x00}) {
 		return errors.New("Unrecognized file (font) format")
 	}
 
@@ -323,13 +323,13 @@ func (t *TTFParser) parse(rd io.Reader) error {
 	}
 
 	//fmt.Printf("%#v\n", me.widths)
-	t.cahceFontData = fontdata //t.readFontData(fontpath)
+	t.cacheFontData = fontdata //t.readFontData(fontpath)
 
 	return nil
 }
 
 func (t *TTFParser) FontData() []byte {
-	return t.cahceFontData
+	return t.cacheFontData
 }
 
 //ParseLoca parse loca table https://www.microsoft.com/typography/otspec/loca.htm
@@ -1044,30 +1044,4 @@ func (t *TTFParser) Read(fd *bytes.Reader, length int) ([]byte, error) {
 	}
 	//fmt.Printf("%d,%s\n", readlength, string(buff))
 	return buff, nil
-}
-
-//CompareBytes compare a and b
-func (t *TTFParser) CompareBytes(a []byte, b []byte) bool {
-
-	if a == nil && b == nil {
-		return true
-	} else if a == nil && b != nil {
-		return false
-	} else if a != nil && b == nil {
-		return false
-	}
-
-	if len(a) != len(b) {
-		return false
-	}
-
-	i := 0
-	length := len(a)
-	for i < length {
-		if a[i] != b[i] {
-			return false
-		}
-		i++
-	}
-	return true
 }

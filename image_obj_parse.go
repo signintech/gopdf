@@ -133,7 +133,7 @@ func paesePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 	if err != nil {
 		return err
 	}
-	if !compareBytes(b, pngMagicNumber) {
+	if !bytes.Equal(b, pngMagicNumber) {
 		return errors.New("Not a PNG file")
 	}
 
@@ -142,7 +142,7 @@ func paesePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 	if err != nil {
 		return err
 	}
-	if !compareBytes(b, pngIHDR) {
+	if !bytes.Equal(b, pngIHDR) {
 		return errors.New("Incorrect PNG file")
 	}
 
@@ -429,30 +429,6 @@ func readBytes(f *bytes.Reader, len int) ([]byte, error) {
 		return nil, err
 	}
 	return b, nil
-}
-
-func compareBytes(a []byte, b []byte) bool {
-	if a == nil && b == nil {
-		return true
-	} else if a == nil {
-		return false
-	} else if b == nil {
-		return false
-	}
-
-	if len(a) != len(b) {
-		return false
-	}
-
-	i := 0
-	max := len(a)
-	for i < max {
-		if a[i] != b[i] {
-			return false
-		}
-		i++
-	}
-	return true
 }
 
 func isDeviceRGB(formatname string, img *image.Image) bool {

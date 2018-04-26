@@ -70,6 +70,14 @@ func haveSMask(imginfo imgInfo) bool {
 	return false
 }
 
+func parseImgByPath(path string) (imgInfo, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return imgInfo{}, err
+	}
+	return parseImg(bytes.NewReader(data))
+}
+
 func parseImg(raw *bytes.Reader) (imgInfo, error) {
 	//fmt.Printf("----------\n")
 	var info imgInfo
@@ -93,7 +101,7 @@ func parseImg(raw *bytes.Reader) (imgInfo, error) {
 		}
 
 	} else if formatname == "png" {
-		err = paesePng(raw, &info, imgConfig)
+		err = parsePng(raw, &info, imgConfig)
 		if err != nil {
 			return info, err
 		}
@@ -126,7 +134,7 @@ func parseImgJpg(info *imgInfo, imgConfig image.Config) error {
 var pngMagicNumber = []byte{0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a}
 var pngIHDR = []byte{0x49, 0x48, 0x44, 0x52}
 
-func paesePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
+func parsePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 	//f := bytes.NewReader(raw)
 	f.Seek(0, 0)
 	b, err := readBytes(f, 8)
@@ -216,13 +224,13 @@ func paesePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 	var trns []byte
 	var data []byte
 	for {
-		n, err := readInt(f)
+		un, err := readUInt(f)
 		if err != nil {
 			return err
 		}
-
+		n := int(un)
 		typ, err := readBytes(f, 4)
-		//fmt.Printf(">>>>>%s\n", string(typ))
+		//fmt.Printf(">>>>%+v-%s-%d\n", typ, string(typ), n)
 		if err != nil {
 			return err
 		}

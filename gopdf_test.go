@@ -82,7 +82,7 @@ func TestPdfWithImageHolder(t *testing.T) {
 		return
 	}
 
-	bytesOfImg, err := ioutil.ReadFile("./test/res/gopher02.png")
+	bytesOfImg, err := ioutil.ReadFile("./test/res/PNG_transparency_demonstration_1.png")
 	if err != nil {
 		t.Error(err)
 		return

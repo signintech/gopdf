@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"image"
+	//for .jpeg and .png
 	_ "image/jpeg"
 	_ "image/png"
 	"io"

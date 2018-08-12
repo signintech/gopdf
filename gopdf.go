@@ -514,7 +514,7 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 	return nil
 }
 
-//AddLink
+//AddExternalLink add external link
 func (gp *GoPdf) AddExternalLink(url string, x, y, w, h float64) {
 	page := gp.pdfObjs[gp.curr.IndexOfPageObj].(*PageObj)
 	page.Links = append(page.Links, linkOption{x, gp.config.PageSize.H - y, w, h, url, ""})
@@ -693,6 +693,25 @@ func (gp *GoPdf) SetInfo(info PdfInfo) {
 	gp.isUseInfo = true
 }
 
+//SetDigitalSign setup digital signner
+func (gp *GoPdf) SetDigitalSign(signner DigitalSignner) {
+
+	isExists := false
+	var aro *acroForm
+	for i := range gp.pdfObjs {
+		if gp.pdfObjs[i].getType() == "AcroForm" {
+			aro = gp.pdfObjs[i].(*acroForm) //get old
+			isExists = true
+			break
+		}
+	}
+	if !isExists { //create new
+		aro = new(acroForm)
+		gp.addObj(aro)
+	}
+	aro.setDigitalSign(signner)
+}
+
 /*---private---*/
 
 //init
@@ -788,6 +807,8 @@ func (gp *GoPdf) prepare() {
 				}
 			} else if objtype == "Encryption" {
 				gp.encryptionObjID = i + 1
+			} else if objtype == "AcroForm" {
+
 			}
 			i++
 		}

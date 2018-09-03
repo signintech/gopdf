@@ -254,6 +254,9 @@ func (gp *GoPdf) ImageByHolder(img ImageHolder, x float64, y float64, rect *Rect
 			if err != nil {
 				return err
 			}
+			dRGB.getRoot = func() *GoPdf {
+				return gp
+			}
 			imgobj.imginfo.deviceRGBObjID = gp.addObj(dRGB)
 		}
 

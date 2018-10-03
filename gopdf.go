@@ -382,8 +382,8 @@ func (gp *GoPdf) SetFont(family string, style string, size int) error {
 }
 
 //WritePdf : wirte pdf file
-func (gp *GoPdf) WritePdf(pdfPath string) {
-	ioutil.WriteFile(pdfPath, gp.GetBytesPdf(), 0644)
+func (gp *GoPdf) WritePdf(pdfPath string) error {
+	return ioutil.WriteFile(pdfPath, gp.GetBytesPdf(), 0644)
 }
 
 func (gp *GoPdf) Write(w io.Writer) error {

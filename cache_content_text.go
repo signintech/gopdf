@@ -125,7 +125,7 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	io.WriteString(w, "BT\n")
 	fmt.Fprintf(w, "%0.2f %0.2f TD\n", x, y)
 	fmt.Fprintf(w, "/F%d %d Tf\n", c.fontCountIndex, c.fontSize)
-	if r+g+b != 0 {
+	if !(r == 0 && g == 0 && b == 0) {
 		rFloat := float64(r) * 0.00392156862745
 		gFloat := float64(g) * 0.00392156862745
 		bFloat := float64(b) * 0.00392156862745

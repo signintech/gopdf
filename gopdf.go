@@ -696,6 +696,13 @@ func (gp *GoPdf) SetInfo(info PdfInfo) {
 	gp.isUseInfo = true
 }
 
+//Rotate rotate text or image
+// angle is angle in degrees.
+// x, y is rotation center
+func (gp *GoPdf) Rotate(angle, x, y float64) {
+	gp.getContent().appendRotate(angle, x, y)
+}
+
 /*---private---*/
 
 //init

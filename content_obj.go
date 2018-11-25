@@ -277,6 +277,15 @@ func (c *ContentObj) AppendStreamImage(index int, x float64, y float64, rect *Re
 	//c.stream.WriteString(fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", rect.W, rect.H, x, h-(y+rect.H), index+1))
 }
 
+func (c *ContentObj) appendRotate(angle, x, y float64) {
+	var cache cacheContentRotate
+	cache.pageHeight = c.getRoot().curr.pageSize.H
+	cache.angle = angle
+	cache.x = x
+	cache.y = y
+	c.listCache.append(&cache)
+}
+
 //ContentObj_CalTextHeight calculate height of text
 func ContentObj_CalTextHeight(fontsize int) float64 {
 	return (float64(fontsize) * 0.7)

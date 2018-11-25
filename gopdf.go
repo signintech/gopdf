@@ -703,6 +703,11 @@ func (gp *GoPdf) Rotate(angle, x, y float64) {
 	gp.getContent().appendRotate(angle, x, y)
 }
 
+//RotateReset reset rotate
+func (gp *GoPdf) RotateReset() {
+	gp.getContent().appendRotateReset()
+}
+
 /*---private---*/
 
 //init

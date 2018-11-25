@@ -279,10 +279,17 @@ func (c *ContentObj) AppendStreamImage(index int, x float64, y float64, rect *Re
 
 func (c *ContentObj) appendRotate(angle, x, y float64) {
 	var cache cacheContentRotate
+	cache.isReset = false
 	cache.pageHeight = c.getRoot().curr.pageSize.H
 	cache.angle = angle
 	cache.x = x
 	cache.y = y
+	c.listCache.append(&cache)
+}
+
+func (c *ContentObj) appendRotateReset() {
+	var cache cacheContentRotate
+	cache.isReset = true
 	c.listCache.append(&cache)
 }
 

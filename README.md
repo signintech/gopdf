@@ -149,6 +149,15 @@ pdf.SetLineWidth(1)
 pdf.Oval(100, 200, 500, 500)
 ```
 
+### Rotation text or image
+```go
+pdf.SetX(100)
+pdf.SetY(100)
+pdf.Rotate(270.0, 100, 100) 
+pdf.Text("Hello...")
+pdf.RotateReset() //reset
+```
+
 ### Password protection
 ```go
 package main
@@ -179,5 +188,7 @@ func main() {
 }
 
 ```
+  
+
   
 visit https://github.com/oneplus1000/gopdfsample for more samples.

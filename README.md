@@ -153,7 +153,7 @@ pdf.Oval(100, 200, 500, 500)
 ```go
 pdf.SetX(100)
 pdf.SetY(100)
-pdf.Rotate(270.0, 100, 100) 
+pdf.Rotate(270.0, 100.0, 100.0)
 pdf.Text("Hello...")
 pdf.RotateReset() //reset
 ```

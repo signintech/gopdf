@@ -16,7 +16,7 @@ func BenchmarkPdfWithImageHolder(b *testing.B) {
 	}
 
 	pdf := GoPdf{}
-	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf.Start(Config{PageSize: &Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
 	pdf.AddPage()
 	err = pdf.AddTTFFont("loma", "./test/res/times.ttf")
 	if err != nil {
@@ -68,7 +68,7 @@ func TestPdfWithImageHolder(t *testing.T) {
 	}
 
 	pdf := GoPdf{}
-	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf.Start(Config{PageSize: &Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
 	pdf.AddPage()
 	err = pdf.AddTTFFont("loma", "./test/res/times.ttf")
 	if err != nil {

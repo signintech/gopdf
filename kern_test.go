@@ -35,7 +35,7 @@ func TestKern01(t *testing.T) {
 func kern01(font string, prefix string, leftRune rune, rightRune rune) (int, error) {
 
 	pdf := GoPdf{}
-	pdf.Start(Config{Unit: "pt", PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf.Start(Config{Unit: Unit_PT, PageSize: &Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
 	pdf.AddPage()
 	err := pdf.AddTTFFontWithOption(prefix, font, TtfOption{
 		UseKerning: true,

@@ -15,12 +15,16 @@ import (
 
 const subsetFont = "SubsetFont"
 
+// the default margin if no margins are set
+const defaultMargin = 1 * conversion_Unit_CM
+
 //GoPdf : A simple library for generating PDF written in Go lang
 type GoPdf struct {
 
 	//page Margin
-	leftMargin float64
-	topMargin  float64
+	//leftMargin float64
+	//topMargin  float64
+	margins Margins
 
 	pdfObjs []IObj
 	config  Config
@@ -148,7 +152,7 @@ func (gp *GoPdf) Oval(x1 float64, y1 float64, x2 float64, y2 float64) {
 func (gp *GoPdf) Br(h float64) {
 	gp.UnitsToPointsVar(&h)
 	gp.curr.Y += h
-	gp.curr.X = gp.leftMargin
+	gp.curr.X = gp.margins.Left
 }
 
 //SetGrayFill set the grayscale for the fill, takes a float64 between 0.0 and 1.0
@@ -161,18 +165,6 @@ func (gp *GoPdf) SetGrayFill(grayScale float64) {
 func (gp *GoPdf) SetGrayStroke(grayScale float64) {
 	gp.curr.grayStroke = grayScale
 	gp.getContent().AppendStreamSetGrayStroke(grayScale)
-}
-
-//SetLeftMargin : set left margin
-func (gp *GoPdf) SetLeftMargin(margin float64) {
-	gp.UnitsToPointsVar(&margin)
-	gp.leftMargin = margin
-}
-
-//SetTopMargin : set top margin
-func (gp *GoPdf) SetTopMargin(margin float64) {
-	gp.UnitsToPointsVar(&margin)
-	gp.topMargin = margin
 }
 
 //SetX : set current position X
@@ -740,8 +732,12 @@ func (gp *GoPdf) RotateReset() {
 func (gp *GoPdf) init() {
 
 	//default
-	gp.leftMargin = 10.0
-	gp.topMargin = 10.0
+	gp.margins = Margins{
+		Left:   defaultMargin,
+		Top:    defaultMargin,
+		Right:  defaultMargin,
+		Bottom: defaultMargin,
+	}
 
 	//init curr
 	gp.resetCurrXY()
@@ -769,22 +765,26 @@ func (gp *GoPdf) init() {
 }
 
 func (gp *GoPdf) resetCurrXY() {
-	gp.curr.X = gp.leftMargin
-	gp.curr.Y = gp.topMargin
+	gp.curr.X = gp.margins.Left
+	gp.curr.Y = gp.margins.Top
 }
 
+// UnitsToPoints converts the units to the documents unit type
 func (gp *GoPdf) UnitsToPoints(u float64) float64 {
 	return UnitsToPoints(gp.config.Unit, u)
 }
 
+// UnitsToPointsVar converts the units to the documents unit type for all variables passed in
 func (gp *GoPdf) UnitsToPointsVar(u ...*float64) {
 	UnitsToPointsVar(gp.config.Unit, u...)
 }
 
+// PointsToUnits converts the points to the documents unit type
 func (gp *GoPdf) PointsToUnits(u float64) float64 {
 	return PointsToUnits(gp.config.Unit, u)
 }
 
+// PointsToUnits converts the points to the documents unit type for all variables passed in
 func (gp *GoPdf) PointsToUnitsVar(u ...*float64) {
 	PointsToUnitsVar(gp.config.Unit, u...)
 }

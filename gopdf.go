@@ -523,11 +523,13 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 	length := len([]rune(text))
 
 	// get lineHeight
-	err := gp.curr.Font_ISubset.AddChars(text)
-	if err != nil {
+	if err := gp.curr.Font_ISubset.AddChars(text); err != nil {
 		return err
 	}
 	_, lineHeight, _, err := createContent(gp.curr.Font_ISubset, text, gp.curr.Font_Size, nil)
+	if err != nil {
+		return err
+	}
 
 	for i, v := range []rune(text) {
 		lineWidth, _ := gp.MeasureTextWidth(string(line))
@@ -546,6 +548,7 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 			gp.Br(lineHeight)
 		}
 	}
+	return nil
 }
 
 //AddLink

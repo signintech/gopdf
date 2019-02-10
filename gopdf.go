@@ -520,6 +520,7 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 //MultiCell : create of text with line breaks ( use current x,y is upper-left corner of cell)
 func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 	var line []rune
+	x := gp.GetX()
 	var totalLineHeight float64
 	length := len([]rune(text))
 
@@ -542,6 +543,7 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 		if lineWidth+runeWidth > rectangle.W {
 			gp.Cell(&Rect{W: rectangle.W, H: lineHeight}, string(line))
 			gp.Br(lineHeight)
+			gp.SetX(x)
 			totalLineHeight = totalLineHeight + lineHeight
 			line = nil
 		}
@@ -551,6 +553,7 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 		if i == length-1 {
 			gp.Cell(&Rect{W: rectangle.W, H: lineHeight}, string(line))
 			gp.Br(lineHeight)
+			gp.SetX(x)
 		}
 	}
 	return nil

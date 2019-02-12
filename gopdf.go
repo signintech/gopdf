@@ -674,7 +674,7 @@ func (gp *GoPdf) SetFillColor(r uint8, g uint8, b uint8) {
 }
 
 //MeasureTextWidth : measure Width of text (use current font)
-func (gp *GoPdf) MeasureTextWidth(text string, units int) (float64, error) {
+func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 
 	err := gp.curr.Font_ISubset.AddChars(text) //AddChars for create CharacterToGlyphIndex
 	if err != nil {

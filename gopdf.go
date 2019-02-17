@@ -531,6 +531,48 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 	return nil
 }
 
+//MultiCell : create of text with line breaks ( use current x,y is upper-left corner of cell)
+func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
+	var line []rune
+	x := gp.GetX()
+	var totalLineHeight float64
+	length := len([]rune(text))
+
+	// get lineHeight
+	if err := gp.curr.Font_ISubset.AddChars(text); err != nil {
+		return err
+	}
+	_, lineHeight, _, err := createContent(gp.curr.Font_ISubset, text, gp.curr.Font_Size, nil)
+	if err != nil {
+		return err
+	}
+
+	for i, v := range []rune(text) {
+		if totalLineHeight+lineHeight > rectangle.H {
+			break
+		}
+		lineWidth, _ := gp.MeasureTextWidth(string(line))
+		runeWidth, _ := gp.MeasureTextWidth(string(v))
+
+		if lineWidth+runeWidth > rectangle.W {
+			gp.Cell(&Rect{W: rectangle.W, H: lineHeight}, string(line))
+			gp.Br(lineHeight)
+			gp.SetX(x)
+			totalLineHeight = totalLineHeight + lineHeight
+			line = nil
+		}
+
+		line = append(line, v)
+
+		if i == length-1 {
+			gp.Cell(&Rect{W: rectangle.W, H: lineHeight}, string(line))
+			gp.Br(lineHeight)
+			gp.SetX(x)
+		}
+	}
+	return nil
+}
+
 //AddLink
 func (gp *GoPdf) AddExternalLink(url string, x, y, w, h float64) {
 	gp.UnitsToPointsVar(&x, &y, &w, &h)

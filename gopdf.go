@@ -16,7 +16,7 @@ import (
 const subsetFont = "SubsetFont"
 
 // the default margin if no margins are set
-const defaultMargin = 1 * conversion_Unit_CM
+const defaultMargin = 10.0 //for backward compatible
 
 //GoPdf : A simple library for generating PDF written in Go lang
 type GoPdf struct {

@@ -826,7 +826,7 @@ func (gp *GoPdf) PointsToUnits(u float64) float64 {
 	return PointsToUnits(gp.config.Unit, u)
 }
 
-// PointsToUnits converts the points to the documents unit type for all variables passed in
+//PointsToUnitsVar converts the points to the documents unit type for all variables passed in
 func (gp *GoPdf) PointsToUnitsVar(u ...*float64) {
 	PointsToUnitsVar(gp.config.Unit, u...)
 }

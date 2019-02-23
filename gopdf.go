@@ -727,7 +727,7 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return PointsToUnits(units, textWidthPdfUnit), nil
+	return PointsToUnits(gp.config.Unit, textWidthPdfUnit), nil
 }
 
 //Curve Draws a Bézier curve (the Bézier curve is tangent to the line between the control points at either end of the curve)

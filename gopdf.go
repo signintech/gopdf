@@ -573,7 +573,7 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 	return nil
 }
 
-//AddLink
+// AddExternalLink
 func (gp *GoPdf) AddExternalLink(url string, x, y, w, h float64) {
 	gp.UnitsToPointsVar(&x, &y, &w, &h)
 	page := gp.pdfObjs[gp.curr.IndexOfPageObj].(*PageObj)

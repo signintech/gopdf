@@ -113,13 +113,14 @@ func parseImg(raw *bytes.Reader) (imgInfo, error) {
 }
 
 func parseImgJpg(info *imgInfo, imgConfig image.Config) error {
-	if imgConfig.ColorModel == color.YCbCrModel {
+	switch imgConfig.ColorModel {
+	case color.YCbCrModel:
 		info.colspace = "DeviceRGB"
-	} else if imgConfig.ColorModel == color.GrayModel {
+	case color.GrayModel:
 		info.colspace = "DeviceGray"
-	} else if imgConfig.ColorModel == color.CMYKModel {
+	case color.CMYKModel:
 		info.colspace = "DeviceCMYK"
-	} else {
+	default:
 		return errors.New("color model not support")
 	}
 	info.bitsPerComponent = "8"
@@ -179,13 +180,14 @@ func parsePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 	}
 
 	var colspace string
-	if ct[0] == 0 || ct[0] == 4 {
+	switch ct[0] {
+	case 0, 4:
 		colspace = "DeviceGray"
-	} else if ct[0] == 2 || ct[0] == 6 {
+	case 2, 6:
 		colspace = "DeviceRGB"
-	} else if ct[0] == 3 {
+	case 3:
 		colspace = "Indexed"
-	} else {
+	default:
 		return errors.New("Unknown color type")
 	}
 

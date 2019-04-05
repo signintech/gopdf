@@ -865,15 +865,16 @@ func (gp *GoPdf) prepare() {
 		for i < max {
 			objtype := gp.pdfObjs[i].getType()
 			//fmt.Printf(" objtype = %s , %d \n", objtype , i)
-			if objtype == "Page" {
+			switch objtype {
+			case "Page":
 				pagesObj.Kids = fmt.Sprintf("%s %d 0 R ", pagesObj.Kids, i+1)
 				pagesObj.PageCount++
 				indexCurrPage = i
-			} else if objtype == "Content" {
+			case "Content":
 				if indexCurrPage != -1 {
 					gp.pdfObjs[indexCurrPage].(*PageObj).Contents = fmt.Sprintf("%s %d 0 R ", gp.pdfObjs[indexCurrPage].(*PageObj).Contents, i+1)
 				}
-			} else if objtype == "Font" {
+			case "Font":
 				tmpfont := gp.pdfObjs[i].(*FontObj)
 				j := 0
 				jmax := len(gp.indexEncodingObjFonts)
@@ -888,7 +889,7 @@ func (gp *GoPdf) prepare() {
 					}
 					j++
 				}
-			} else if objtype == "Encryption" {
+			case "Encryption":
 				gp.encryptionObjID = i + 1
 			}
 			i++

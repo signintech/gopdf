@@ -15,9 +15,6 @@ type cacheContentColor struct {
 }
 
 func (c *cacheContentColor) write(w io.Writer, protection *PDFProtection) error {
-	rFloat := float64(c.r) * 0.00392156862745
-	gFloat := float64(c.g) * 0.00392156862745
-	bFloat := float64(c.b) * 0.00392156862745
-	fmt.Fprintf(w, "%.2f %.2f %.2f %s\n", rFloat, gFloat, bFloat, c.colorType)
+	fmt.Fprintf(w, "%.3f %.3f %.3f %s\n", float64(c.r)/255, float64(c.g)/255, float64(c.b)/255, c.colorType)
 	return nil
 }

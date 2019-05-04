@@ -11,6 +11,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"github.com/phpdave11/gofpdi"
 )
 
 const subsetFont = "SubsetFont"
@@ -61,6 +62,9 @@ type GoPdf struct {
 	//info
 	isUseInfo bool
 	info      *PdfInfo
+
+	// gofpdi free pdf document importer
+	fpdi *gofpdi.Importer
 }
 
 //SetLineWidth : set line width
@@ -573,6 +577,69 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 	return nil
 }
 
+// gofpdi code
+// Return template id after importing
+func (gp *GoPdf) ImportPage(sourceFile string, pageno int, box string) int {
+	// Set source file for fpdi
+	gp.fpdi.SetSourceFile(sourceFile)
+
+	// gofpdi needs to know where to start the object id at.
+	// By default, it starts at 1, but gopdf adds a few objects initially.
+	startObjId := gp.GetNextObjectID()
+
+	// Set gofpdi next object ID to  whatever the value of startObjId is
+	gp.fpdi.SetNextObjectID(startObjId)
+
+	// Import page
+	tpl := gp.fpdi.ImportPage(pageno, box)
+
+	// Import objects into current pdf document
+	tplObjIds := gp.fpdi.PutFormXobjects()
+
+	// Set template names and ids in gopdf
+	gp.ImportTemplates(tplObjIds)
+
+	// Get a map[int]string of the imported objects.
+	// The map keys will be the ID of each object.
+	imported := gp.fpdi.GetImportedObjects()
+
+	// Import gofpdi objects into gopdf, starting at whatever the value of startObjId is
+	gp.ImportObjects(imported, startObjId)
+
+	// Return template ID
+	return tpl
+}
+
+// Use imported template - draws imported PDF page onto page
+func (gp *GoPdf) UseImportedTemplate(tplid int, x float64, y float64, w float64, h float64) {
+	gp.UnitsToPointsVar(&x, &y, &w, &h)
+	// Get template values to draw
+	tplName, scaleX, scaleY, tX, tY := gp.fpdi.UseTemplate(tplid, x, y, w, h)
+	gp.getContent().AppendStreamImportedTemplate(tplName, scaleX, scaleY, tX, tY)
+}
+
+// Get the next object ID so that gofpdi knows where to start the object IDs
+func (gp *GoPdf) GetNextObjectID() int {
+	return len(gp.pdfObjs) + 1
+}
+
+// Import objects from gofpdi into current document
+func (gp *GoPdf) ImportObjects(objs map[int]string, startObjId int) {
+	for i := startObjId; i < len(objs)+startObjId; i++ {
+		if objs[i] != "" {
+			gp.addObj(&ImportedObj{Data: objs[i]})
+		}
+	}
+}
+
+// Import template names into procset dictionary
+func (gp *GoPdf) ImportTemplates(tpls map[string]int) {
+	procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
+	for tplName, tplId := range tpls {
+		procset.ImportedTemplateIds[tplName] = tplId
+	}
+}
+
 // AddExternalLink
 func (gp *GoPdf) AddExternalLink(url string, x, y, w, h float64) {
 	gp.UnitsToPointsVar(&x, &y, &w, &h)
@@ -804,6 +871,9 @@ func (gp *GoPdf) init() {
 
 	// change the unit type
 	gp.config.PageSize = *gp.config.PageSize.UnitsToPoints(gp.config.Unit)
+
+	// init gofpdi free pdf document importer
+	gp.fpdi = gofpdi.NewImporter()
 }
 
 func (gp *GoPdf) resetCurrXY() {

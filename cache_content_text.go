@@ -17,6 +17,7 @@ type cacheContentText struct {
 	rectangle      *Rect
 	textColor      Rgb
 	grayFill       float64
+	txtColorMode   string
 	fontCountIndex int //Curr.Font_FontCount+1
 	fontSize       int
 	fontStyle      int
@@ -125,8 +126,10 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	io.WriteString(w, "BT\n")
 	fmt.Fprintf(w, "%0.2f %0.2f TD\n", x, y)
 	fmt.Fprintf(w, "/F%d %d Tf\n", c.fontCountIndex, c.fontSize)
-	fmt.Fprintf(w, "%0.3f %0.3f %0.3f rg\n", float64(r)/255, float64(g)/255, float64(b)/255)
-
+	fmt.Printf("c.txtColorMode=%s\n", c.txtColorMode)
+	if c.txtColorMode == "color" {
+		fmt.Fprintf(w, "%0.3f %0.3f %0.3f rg\n", float64(r)/255, float64(g)/255, float64(b)/255)
+	}
 	io.WriteString(w, "[<")
 
 	unitsPerEm := int(c.fontSubset.ttfp.UnitsPerEm())

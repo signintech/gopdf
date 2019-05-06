@@ -102,6 +102,7 @@ func (c *ContentObj) AppendStreamText(text string) error {
 		pageheight:     c.getRoot().curr.pageSize.H,
 		contentType:    ContentTypeText,
 		lineWidth:      c.getRoot().curr.lineWidth,
+		txtColorMode:   c.getRoot().curr.txtColorMode,
 	}
 
 	var err error
@@ -141,6 +142,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOp
 		contentType:    ContentTypeCell,
 		cellOpt:        cellOpt,
 		lineWidth:      c.getRoot().curr.lineWidth,
+		txtColorMode:   c.getRoot().curr.txtColorMode,
 	}
 	var err error
 	c.getRoot().curr.X, c.getRoot().curr.Y, err = c.listCache.appendContentText(cache, text)

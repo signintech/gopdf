@@ -157,6 +157,7 @@ func (gp *GoPdf) Br(h float64) {
 
 //SetGrayFill set the grayscale for the fill, takes a float64 between 0.0 and 1.0
 func (gp *GoPdf) SetGrayFill(grayScale float64) {
+	gp.curr.txtColorMode = "gray"
 	gp.curr.grayFill = grayScale
 	gp.getContent().AppendStreamSetGrayFill(grayScale)
 }
@@ -697,6 +698,7 @@ func (gp *GoPdf) KernOverride(family string, fn FuncKernOverride) error {
 
 //SetTextColor :  function sets the text color
 func (gp *GoPdf) SetTextColor(r uint8, g uint8, b uint8) {
+	gp.curr.txtColorMode = "color"
 	rgb := Rgb{
 		r: r,
 		g: g,
@@ -789,6 +791,7 @@ func (gp *GoPdf) init() {
 	gp.curr.CountOfImg = 0 //img
 	gp.curr.ImgCaches = *new([]ImageCache)
 	gp.anchors = make(map[string]anchorOption)
+	gp.curr.txtColorMode = "gray"
 
 	//init index
 	gp.indexOfPagesObj = -1

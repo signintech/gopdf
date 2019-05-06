@@ -26,6 +26,9 @@ type Current struct {
 	//cache of image in pdf file
 	ImgCaches []ImageCache
 
+	//text color mode
+	txtColorMode string //color, gray
+
 	//text color
 	txtColor Rgb
 

@@ -10,11 +10,13 @@ type ProcSetObj struct {
 	//Font
 	Realtes     RelateFonts
 	RealteXobjs RealteXobjects
+	ImportedTemplateIds map[string]int
 	getRoot     func() *GoPdf
 }
 
 func (pr *ProcSetObj) init(funcGetRoot func() *GoPdf) {
 	pr.getRoot = funcGetRoot
+	pr.ImportedTemplateIds = make(map[string]int, 0)
 }
 
 func (pr *ProcSetObj) write(w io.Writer, objID int) error {
@@ -41,6 +43,12 @@ func (pr *ProcSetObj) write(w io.Writer, objID int) error {
 		pr.getRoot().curr.CountOfL++
 		i++
 	}
+
+	// Write imported template name and their ids
+	for tplName, objId := range pr.ImportedTemplateIds {
+		io.WriteString(w, fmt.Sprintf("%s %d 0 R\n", tplName, objId))
+	}
+
 	io.WriteString(w, ">>\n")
 	io.WriteString(w, ">>\n")
 	return nil

@@ -165,6 +165,18 @@ func (c *ContentObj) AppendStreamLine(x1 float64, y1 float64, x2 float64, y2 flo
 	c.listCache.append(&cache)
 }
 
+//AppendStreamImportedTemplate append imported template
+func (c *ContentObj) AppendStreamImportedTemplate(tplName string, scaleX float64, scaleY float64, tX float64, tY float64) {
+	var cache cacheContentImportedTemplate
+	cache.pageHeight = c.getRoot().curr.pageSize.H
+	cache.tplName = tplName
+	cache.scaleX = scaleX
+	cache.scaleY = scaleY
+	cache.tX = tX
+	cache.tY = tY
+	c.listCache.append(&cache)
+}
+
 //AppendStreamRectangle : draw rectangle from lower-left corner (x, y) with specif width/height
 func (c *ContentObj) AppendStreamRectangle(x float64, y float64, wdth float64, hght float64, style string) {
 	var cache cacheContentRectangle

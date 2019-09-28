@@ -166,7 +166,7 @@ func (s *SubsetFontObj) charCodeToGlyphIndexFormat12(r rune) (uint, error) {
 	value := uint(r)
 	gTbs := s.ttfp.GroupingTables()
 	for _, gTb := range gTbs {
-		if value >= gTb.StartCharCode && value < gTb.EndCharCode {
+		if value >= gTb.StartCharCode && value <= gTb.EndCharCode {
 			gIndex := (value - gTb.StartCharCode) + gTb.GlyphID
 			return gIndex, nil
 		}

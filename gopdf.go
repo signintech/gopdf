@@ -611,6 +611,40 @@ func (gp *GoPdf) ImportPage(sourceFile string, pageno int, box string) int {
 	return tpl
 }
 
+// gofpdi code
+// Imports using a stream
+// Return template id after importing
+func (gp *GoPdf) ImportPageStream(sourceStream *io.ReadSeeker, pageno int, box string) int {
+        // Set source file for fpdi
+        gp.fpdi.SetSourceStream(sourceStream)
+
+        // gofpdi needs to know where to start the object id at.
+        // By default, it starts at 1, but gopdf adds a few objects initially.
+        startObjId := gp.GetNextObjectID()
+
+        // Set gofpdi next object ID to  whatever the value of startObjId is
+        gp.fpdi.SetNextObjectID(startObjId)
+
+        // Import page
+        tpl := gp.fpdi.ImportPage(pageno, box)
+
+        // Import objects into current pdf document
+        tplObjIds := gp.fpdi.PutFormXobjects()
+
+        // Set template names and ids in gopdf
+        gp.ImportTemplates(tplObjIds)
+
+        // Get a map[int]string of the imported objects.
+        // The map keys will be the ID of each object.
+        imported := gp.fpdi.GetImportedObjects()
+
+        // Import gofpdi objects into gopdf, starting at whatever the value of startObjId is
+        gp.ImportObjects(imported, startObjId)
+
+        // Return template ID
+        return tpl
+}
+
 // Use imported template - draws imported PDF page onto page
 func (gp *GoPdf) UseImportedTemplate(tplid int, x float64, y float64, w float64, h float64) {
 	gp.UnitsToPointsVar(&x, &y, &w, &h)

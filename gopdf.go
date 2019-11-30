@@ -5,13 +5,13 @@ import (
 	"compress/zlib" // for constants
 	"errors"
 	"fmt"
+	"github.com/phpdave11/gofpdi"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
 	"time"
-	"github.com/phpdave11/gofpdi"
 )
 
 const subsetFont = "SubsetFont"
@@ -578,6 +578,45 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 	return nil
 }
 
+// Split text into multiple lines based on width
+func (gp *GoPdf) SplitText(text string, width float64) ([]string, error) {
+	var lineText []rune
+	var lineTexts []string
+	utf8Texts := []rune(text)
+	utf8TextsLen := len(utf8Texts) // utf8 string quantity
+	if utf8TextsLen == 0 {
+		return lineTexts, errors.New("empty string")
+	}
+	for i := 0; i < utf8TextsLen; i++ {
+		lineWidth, err := gp.MeasureTextWidth(string(lineText))
+		if err != nil {
+			return nil, err
+		}
+		runeWidth, err := gp.MeasureTextWidth(string(utf8Texts[i]))
+		if err != nil {
+			return nil, err
+		}
+		if lineWidth+runeWidth > width && utf8Texts[i] != '\n' {
+			lineTexts = append(lineTexts, string(lineText))
+			lineText = lineText[0:0]
+			i -= 1
+			continue
+		}
+		if utf8Texts[i] == '\n' {
+			lineTexts = append(lineTexts, string(lineText))
+			lineText = lineText[0:0]
+			continue
+		}
+		if i == utf8TextsLen-1 {
+			lineText = append(lineText, utf8Texts[i])
+			lineTexts = append(lineTexts, string(lineText))
+		}
+		lineText = append(lineText, utf8Texts[i])
+
+	}
+	return lineTexts, nil
+}
+
 // gofpdi code
 // Return template id after importing
 func (gp *GoPdf) ImportPage(sourceFile string, pageno int, box string) int {
@@ -615,34 +654,34 @@ func (gp *GoPdf) ImportPage(sourceFile string, pageno int, box string) int {
 // Imports using a stream
 // Return template id after importing
 func (gp *GoPdf) ImportPageStream(sourceStream *io.ReadSeeker, pageno int, box string) int {
-        // Set source file for fpdi
-        gp.fpdi.SetSourceStream(sourceStream)
+	// Set source file for fpdi
+	gp.fpdi.SetSourceStream(sourceStream)
 
-        // gofpdi needs to know where to start the object id at.
-        // By default, it starts at 1, but gopdf adds a few objects initially.
-        startObjId := gp.GetNextObjectID()
+	// gofpdi needs to know where to start the object id at.
+	// By default, it starts at 1, but gopdf adds a few objects initially.
+	startObjId := gp.GetNextObjectID()
 
-        // Set gofpdi next object ID to  whatever the value of startObjId is
-        gp.fpdi.SetNextObjectID(startObjId)
+	// Set gofpdi next object ID to  whatever the value of startObjId is
+	gp.fpdi.SetNextObjectID(startObjId)
 
-        // Import page
-        tpl := gp.fpdi.ImportPage(pageno, box)
+	// Import page
+	tpl := gp.fpdi.ImportPage(pageno, box)
 
-        // Import objects into current pdf document
-        tplObjIds := gp.fpdi.PutFormXobjects()
+	// Import objects into current pdf document
+	tplObjIds := gp.fpdi.PutFormXobjects()
 
-        // Set template names and ids in gopdf
-        gp.ImportTemplates(tplObjIds)
+	// Set template names and ids in gopdf
+	gp.ImportTemplates(tplObjIds)
 
-        // Get a map[int]string of the imported objects.
-        // The map keys will be the ID of each object.
-        imported := gp.fpdi.GetImportedObjects()
+	// Get a map[int]string of the imported objects.
+	// The map keys will be the ID of each object.
+	imported := gp.fpdi.GetImportedObjects()
 
-        // Import gofpdi objects into gopdf, starting at whatever the value of startObjId is
-        gp.ImportObjects(imported, startObjId)
+	// Import gofpdi objects into gopdf, starting at whatever the value of startObjId is
+	gp.ImportObjects(imported, startObjId)
 
-        // Return template ID
-        return tpl
+	// Return template ID
+	return tpl
 }
 
 // Use imported template - draws imported PDF page onto page

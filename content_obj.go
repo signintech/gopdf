@@ -87,6 +87,7 @@ func (c *ContentObj) AppendStreamText(text string) error {
 	y := c.getRoot().curr.Y
 	setXCount := c.getRoot().curr.setXCount
 	fontSubset := c.getRoot().curr.Font_ISubset
+	transparency := c.getRoot().curr.transparency
 
 	cache := cacheContentText{
 		fontSubset:     fontSubset,
@@ -103,6 +104,7 @@ func (c *ContentObj) AppendStreamText(text string) error {
 		contentType:    ContentTypeText,
 		lineWidth:      c.getRoot().curr.lineWidth,
 		txtColorMode:   c.getRoot().curr.txtColorMode,
+		transparency:	transparency,
 	}
 
 	var err error
@@ -126,6 +128,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOp
 	y := c.getRoot().curr.Y
 	setXCount := c.getRoot().curr.setXCount
 	fontSubset := c.getRoot().curr.Font_ISubset
+	transparency := c.getRoot().curr.transparency
 
 	cache := cacheContentText{
 		fontSubset:     fontSubset,
@@ -143,6 +146,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOp
 		cellOpt:        cellOpt,
 		lineWidth:      c.getRoot().curr.lineWidth,
 		txtColorMode:   c.getRoot().curr.txtColorMode,
+		transparency:	transparency,
 	}
 	var err error
 	c.getRoot().curr.X, c.getRoot().curr.Y, err = c.listCache.appendContentText(cache, text)

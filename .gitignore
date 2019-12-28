@@ -66,3 +66,4 @@ test/debug.test
 *.test
 *.out
 .DS_Store
+.idea

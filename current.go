@@ -41,6 +41,9 @@ type Current struct {
 
 	//current page size
 	pageSize *Rect
+
+	transparency Transparency
+	transparencyMap map[string]Transparency
 }
 
 func (c *Current) setTextColor(rgb Rgb) {
@@ -84,4 +87,8 @@ func (rgb Rgb) equal(obj Rgb) bool {
 		return true
 	}
 	return false
+}
+
+type Transparency struct {
+	IndexOfExtGState int
 }

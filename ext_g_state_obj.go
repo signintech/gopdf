@@ -19,16 +19,17 @@ func (egs *ExtGStateObj) getType() string {
 }
 
 func (egs *ExtGStateObj) write(w io.Writer, objID int) error {
-	io.WriteString(w, "<</Type /ExtGState\n")
+	io.WriteString(w, "<<\n")
+	io.WriteString(w, "\t/Type /ExtGState\n")
 	//TODO make all fields nullable (reference)
 	//if egs.ca != nil {
-		fmt.Fprintf(w, "/ca %.3F\n", egs.ca)
+		fmt.Fprintf(w, "\t/ca %.3F\n", egs.ca)
 	//}
 	//if egs.CA != nil {
-		fmt.Fprintf(w, "/CA %.3F\n", egs.CA)
+		fmt.Fprintf(w, "\t/CA %.3F\n", egs.CA)
 	//}
 	//if egs.BM != nil {
-		fmt.Fprintf(w, "/BM %v\n", egs.BM)
+		fmt.Fprintf(w, "\t/BM %v\n", egs.BM)
 	//}
 	io.WriteString(w, ">>\n")
 	return nil

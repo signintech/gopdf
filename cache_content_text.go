@@ -125,7 +125,8 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	}
 
 	if c.transparency.IndexOfExtGState != 0 {
-		fmt.Fprintf(w, "/GS%d gs\n", c.transparency.IndexOfExtGState)
+		linkToGSObj := fmt.Sprintf("/GS%d gs\n", c.transparency.IndexOfExtGState)
+		io.WriteString(w, linkToGSObj)
 	}
 	io.WriteString(w, "BT\n")
 	fmt.Fprintf(w, "%0.2f %0.2f TD\n", x, y)

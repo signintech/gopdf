@@ -54,13 +54,11 @@ func (pr *ProcSetObj) write(w io.Writer, objID int) error {
 	io.WriteString(w, ">>\n")
 
 	io.WriteString(w, "/ExtGState <<\n")
-	i = 0
-	max = len(pr.ExtGStates)
-	for i < max {
-		gsIndex := pr.ExtGStates[i].Index+1
+
+	for _, extGState := range pr.ExtGStates {
+		gsIndex := extGState.Index+1
 		fmt.Fprintf(w, "/GS%d %d 0 R\n", gsIndex, gsIndex)
 		pr.getRoot().curr.CountOfL++
-		i++
 	}
 	io.WriteString(w, ">>\n")
 

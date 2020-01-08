@@ -1171,11 +1171,15 @@ func (gp *GoPdf) SetAlpha(alpha float64, blendModeStr string) error {
 
 	transparency, ok := gp.curr.transparencyMap[keyStr]
 	if !ok {
-		index := gp.addExtGStateObj(&ExtGStateObj{
+		index, err := gp.addExtGStateObj(&ExtGStateObj{
 			ca: alpha,
 			CA: alpha,
 			BM: blendMode,
 		})
+
+		if err != nil {
+			return err
+		}
 
 		transparency = Transparency{IndexOfExtGState: index + 1}
 
@@ -1216,16 +1220,23 @@ func getBlendMode (blendModeStr string) (bl string, err error) {
 	return bl, err
 }
 
-func (gp *GoPdf) addExtGStateObj (extGStateObj *ExtGStateObj) int {
+func (gp *GoPdf) addExtGStateObj (extGStateObj *ExtGStateObj) (index int, err error) {
 	extGStateObj.init(func() *GoPdf {
 		return gp
 	})
-	index := gp.addObj(extGStateObj)
+	index = gp.addObj(extGStateObj)
 
-	procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
+	var pdfObj interface{}
+	pdfObj = gp.pdfObjs[gp.indexOfProcSet]
+
+	procset, ok := pdfObj.(*ProcSetObj)
+	if !ok {
+		err = errors.Unwrap(fmt.Errorf("can't convert pdfobject to procsetobj"))
+		return index, err
+	}
 	procset.ExtGStates = append(procset.ExtGStates, ExtGS{Index: index})
 
-	return index
+	return index, nil
 }
 
 //tool for validate pdf https://www.pdf-online.com/osa/validate.aspx

@@ -10,6 +10,7 @@ type ProcSetObj struct {
 	//Font
 	Realtes     RelateFonts
 	RealteXobjs RealteXobjects
+	ExtGStates []ExtGS
 	ImportedTemplateIds map[string]int
 	getRoot     func() *GoPdf
 }
@@ -17,6 +18,7 @@ type ProcSetObj struct {
 func (pr *ProcSetObj) init(funcGetRoot func() *GoPdf) {
 	pr.getRoot = funcGetRoot
 	pr.ImportedTemplateIds = make(map[string]int, 0)
+	pr.ExtGStates = make([]ExtGS, 0)
 }
 
 func (pr *ProcSetObj) write(w io.Writer, objID int) error {
@@ -50,6 +52,16 @@ func (pr *ProcSetObj) write(w io.Writer, objID int) error {
 	}
 
 	io.WriteString(w, ">>\n")
+
+	io.WriteString(w, "/ExtGState <<\n")
+
+	for _, extGState := range pr.ExtGStates {
+		gsIndex := extGState.Index+1
+		fmt.Fprintf(w, "/GS%d %d 0 R\n", gsIndex, gsIndex)
+		pr.getRoot().curr.CountOfL++
+	}
+	io.WriteString(w, ">>\n")
+
 	io.WriteString(w, ">>\n")
 	return nil
 }
@@ -98,4 +110,8 @@ type RealteXobjects []RealteXobject
 
 type RealteXobject struct {
 	IndexOfObj int
+}
+
+type ExtGS struct {
+	Index int
 }

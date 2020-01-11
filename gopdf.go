@@ -930,6 +930,7 @@ func (gp *GoPdf) init() {
 	gp.curr.CountOfL = 0
 	gp.curr.CountOfImg = 0 //img
 	gp.curr.ImgCaches = *new([]ImageCache)
+	gp.curr.transparencyMap = make(map[string]Transparency)
 	gp.anchors = make(map[string]anchorOption)
 	gp.curr.txtColorMode = "gray"
 
@@ -1149,6 +1150,93 @@ func encodeUtf8(str string) string {
 func infodate(t time.Time) string {
 	ft := t.Format("20060102150405-07'00'")
 	return ft
+}
+
+// alpha: 		value from 0 (transparent) to 1 (opaque)
+// blendMode:   blend mode, one of the following:
+//          		Normal, Multiply, Screen, Overlay, Darken, Lighten, ColorDodge, ColorBurn,
+//          		HardLight, SoftLight, Difference, Exclusion, Hue, Saturation, Color, Luminosity
+func (gp *GoPdf) SetAlpha(alpha float64, blendModeStr string) error {
+	if alpha < 0.0 || alpha > 1.0 {
+		return errors.Unwrap(fmt.Errorf("alpha value (0.0 - 1.0) is out of range: %.3f", alpha))
+	}
+
+	blendMode, err := getBlendMode(blendModeStr)
+	if err != nil {
+		return err
+	}
+
+	alphaStr := fmt.Sprintf("%.3f", alpha)
+	keyStr := fmt.Sprintf("%s %s", alphaStr, blendMode)
+
+	transparency, ok := gp.curr.transparencyMap[keyStr]
+	if !ok {
+		index, err := gp.addExtGStateObj(&ExtGStateObj{
+			ca: alpha,
+			CA: alpha,
+			BM: blendMode,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		transparency = Transparency{IndexOfExtGState: index + 1}
+
+		gp.curr.transparencyMap[keyStr] = transparency
+	}
+
+	gp.curr.transparency = transparency
+
+	return err
+}
+
+func getBlendMode (blendModeStr string) (bl string, err error) {
+	switch blendModeStr {
+	case
+		"Hue",
+		"Color",
+		"Normal",
+		"Screen",
+		"Darken",
+		"Overlay",
+		"Lighten",
+		"Multiply",
+		"ColorBurn",
+		"HardLight",
+		"SoftLight",
+		"Exclusion",
+		"Difference",
+		"ColorDodge",
+		"Saturation",
+		"Luminosity":
+			bl = "/" + blendModeStr
+	case "":
+		bl = "/Normal"
+	default:
+		err = errors.Unwrap(fmt.Errorf("blendMode is unknown"))
+	}
+
+	return bl, err
+}
+
+func (gp *GoPdf) addExtGStateObj (extGStateObj *ExtGStateObj) (index int, err error) {
+	extGStateObj.init(func() *GoPdf {
+		return gp
+	})
+	index = gp.addObj(extGStateObj)
+
+	var pdfObj interface{}
+	pdfObj = gp.pdfObjs[gp.indexOfProcSet]
+
+	procset, ok := pdfObj.(*ProcSetObj)
+	if !ok {
+		err = errors.Unwrap(fmt.Errorf("can't convert pdfobject to procsetobj"))
+		return index, err
+	}
+	procset.ExtGStates = append(procset.ExtGStates, ExtGS{Index: index})
+
+	return index, nil
 }
 
 //tool for validate pdf https://www.pdf-online.com/osa/validate.aspx

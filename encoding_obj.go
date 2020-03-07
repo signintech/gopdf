@@ -4,6 +4,7 @@ import (
 	"io"
 )
 
+// EncodingObj is a font object.
 type EncodingObj struct {
 	font IFont
 }
@@ -21,10 +22,12 @@ func (e *EncodingObj) write(w io.Writer, objID int) error {
 	return nil
 }
 
+// SetFont sets the font of an encoding object.
 func (e *EncodingObj) SetFont(font IFont) {
 	e.font = font
 }
 
+// GetFont gets the font from an encoding object.
 func (e *EncodingObj) GetFont() IFont {
 	return e.font
 }

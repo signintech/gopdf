@@ -80,13 +80,13 @@ func (c *ContentObj) AppendStreamText(text string) error {
 	//support only CURRENT_FONT_TYPE_SUBSET
 	textColor := c.getRoot().curr.textColor()
 	grayFill := c.getRoot().curr.grayFill
-	fontCountIndex := c.getRoot().curr.Font_FontCount + 1
-	fontSize := c.getRoot().curr.Font_Size
-	fontStyle := c.getRoot().curr.Font_Style
+	fontCountIndex := c.getRoot().curr.FontFontCount + 1
+	fontSize := c.getRoot().curr.FontSize
+	fontStyle := c.getRoot().curr.FontStyle
 	x := c.getRoot().curr.X
 	y := c.getRoot().curr.Y
 	setXCount := c.getRoot().curr.setXCount
-	fontSubset := c.getRoot().curr.Font_ISubset
+	fontSubset := c.getRoot().curr.FontISubset
 	transparency := c.getRoot().curr.transparency
 
 	cache := cacheContentText{
@@ -104,7 +104,7 @@ func (c *ContentObj) AppendStreamText(text string) error {
 		contentType:    ContentTypeText,
 		lineWidth:      c.getRoot().curr.lineWidth,
 		txtColorMode:   c.getRoot().curr.txtColorMode,
-		transparency:	transparency,
+		transparency:   transparency,
 	}
 
 	var err error
@@ -121,13 +121,13 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOp
 
 	textColor := c.getRoot().curr.textColor()
 	grayFill := c.getRoot().curr.grayFill
-	fontCountIndex := c.getRoot().curr.Font_FontCount + 1
-	fontSize := c.getRoot().curr.Font_Size
-	fontStyle := c.getRoot().curr.Font_Style
+	fontCountIndex := c.getRoot().curr.FontFontCount + 1
+	fontSize := c.getRoot().curr.FontSize
+	fontStyle := c.getRoot().curr.FontStyle
 	x := c.getRoot().curr.X
 	y := c.getRoot().curr.Y
 	setXCount := c.getRoot().curr.setXCount
-	fontSubset := c.getRoot().curr.Font_ISubset
+	fontSubset := c.getRoot().curr.FontISubset
 	transparency := c.getRoot().curr.transparency
 
 	cache := cacheContentText{
@@ -146,7 +146,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOp
 		cellOpt:        cellOpt,
 		lineWidth:      c.getRoot().curr.lineWidth,
 		txtColorMode:   c.getRoot().curr.txtColorMode,
-		transparency:	transparency,
+		transparency:   transparency,
 	}
 	var err error
 	c.getRoot().curr.X, c.getRoot().curr.Y, err = c.listCache.appendContentText(cache, text)
@@ -311,8 +311,8 @@ func (c *ContentObj) appendRotateReset() {
 	c.listCache.append(&cache)
 }
 
-//ContentObj_CalTextHeight calculate height of text
-func ContentObj_CalTextHeight(fontsize int) float64 {
+//ContentObjCalTextHeight calculates height of text.
+func ContentObjCalTextHeight(fontsize int) float64 {
 	return (float64(fontsize) * 0.7)
 }
 

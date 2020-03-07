@@ -307,30 +307,30 @@ func (p *PdfDictionaryObj) AddCompositeGlyphs(glyphArray *[]int, glyph int) {
 			*glyphArray = append(*glyphArray, int(cGlyph))
 		}
 
-		if (flags & MORE_COMPONENTS) == 0 {
+		if (flags & moreComponents) == 0 {
 			return
 		}
 		offsetAppend := 4
-		if (flags & ARG_1_AND_2_ARE_WORDS) == 0 {
+		if (flags & arg1and2areWords) == 0 {
 			offsetAppend = 2
 		}
-		if (flags & WE_HAVE_A_SCALE) != 0 {
+		if (flags & hasScale) != 0 {
 			offsetAppend += 2
-		} else if (flags & WE_HAVE_AN_X_AND_Y_SCALE) != 0 {
+		} else if (flags & xAndYScale) != 0 {
 			offsetAppend += 4
 		}
-		if (flags & WE_HAVE_A_TWO_BY_TWO) != 0 {
+		if (flags & twoByTwo) != 0 {
 			offsetAppend += 8
 		}
 		offset += offsetAppend
 	}
 }
 
-const WE_HAVE_A_SCALE = 8
-const MORE_COMPONENTS = 32
-const ARG_1_AND_2_ARE_WORDS = 1
-const WE_HAVE_AN_X_AND_Y_SCALE = 64
-const WE_HAVE_A_TWO_BY_TWO = 128
+const hasScale = 8
+const moreComponents = 32
+const arg1and2areWords = 1
+const xAndYScale = 64
+const twoByTwo = 128
 
 //GetOffset get offset from glyf table
 func (p *PdfDictionaryObj) GetOffset(glyph int) int {

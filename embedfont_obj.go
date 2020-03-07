@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 )
 
+// EmbedFontObj is an embedded font object.
 type EmbedFontObj struct {
 	Data      string
 	zfontpath string
@@ -49,6 +50,7 @@ func (e *EmbedFontObj) getType() string {
 	return "EmbedFont"
 }
 
+// SetFont sets the font of an embedded font object.
 func (e *EmbedFontObj) SetFont(font IFont, zfontpath string) {
 	e.font = font
 	e.zfontpath = zfontpath

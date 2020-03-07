@@ -5,6 +5,7 @@ import (
 	"io"
 )
 
+// FontDescriptorObj is a font descriptor object.
 type FontDescriptorObj struct {
 	font              IFont
 	fontFileObjRelate string
@@ -41,14 +42,17 @@ func (f *FontDescriptorObj) getType() string {
 	return "FontDescriptor"
 }
 
+// SetFont sets the font in descriptor.
 func (f *FontDescriptorObj) SetFont(font IFont) {
 	f.font = font
 }
 
+// GetFont gets font from descriptor.
 func (f *FontDescriptorObj) GetFont() IFont {
 	return f.font
 }
 
+// SetFontFileObjRelate ???
 func (f *FontDescriptorObj) SetFontFileObjRelate(relate string) {
 	f.fontFileObjRelate = relate
 }

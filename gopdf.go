@@ -338,9 +338,8 @@ func (gp *GoPdf) AddPageWithOption(opt PageOption) {
 }
 
 func (gp *GoPdf) AddOutline(title string) {
-        gp.outlines.AddOutline(gp.curr.IndexOfPageObj, title)
+        gp.outlines.AddOutline(gp.curr.IndexOfPageObj + 1, title)
 }
-
 
 //Start : init gopdf
 func (gp *GoPdf) Start(config Config) {

@@ -31,6 +31,8 @@ type GoPdf struct {
 	config  Config
 	anchors map[string]anchorOption
 
+	indexOfCatalogObj int
+
 	/*---index ของ obj สำคัญๆ เก็บเพื่อลด loop ตอนค้นหา---*/
 	//index ของ obj pages
 	indexOfPagesObj int
@@ -62,6 +64,10 @@ type GoPdf struct {
 	//info
 	isUseInfo bool
 	info      *PdfInfo
+
+        //outlines
+        outlines *OutlinesObj
+        indexOfOutlinesObj int
 
 	// gofpdi free pdf document importer
 	fpdi *gofpdi.Importer
@@ -331,6 +337,11 @@ func (gp *GoPdf) AddPageWithOption(opt PageOption) {
 	gp.resetCurrXY()
 }
 
+func (gp *GoPdf) AddOutline(title string) {
+        gp.outlines.AddOutline(gp.curr.IndexOfPageObj, title)
+}
+
+
 //Start : init gopdf
 func (gp *GoPdf) Start(config Config) {
 
@@ -345,8 +356,14 @@ func (gp *GoPdf) Start(config Config) {
 	pages.init(func() *GoPdf {
 		return gp
 	})
-	gp.addObj(catalog)
-	gp.indexOfPagesObj = gp.addObj(pages)
+	gp.outlines = new(OutlinesObj)
+	gp.outlines.init(func() *GoPdf {
+		return gp
+	}) 
+        gp.indexOfCatalogObj = gp.addObj(catalog)
+        gp.indexOfPagesObj = gp.addObj(pages)
+	gp.indexOfOutlinesObj = gp.addObj(gp.outlines)
+	gp.outlines.SetIndexObjOutlines(gp.indexOfOutlinesObj)
 
 	//indexOfProcSet
 	procset := new(ProcSetObj)
@@ -1003,6 +1020,11 @@ func (gp *GoPdf) prepare() {
 		gp.addObj(encObj)
 	}
 
+        if gp.outlines.Count() > 0 {
+                catalogObj := gp.pdfObjs[gp.indexOfCatalogObj].(*CatalogObj)
+                catalogObj.SetIndexObjOutlines(gp.indexOfOutlinesObj)
+        }
+
 	if gp.indexOfPagesObj != -1 {
 		indexCurrPage := -1
 		var pagesObj *PagesObj
@@ -1191,7 +1213,7 @@ func (gp *GoPdf) SetAlpha(alpha float64, blendModeStr string) error {
 	return err
 }
 
-func getBlendMode (blendModeStr string) (bl string, err error) {
+func getBlendMode(blendModeStr string) (bl string, err error) {
 	switch blendModeStr {
 	case
 		"Hue",
@@ -1210,7 +1232,7 @@ func getBlendMode (blendModeStr string) (bl string, err error) {
 		"ColorDodge",
 		"Saturation",
 		"Luminosity":
-			bl = "/" + blendModeStr
+		bl = "/" + blendModeStr
 	case "":
 		bl = "/Normal"
 	default:
@@ -1220,7 +1242,7 @@ func getBlendMode (blendModeStr string) (bl string, err error) {
 	return bl, err
 }
 
-func (gp *GoPdf) addExtGStateObj (extGStateObj *ExtGStateObj) (index int, err error) {
+func (gp *GoPdf) addExtGStateObj(extGStateObj *ExtGStateObj) (index int, err error) {
 	extGStateObj.init(func() *GoPdf {
 		return gp
 	})

@@ -49,14 +49,17 @@ func (f *FontObj) getType() string {
 	return "Font"
 }
 
+// SetIndexObjWidth sets the width of a font object.
 func (f *FontObj) SetIndexObjWidth(index int) {
 	f.indexObjWidth = index
 }
 
+// SetIndexObjFontDescriptor sets the font descriptor.
 func (f *FontObj) SetIndexObjFontDescriptor(index int) {
 	f.indexObjFontDescriptor = index
 }
 
+// SetIndexObjEncoding sets the encoding.
 func (f *FontObj) SetIndexObjEncoding(index int) {
 	f.indexObjEncoding = index
 }

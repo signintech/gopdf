@@ -1,4 +1,4 @@
-package gopdf
+package debug
 
 var th = []byte{
 	0x00,

@@ -5,6 +5,8 @@ import (
 	"io"
 )
 
+// CIDFontObj is a CID-keyed font.
+// cf. https://www.adobe.com/content/dam/acom/en/devnet/font/pdfs/5014.CIDFont_Spec.pdf
 type CIDFontObj struct {
 	PtrToSubsetFontObj        *SubsetFontObj
 	indexObjSubfontDescriptor int

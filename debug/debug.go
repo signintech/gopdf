@@ -1,7 +1,8 @@
-package gopdf
+package debug
 
 import "log"
 
+// DebugSubType checks font subtypes.
 func DebugSubType(b []byte) {
 	//b := buff.Bytes()
 	var max = len(ch)

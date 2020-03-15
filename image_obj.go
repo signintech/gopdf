@@ -3,9 +3,15 @@ package gopdf
 import (
 	"bytes"
 	"fmt"
+
 	"image"
+
+	// Packages image/jpeg and image/png are not used explicitly in the code below,
+	// but are imported for their initialization side-effect, which allows
+	// image.Decode to understand JPEG formatted images.
 	_ "image/jpeg"
 	_ "image/png"
+
 	"io"
 	"io/ioutil"
 	"log"

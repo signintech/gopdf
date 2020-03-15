@@ -18,7 +18,7 @@ type cacheContentText struct {
 	textColor      Rgb
 	grayFill       float64
 	txtColorMode   string
-	fontCountIndex int //Curr.Font_FontCount+1
+	fontCountIndex int //Curr.FontFontCount+1
 	fontSize       int
 	fontStyle      int
 	setXCount      int //จำนวนครั้งที่ใช้ setX
@@ -32,7 +32,7 @@ type cacheContentText struct {
 	//---result---
 	cellWidthPdfUnit, textWidthPdfUnit float64
 	cellHeightPdfUnit                  float64
-	transparency Transparency
+	transparency                       Transparency
 }
 
 func (c *cacheContentText) isSame(cache cacheContentText) bool {
@@ -237,7 +237,7 @@ func (c *cacheContentText) underline(w io.Writer, startX float64, startY float64
 	h := c.pageHeight()
 	ut := float64(c.fontSubset.GetUt())
 	up := float64(c.fontSubset.GetUp())
-	textH := ContentObj_CalTextHeight(c.fontSize)
+	textH := ContentObjCalTextHeight(c.fontSize)
 	arg3 := float64(h) - (float64(startY) - ((up / unitsPerEm) * float64(c.fontSize))) - textH
 	arg4 := (ut / unitsPerEm) * float64(c.fontSize)
 	fmt.Fprintf(w, "%0.2f %0.2f %0.2f -%0.2f re f\n", startX, arg3, endX-startX, arg4)
@@ -333,7 +333,7 @@ type CacheContent struct {
 func (c *CacheContent) Setup(rectangle *Rect,
 	textColor Rgb,
 	grayFill float64,
-	fontCountIndex int, //Curr.Font_FontCount+1
+	fontCountIndex int, //Curr.FontFontCount+1
 	fontSize int,
 	fontStyle int,
 	setXCount int, //จำนวนครั้งที่ใช้ setX

@@ -2,17 +2,27 @@ package gopdf
 
 // The units that can be used in the document
 const (
-	Unit_Unset = iota // No units were set, when conversion is called on nothing will happen
-	Unit_PT           // Points
-	Unit_MM           // Millimeters
-	Unit_CM           // centimeters
-	Unit_IN           // inches
+	UnitUnset = iota // No units were set, when conversion is called on nothing will happen
+	UnitPT           // Points
+	UnitMM           // Millimeters
+	UnitCM           // centimeters
+	UnitIN           // inches
 
 	// The math needed to convert units to points
-	conversion_Unit_PT = 1.0
-	conversion_Unit_MM = 72.0 / 25.4
-	conversion_Unit_CM = 72.0 / 2.54
-	conversion_Unit_IN = 72.0
+	conversionUnitPT = 1.0
+	conversionUnitMM = 72.0 / 25.4
+	conversionUnitCM = 72.0 / 2.54
+	conversionUnitIN = 72.0
+)
+
+// The units that can be used in the document (for backward compatibility)
+// Deprecated: Use UnitUnset,UnitPT,UnitMM,UnitCM,UnitIN  instead
+const (
+	Unit_Unset = UnitUnset // No units were set, when conversion is called on nothing will happen
+	Unit_PT    = UnitPT    // Points
+	Unit_MM    = UnitMM    // Millimeters
+	Unit_CM    = UnitCM    // centimeters
+	Unit_IN    = UnitIN    // inches
 )
 
 //Config static config
@@ -34,14 +44,14 @@ type PDFProtectionConfig struct {
 // UnitsToPoints converts units of the provided type to points
 func UnitsToPoints(t int, u float64) float64 {
 	switch t {
-	case Unit_PT:
-		return u * conversion_Unit_PT
-	case Unit_MM:
-		return u * conversion_Unit_MM
-	case Unit_CM:
-		return u * conversion_Unit_CM
-	case Unit_IN:
-		return u * conversion_Unit_IN
+	case UnitPT:
+		return u * conversionUnitPT
+	case UnitMM:
+		return u * conversionUnitMM
+	case UnitCM:
+		return u * conversionUnitCM
+	case UnitIN:
+		return u * conversionUnitIN
 	default:
 		return u
 	}
@@ -50,14 +60,14 @@ func UnitsToPoints(t int, u float64) float64 {
 // PointsToUnits converts points to the provided units
 func PointsToUnits(t int, u float64) float64 {
 	switch t {
-	case Unit_PT:
-		return u / conversion_Unit_PT
-	case Unit_MM:
-		return u / conversion_Unit_MM
-	case Unit_CM:
-		return u / conversion_Unit_CM
-	case Unit_IN:
-		return u / conversion_Unit_IN
+	case UnitPT:
+		return u / conversionUnitPT
+	case UnitMM:
+		return u / conversionUnitMM
+	case UnitCM:
+		return u / conversionUnitCM
+	case UnitIN:
+		return u / conversionUnitIN
 	default:
 		return u
 	}

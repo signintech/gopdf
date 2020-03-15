@@ -204,9 +204,8 @@ func (s *SubsetFontObj) charCodeToGlyphIndexFormat4(r rune) (uint, error) {
 	return (s.ttfp.GlyphIdArray[int(idx)] + s.ttfp.IdDelta[seg]) & 0xFFFF, nil
 }
 
-//CharCodeToGlyphIndex get glyph index from char code
+// CharCodeToGlyphIndex gets glyph index from char code.
 func (s *SubsetFontObj) CharCodeToGlyphIndex(r rune) (uint, error) {
-
 	value := uint64(r)
 	if value <= 0xFFFF {
 		gIndex, err := s.charCodeToGlyphIndexFormat4(r)
@@ -214,17 +213,15 @@ func (s *SubsetFontObj) CharCodeToGlyphIndex(r rune) (uint, error) {
 			return 0, err
 		}
 		return gIndex, nil
-	} else {
-		gIndex, err := s.charCodeToGlyphIndexFormat12(r)
-		if err != nil {
-			return 0, err
-		}
-		return gIndex, nil
 	}
-
+	gIndex, err := s.charCodeToGlyphIndexFormat12(r)
+	if err != nil {
+		return 0, err
+	}
+	return gIndex, nil
 }
 
-//GlyphIndexToPdfWidth get with from glyphIndex
+// GlyphIndexToPdfWidth gets width from glyphIndex.
 func (s *SubsetFontObj) GlyphIndexToPdfWidth(glyphIndex uint) uint {
 
 	numberOfHMetrics := s.ttfp.NumberOfHMetrics()
@@ -240,17 +237,17 @@ func (s *SubsetFontObj) GlyphIndexToPdfWidth(glyphIndex uint) uint {
 	return width * 1000 / unitsPerEm
 }
 
-//GetTTFParser get TTFParser
+// GetTTFParser gets TTFParser.
 func (s *SubsetFontObj) GetTTFParser() *core.TTFParser {
 	return &s.ttfp
 }
 
-//GetUt underlineThickness
+// GetUt underlineThickness.
 func (s *SubsetFontObj) GetUt() int {
 	return s.ttfp.UnderlineThickness()
 }
 
-//GetUp underline postion
+// GetUp underline postion.
 func (s *SubsetFontObj) GetUp() int {
 	return s.ttfp.UnderlinePosition()
 }

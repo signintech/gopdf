@@ -1,16 +1,17 @@
 package gopdf
 
+// Margins type.
 type Margins struct {
 	Left, Top, Right, Bottom float64
 }
 
-//SetLeftMargin : set left margin
+// SetLeftMargin sets left margin.
 func (gp *GoPdf) SetLeftMargin(margin float64) {
 	gp.UnitsToPointsVar(&margin)
 	gp.margins.Left = margin
 }
 
-//SetTopMargin : set top margin
+// SetTopMargin sets top margin.
 func (gp *GoPdf) SetTopMargin(margin float64) {
 	gp.UnitsToPointsVar(&margin)
 	gp.margins.Top = margin
@@ -50,22 +51,22 @@ func (gp *GoPdf) Margins() (float64, float64, float64, float64) {
 		gp.PointsToUnits(gp.margins.Bottom)
 }
 
-// MarginLeft returns the left margin
+// MarginLeft returns the left margin.
 func (gp *GoPdf) MarginLeft() float64 {
 	return gp.PointsToUnits(gp.margins.Left)
 }
 
-// MarginTop returns the top margin
+// MarginTop returns the top margin.
 func (gp *GoPdf) MarginTop() float64 {
 	return gp.PointsToUnits(gp.margins.Top)
 }
 
-// MarginRight returns the right margin
+// MarginRight returns the right margin.
 func (gp *GoPdf) MarginRight() float64 {
 	return gp.PointsToUnits(gp.margins.Right)
 }
 
-// MarginBottom returns the bottom margin
+// MarginBottom returns the bottom margin.
 func (gp *GoPdf) MarginBottom() float64 {
 	return gp.PointsToUnits(gp.margins.Bottom)
 }

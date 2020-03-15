@@ -11,12 +11,12 @@ type Current struct {
 	CountOfFont    int
 	CountOfL       int
 
-	Font_Size      int
-	Font_Style     int // Regular|Bold|Italic|Underline
-	Font_FontCount int
-	Font_Type      int // CURRENT_FONT_TYPE_IFONT or  CURRENT_FONT_TYPE_SUBSET
+	FontSize      int
+	FontStyle     int // Regular|Bold|Italic|Underline
+	FontFontCount int
+	FontType      int // CURRENT_FONT_TYPE_IFONT or  CURRENT_FONT_TYPE_SUBSET
 
-	Font_ISubset *SubsetFontObj // Font_Type == CURRENT_FONT_TYPE_SUBSET
+	FontISubset *SubsetFontObj // FontType == CURRENT_FONT_TYPE_SUBSET
 
 	//page
 	IndexOfPageObj int
@@ -42,7 +42,7 @@ type Current struct {
 	//current page size
 	pageSize *Rect
 
-	transparency Transparency
+	transparency    Transparency
 	transparencyMap map[string]Transparency
 }
 
@@ -54,6 +54,7 @@ func (c *Current) textColor() Rgb {
 	return c.txtColor
 }
 
+// ImageCache is metadata for caching images.
 type ImageCache struct {
 	Path  string //ID or Path
 	Index int
@@ -89,6 +90,7 @@ func (rgb Rgb) equal(obj Rgb) bool {
 	return false
 }
 
+// Transparency defines an object alpha.
 type Transparency struct {
 	IndexOfExtGState int
 }

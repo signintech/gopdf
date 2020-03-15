@@ -15,6 +15,16 @@ const (
 	conversionUnitIN = 72.0
 )
 
+// The units that can be used in the document (for backward compatibility)
+// Deprecated: Use UnitUnset,UnitPT,UnitMM,UnitCM,UnitIN  instead
+const (
+	Unit_Unset = UnitUnset // No units were set, when conversion is called on nothing will happen
+	Unit_PT    = UnitPT    // Points
+	Unit_MM    = UnitMM    // Millimeters
+	Unit_CM    = UnitCM    // centimeters
+	Unit_IN    = UnitIN    // inches
+)
+
 //Config static config
 type Config struct {
 	Unit       int                 // The unit type to use when composing the document.

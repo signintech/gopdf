@@ -359,7 +359,7 @@ func (gp *GoPdf) Start(config Config) {
 	gp.outlines = new(OutlinesObj)
 	gp.outlines.init(func() *GoPdf {
 		return gp
-	}) 
+	})
         gp.indexOfCatalogObj = gp.addObj(catalog)
         gp.indexOfPagesObj = gp.addObj(pages)
 	gp.indexOfOutlinesObj = gp.addObj(gp.outlines)
@@ -1263,6 +1263,19 @@ func (gp *GoPdf) addExtGStateObj(extGStateObj *ExtGStateObj) (index int, err err
 	procset.ExtGStates = append(procset.ExtGStates, ExtGS{Index: index})
 
 	return index, nil
+}
+
+func (gp *GoPdf) IsFontAdded(family string, style int) bool {
+	if gp.indexOfProcSet != -1 {
+		procSet := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
+		return procSet.Relates.IsContainsFamilyAndStyle(family, style&^Underline)
+	}
+
+	return false
+}
+
+func (gp *GoPdf) IsFontAddedWithStyle(family, style string) bool {
+	return gp.IsFontAdded(family, getConvertedStyle(style))
 }
 
 //tool for validate pdf https://www.pdf-online.com/osa/validate.aspx

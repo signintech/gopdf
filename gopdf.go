@@ -359,7 +359,7 @@ func (gp *GoPdf) Start(config Config) {
 	gp.outlines = new(OutlinesObj)
 	gp.outlines.init(func() *GoPdf {
 		return gp
-	}) 
+	})
         gp.indexOfCatalogObj = gp.addObj(catalog)
         gp.indexOfPagesObj = gp.addObj(pages)
 	gp.indexOfOutlinesObj = gp.addObj(gp.outlines)
@@ -1263,6 +1263,24 @@ func (gp *GoPdf) addExtGStateObj(extGStateObj *ExtGStateObj) (index int, err err
 	procset.ExtGStates = append(procset.ExtGStates, ExtGS{Index: index})
 
 	return index, nil
+}
+
+func (gp *GoPdf) IsCurrFontContainGlyph (r rune) (bool, error) {
+	fontISubset := gp.curr.FontISubset
+	if fontISubset == nil {
+		return false, nil
+	}
+
+	glyphIndex, err := fontISubset.CharCodeToGlyphIndex(r)
+	if err != nil {
+		return false, err
+	}
+
+	if glyphIndex == 0 {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 //tool for validate pdf https://www.pdf-online.com/osa/validate.aspx

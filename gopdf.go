@@ -1265,6 +1265,8 @@ func (gp *GoPdf) addExtGStateObj(extGStateObj *ExtGStateObj) (index int, err err
 	return index, nil
 }
 
+// IsCurrFontContainGlyph defines is current font contains to a glyph
+// r:           any rune
 func (gp *GoPdf) IsCurrFontContainGlyph (r rune) (bool, error) {
 	fontISubset := gp.curr.FontISubset
 	if fontISubset == nil {

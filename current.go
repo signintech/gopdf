@@ -42,6 +42,9 @@ type Current struct {
 	//current page size
 	pageSize *Rect
 
+	//current trim size
+	trimSize *Rect
+
 	transparency    Transparency
 	transparencyMap map[string]Transparency
 }

@@ -295,6 +295,15 @@ func (c *ContentObj) AppendStreamImage(index int, x float64, y float64, rect *Re
 	//c.stream.WriteString(fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", rect.W, rect.H, x, h-(y+rect.H), index+1))
 }
 
+//AppendStreamPolygon append polygon
+func (c *ContentObj) AppendStreamPolygon(points []Point, style string) {
+	var cache cacheContentPolygon
+	cache.points = points
+	cache.style = style
+	cache.pageHeight = c.getRoot().curr.pageSize.H
+	c.listCache.append(&cache)
+}
+
 func (c *ContentObj) appendRotate(angle, x, y float64) {
 	var cache cacheContentRotate
 	cache.isReset = false

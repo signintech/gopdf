@@ -66,9 +66,9 @@ type GoPdf struct {
 	isUseInfo bool
 	info      *PdfInfo
 
-        //outlines
-        outlines *OutlinesObj
-        indexOfOutlinesObj int
+	//outlines
+	outlines           *OutlinesObj
+	indexOfOutlinesObj int
 
 	// gofpdi free pdf document importer
 	fpdi *gofpdi.Importer
@@ -339,7 +339,7 @@ func (gp *GoPdf) AddPageWithOption(opt PageOption) {
 }
 
 func (gp *GoPdf) AddOutline(title string) {
-        gp.outlines.AddOutline(gp.curr.IndexOfPageObj + 1, title)
+	gp.outlines.AddOutline(gp.curr.IndexOfPageObj+1, title)
 }
 
 //Start : init gopdf
@@ -360,8 +360,8 @@ func (gp *GoPdf) Start(config Config) {
 	gp.outlines.init(func() *GoPdf {
 		return gp
 	})
-        gp.indexOfCatalogObj = gp.addObj(catalog)
-        gp.indexOfPagesObj = gp.addObj(pages)
+	gp.indexOfCatalogObj = gp.addObj(catalog)
+	gp.indexOfPagesObj = gp.addObj(pages)
 	gp.indexOfOutlinesObj = gp.addObj(gp.outlines)
 	gp.outlines.SetIndexObjOutlines(gp.indexOfOutlinesObj)
 
@@ -930,6 +930,27 @@ func (gp *GoPdf) RotateReset() {
 	gp.getContent().appendRotateReset()
 }
 
+//Polygon : draw polygon
+// - style: Style of polygon (draw and/or fill: D, F, DF, FD)
+//		D or empty string: draw. This is the default value.
+//		F: fill
+//		DF or FD: draw and fill
+// Usage:
+//  pdf.SetStrokeColor(255, 0, 0)
+//	pdf.SetLineWidth(2)
+//	pdf.SetFillColor(0, 255, 0)
+//	pdf.Polygon([]gopdf.Point{{X: 10, Y: 30}, {X: 585, Y: 200}, {X: 585, Y: 250}}, "DF")
+func (gp *GoPdf) Polygon(points []Point, style string) {
+	var pointReals []Point
+	for _, p := range points {
+		x := p.X
+		y := p.Y
+		gp.UnitsToPointsVar(&x, &y)
+		pointReals = append(pointReals, Point{X: x, Y: y})
+	}
+	gp.getContent().AppendStreamPolygon(points, style)
+}
+
 /*---private---*/
 
 //init
@@ -1023,10 +1044,10 @@ func (gp *GoPdf) prepare() {
 		gp.addObj(encObj)
 	}
 
-        if gp.outlines.Count() > 0 {
-                catalogObj := gp.pdfObjs[gp.indexOfCatalogObj].(*CatalogObj)
-                catalogObj.SetIndexObjOutlines(gp.indexOfOutlinesObj)
-        }
+	if gp.outlines.Count() > 0 {
+		catalogObj := gp.pdfObjs[gp.indexOfCatalogObj].(*CatalogObj)
+		catalogObj.SetIndexObjOutlines(gp.indexOfOutlinesObj)
+	}
 
 	if gp.indexOfPagesObj != -1 {
 		indexCurrPage := -1
@@ -1267,7 +1288,7 @@ func (gp *GoPdf) addExtGStateObj(extGStateObj *ExtGStateObj) (index int, err err
 
 // IsCurrFontContainGlyph defines is current font contains to a glyph
 // r:           any rune
-func (gp *GoPdf) IsCurrFontContainGlyph (r rune) (bool, error) {
+func (gp *GoPdf) IsCurrFontContainGlyph(r rune) (bool, error) {
 	fontISubset := gp.curr.FontISubset
 	if fontISubset == nil {
 		return false, nil

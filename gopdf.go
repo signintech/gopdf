@@ -948,7 +948,7 @@ func (gp *GoPdf) Polygon(points []Point, style string) {
 		gp.UnitsToPointsVar(&x, &y)
 		pointReals = append(pointReals, Point{X: x, Y: y})
 	}
-	gp.getContent().AppendStreamPolygon(points, style)
+	gp.getContent().AppendStreamPolygon(pointReals, style)
 }
 
 /*---private---*/

@@ -149,6 +149,14 @@ pdf.SetLineWidth(1)
 pdf.Oval(100, 200, 500, 500)
 ```
 
+### Draw polygon
+```go
+pdf.SetStrokeColor(255, 0, 0)
+pdf.SetLineWidth(2)
+pdf.SetFillColor(0, 255, 0)
+pdf.Polygon([]gopdf.Point{{X: 10, Y: 30}, {X: 585, Y: 200}, {X: 585, Y: 250}}, "DF")
+```
+
 ### Rotation text or image
 ```go
 pdf.SetX(100)

@@ -12,6 +12,8 @@ const Bottom = 1 //000001
 const Center = 16 //010000
 //Middle middle
 const Middle = 32 //100000
+//All all
+const ALL = 15 //001111
 
 //CellOption cell option
 type CellOption struct {

@@ -2,8 +2,8 @@ package gopdf
 
 //PageOption option of page
 type PageOption struct {
+	TrimBox *Box
 	PageSize *Rect
-	TrimSize *Rect
 }
 
 func (p PageOption) isEmpty() bool {
@@ -13,8 +13,8 @@ func (p PageOption) isEmpty() bool {
 	return false
 }
 
-func (p PageOption) doesTrimSizeSet() bool {
-	if p.TrimSize == nil {
+func (p PageOption) doesTrimBoxSet() bool {
+	if p.TrimBox == nil {
 		return false
 	}
 	return true

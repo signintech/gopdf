@@ -28,8 +28,8 @@ const (
 //Config static config
 type Config struct {
 	Unit       int                 // The unit type to use when composing the document.
+	TrimBox    Box                // The default trim box for all pages in the document
 	PageSize   Rect                // The default page size for all pages in the document
-	TrimSize   Rect                // The default trim size for all pages in the document
 	K          float64             // Not sure
 	Protection PDFProtectionConfig // Protection settings
 }

@@ -312,8 +312,8 @@ func (gp *GoPdf) AddPage() {
 
 //AddPageWithOption  : add new page with option
 func (gp *GoPdf) AddPageWithOption(opt PageOption) {
+	opt.TrimBox = opt.TrimBox.UnitsToPoints(gp.config.Unit)
 	opt.PageSize = opt.PageSize.UnitsToPoints(gp.config.Unit)
-	opt.TrimSize = opt.TrimSize.UnitsToPoints(gp.config.Unit)
 
 	page := new(PageObj)
 	page.init(func() *GoPdf {
@@ -324,12 +324,12 @@ func (gp *GoPdf) AddPageWithOption(opt PageOption) {
 		page.setOption(opt)
 		gp.curr.pageSize = opt.PageSize
 
-		if opt.doesTrimSizeSet() {
-			gp.curr.trimSize = opt.TrimSize
+		if opt.doesTrimBoxSet() {
+			gp.curr.trimBox = opt.TrimBox
 		}
 	} else { //use default
 		gp.curr.pageSize = &gp.config.PageSize
-		gp.curr.trimSize = &gp.config.TrimSize
+		gp.curr.trimBox = &gp.config.TrimBox
 	}
 
 	page.ResourcesRelate = strconv.Itoa(gp.indexOfProcSet+1) + " 0 R"
@@ -974,7 +974,7 @@ func (gp *GoPdf) init() {
 
 	// change the unit type
 	gp.config.PageSize = *gp.config.PageSize.UnitsToPoints(gp.config.Unit)
-	gp.config.TrimSize = *gp.config.TrimSize.UnitsToPoints(gp.config.Unit)
+	gp.config.TrimBox = *gp.config.TrimBox.UnitsToPoints(gp.config.Unit)
 
 	// init gofpdi free pdf document importer
 	gp.fpdi = gofpdi.NewImporter()

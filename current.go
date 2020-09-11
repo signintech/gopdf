@@ -1,5 +1,7 @@
 package gopdf
 
+
+
 //Current current state
 type Current struct {
 	setXCount int //many times we go func SetX()
@@ -43,7 +45,7 @@ type Current struct {
 	pageSize *Rect
 
 	//current trim size
-	trimSize *Rect
+	trimBox *Box
 
 	transparency    Transparency
 	transparencyMap map[string]Transparency

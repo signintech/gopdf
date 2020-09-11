@@ -290,5 +290,49 @@ func DownloadFile(filepath string, url string) error {
 
 ```
 
-  
+### Possible to set Trim-box
+ 
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/signintech/gopdf"
+)
+
+func main() {
+	
+    pdf := gopdf.GoPdf{}
+    mm6ToPx := 22.68
+    
+    // Base trim-box
+    pdf.Start(gopdf.Config{
+        PageSize: *gopdf.PageSizeA4, //595.28, 841.89 = A4
+        TrimBox: gopdf.Box{Left: mm6ToPx, Top: mm6ToPx, Right: mm6ToPx + 595, Bottom: mm6ToPx + 842},
+    })
+
+    // Page trim-box
+    opt := gopdf.PageOption{
+        PageSize: gopdf.PageSizeA4, //595.28, 841.89 = A4
+        TrimBox: &gopdf.Box{Left: mm6ToPx, Top: mm6ToPx, Right: mm6ToPx + 595, Bottom: mm6ToPx + 842},
+    }
+    pdf.AddPageWithOption(opt)
+
+    if err := pdf.AddTTFFont("wts11", "../ttf/wts11.ttf"); err != nil {
+        log.Print(err.Error())
+        return
+    }
+    
+    if err := pdf.SetFont("wts11", "", 14); err != nil {
+        log.Print(err.Error())
+        return
+    }
+
+    pdf.Cell(nil,"Hi")
+    pdf.WritePdf("hello.pdf")
+}
+
+```
+
 visit https://github.com/oneplus1000/gopdfsample for more samples.

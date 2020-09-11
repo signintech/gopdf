@@ -24,11 +24,6 @@ func (p *PagesObj) write(w io.Writer, objID int) error {
 
 	rootConfig := p.getRoot().config
 	fmt.Fprintf(w, "  /MediaBox [ 0 0 %0.2f %0.2f ]\n", rootConfig.PageSize.W, rootConfig.PageSize.H)
-
-	if rootConfig.TrimSize.W != 0 || rootConfig.TrimSize.H != 0 {
-		fmt.Fprintf(w, "  /TrimBox [ 0 0 %0.2f %0.2f ]\n", rootConfig.TrimSize.W, rootConfig.TrimSize.H)
-	}
-
 	fmt.Fprintf(w, "  /Count %d\n", p.PageCount)
 	fmt.Fprintf(w, "  /Kids [ %s ]\n", p.Kids) //sample Kids [ 3 0 R ]
 	io.WriteString(w, ">>\n")

@@ -518,18 +518,18 @@ func (gp *GoPdf) Text(text string) error {
 	return nil
 }
 
-func (gp *GoPdf) writeGlyphs(glyphIndexs []uint, fakeRunes []rune) error {
+func (gp *GoPdf) writeGlyphs(glyphIndexs []uint, runes []rune) error {
 
-	if len(glyphIndexs) != len(fakeRunes) {
-		return fmt.Errorf("len(glyphs) != len(fakeRunes)")
+	if len(glyphIndexs) != len(runes) {
+		return fmt.Errorf("len(glyphs) != len(runes)")
 	}
 
 	for i, glyphindex := range glyphIndexs {
-		r := fakeRunes[i]
+		r := runes[i]
 		gp.curr.FontISubset.CharacterToGlyphIndex.Set(r, glyphindex)
 	}
 
-	err := gp.getContent().AppendStreamTextByGlyphs(glyphIndexs, fakeRunes)
+	err := gp.getContent().AppendStreamTextByGlyphs(glyphIndexs, runes)
 	if err != nil {
 		return err
 	}

@@ -152,17 +152,6 @@ func TestIssue143(t *testing.T) {
 		return
 	}
 
-	/*pdf.GlyphOverride("noto", func(text []rune, glyphindexs []uint) ([]rune, []uint, error) {
-
-		var newText []rune
-		var newGlyphindexs []uint
-
-		newText = append(newText, 'ก')
-		newGlyphindexs = append(newGlyphindexs, 154)
-
-		return newText, newGlyphindexs, nil
-	})*/
-
 	err = pdf.SetFont("noto", "", 14)
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -170,7 +159,11 @@ func TestIssue143(t *testing.T) {
 	}
 	pdf.SetX(250)
 	pdf.SetY(200)
-	err = pdf.writeGlyphs([]uint{154, 155}, []rune{rune(0), rune(0)})
+
+	var glyphIndexs = []uint{154, 155}
+	var justFakeRunes = []rune{rune(0), rune(0)}
+
+	err = pdf.writeGlyphs(glyphIndexs, justFakeRunes)
 	if err != nil {
 		t.Fatalf(err.Error())
 		return

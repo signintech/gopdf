@@ -115,16 +115,23 @@ func (s *SubsetFontObj) SetTTFByReader(rd io.Reader) error {
 
 //AddChars add char to map CharacterToGlyphIndex
 func (s *SubsetFontObj) AddChars(txt string) error {
-	for _, runeValue := range txt {
-		if s.CharacterToGlyphIndex.KeyExists(runeValue) {
-			continue
-		}
-		glyphIndex, err := s.CharCodeToGlyphIndex(runeValue)
+
+	var glyphindexs []uint
+	var runes []rune
+	for _, r := range txt {
+		glyphindex, err := s.CharCodeToGlyphIndex(r)
 		if err != nil {
 			return err
 		}
-		s.CharacterToGlyphIndex.Set(runeValue, glyphIndex) // [runeValue] = glyphIndex
+		glyphindexs = append(glyphindexs, glyphindex)
+		runes = append(runes, r)
 	}
+
+	for i, glyphindex := range glyphindexs {
+		r := runes[i]
+		s.CharacterToGlyphIndex.Set(r, glyphindex)
+	}
+
 	return nil
 }
 

@@ -518,6 +518,25 @@ func (gp *GoPdf) Text(text string) error {
 	return nil
 }
 
+func (gp *GoPdf) writeGlyphs(glyphIndexs []uint, fakeRunes []rune) error {
+
+	if len(glyphIndexs) != len(fakeRunes) {
+		return fmt.Errorf("len(glyphs) != len(fakeRunes)")
+	}
+
+	for i, glyphindex := range glyphIndexs {
+		r := fakeRunes[i]
+		gp.curr.FontISubset.CharacterToGlyphIndex.Set(r, glyphindex)
+	}
+
+	err := gp.getContent().AppendStreamTextByGlyphs(glyphIndexs, fakeRunes)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 //CellWithOption create cell of text ( use current x,y is upper-left corner of cell)
 func (gp *GoPdf) CellWithOption(rectangle *Rect, text string, opt CellOption) error {
 	rectangle = rectangle.UnitsToPoints(gp.config.Unit)
@@ -565,7 +584,13 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 	if err := gp.curr.FontISubset.AddChars(text); err != nil {
 		return err
 	}
-	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, nil)
+
+	runes, glyphindexs, err := textToRunesAndGlyphindex(gp.curr.FontISubset, text)
+	if err != nil {
+		return err
+	}
+
+	_, lineHeight, _, err := createContent(gp.curr.FontISubset, glyphindexs, runes, gp.curr.FontSize, nil)
 	if err != nil {
 		return err
 	}
@@ -856,6 +881,26 @@ func (gp *GoPdf) KernOverride(family string, fn FuncKernOverride) error {
 	return errors.New("font family not found")
 }
 
+/*
+func (gp *GoPdf) GlyphOverride(family string, fn FuncGlyphOverride) error {
+	i := 0
+	max := len(gp.pdfObjs)
+	for i < max {
+		if gp.pdfObjs[i].getType() == subsetFont {
+			obj := gp.pdfObjs[i]
+			sub, ok := obj.(*SubsetFontObj)
+			if ok {
+				if sub.GetFamily() == family {
+					sub.funcGlyphOverride = fn
+					return nil
+				}
+			}
+		}
+		i++
+	}
+	return errors.New("font family not found")
+}
+*/
 //SetTextColor :  function sets the text color
 func (gp *GoPdf) SetTextColor(r uint8, g uint8, b uint8) {
 	gp.curr.txtColorMode = "color"
@@ -885,7 +930,12 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 		return 0, err
 	}
 
-	_, _, textWidthPdfUnit, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, nil)
+	runes, glyphindexs, err := textToRunesAndGlyphindex(gp.curr.FontISubset, text)
+	if err != nil {
+		return 0, err
+	}
+
+	_, _, textWidthPdfUnit, err := createContent(gp.curr.FontISubset, glyphindexs, runes, gp.curr.FontSize, nil)
 	if err != nil {
 		return 0, err
 	}

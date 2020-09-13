@@ -116,6 +116,48 @@ func (c *ContentObj) AppendStreamText(text string) error {
 	return nil
 }
 
+//AppendStreamTextByGlyphs append text
+func (c *ContentObj) AppendStreamTextByGlyphs(glyphIndexs []uint, runes []rune) error {
+
+	//support only CURRENT_FONT_TYPE_SUBSET
+	textColor := c.getRoot().curr.textColor()
+	grayFill := c.getRoot().curr.grayFill
+	fontCountIndex := c.getRoot().curr.FontFontCount + 1
+	fontSize := c.getRoot().curr.FontSize
+	fontStyle := c.getRoot().curr.FontStyle
+	x := c.getRoot().curr.X
+	y := c.getRoot().curr.Y
+	setXCount := c.getRoot().curr.setXCount
+	fontSubset := c.getRoot().curr.FontISubset
+	transparency := c.getRoot().curr.transparency
+
+	cache := cacheContentText{
+		fontSubset:     fontSubset,
+		rectangle:      nil,
+		textColor:      textColor,
+		grayFill:       grayFill,
+		fontCountIndex: fontCountIndex,
+		fontSize:       fontSize,
+		fontStyle:      fontStyle,
+		setXCount:      setXCount,
+		x:              x,
+		y:              y,
+		pageheight:     c.getRoot().curr.pageSize.H,
+		contentType:    ContentTypeText,
+		lineWidth:      c.getRoot().curr.lineWidth,
+		txtColorMode:   c.getRoot().curr.txtColorMode,
+		transparency:   transparency,
+	}
+
+	var err error
+	c.getRoot().curr.X, c.getRoot().curr.Y, err = c.listCache.appendContentTextByGlyphs(cache, glyphIndexs, runes)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 //AppendStreamSubsetFont add stream of text
 func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOpt CellOption) error {
 

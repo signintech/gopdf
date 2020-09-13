@@ -132,3 +132,49 @@ func TestBuffer(t *testing.T) {
 
 	fmt.Printf("+>%s\n", string(b2))
 }*/
+
+//https://github.com/signintech/gopdf/issues/143
+func TestIssue143(t *testing.T) {
+	err := initTesting()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	pdf := GoPdf{}
+
+	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf.SetNoCompression()
+	pdf.AddPage()
+	err = pdf.AddTTFFont("noto", "./test/res/NotoSansMalayalamUI-Regular.ttf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	/*pdf.GlyphOverride("noto", func(text []rune, glyphindexs []uint) ([]rune, []uint, error) {
+
+		var newText []rune
+		var newGlyphindexs []uint
+
+		newText = append(newText, 'ก')
+		newGlyphindexs = append(newGlyphindexs, 154)
+
+		return newText, newGlyphindexs, nil
+	})*/
+
+	err = pdf.SetFont("noto", "", 14)
+	if err != nil {
+		t.Fatalf(err.Error())
+		return
+	}
+	pdf.SetX(250)
+	pdf.SetY(200)
+	err = pdf.writeGlyphs([]uint{154, 155}, []rune{rune(0), rune(0)})
+	if err != nil {
+		t.Fatalf(err.Error())
+		return
+	}
+
+	pdf.WritePdf("./test/out/issue_143.pdf")
+}

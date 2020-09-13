@@ -28,7 +28,9 @@ type cacheContentText struct {
 	contentType    int
 	cellOpt        CellOption
 	lineWidth      float64
-	text           string
+	//text           string
+	glyphindexs []uint
+	runes       []rune
 	//---result---
 	cellWidthPdfUnit, textWidthPdfUnit float64
 	cellHeightPdfUnit                  float64
@@ -139,25 +141,21 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	unitsPerEm := int(c.fontSubset.ttfp.UnitsPerEm())
 	var leftRune rune
 	var leftRuneIndex uint
-	for i, r := range c.text {
-
-		glyphindex, err := c.fontSubset.CharIndex(r)
-		if err != nil {
-			return err
-		}
-
+	for i, glyphindex := range c.glyphindexs {
 		pairvalPdfUnit := 0
 		if i > 0 && c.fontSubset.ttfFontOption.UseKerning { //kerning
+			r := c.runes[i]
 			pairval := kern(c.fontSubset, leftRune, r, leftRuneIndex, glyphindex)
 			pairvalPdfUnit = convertTTFUnit2PDFUnit(int(pairval), unitsPerEm)
 			if pairvalPdfUnit != 0 {
 				fmt.Fprintf(w, ">%d<", (-1)*pairvalPdfUnit)
 			}
+			leftRune = r
+			leftRuneIndex = glyphindex
 		}
 
 		fmt.Fprintf(w, "%04X", glyphindex)
-		leftRune = r
-		leftRuneIndex = glyphindex
+
 	}
 
 	io.WriteString(w, ">] TJ\n")
@@ -246,9 +244,21 @@ func (c *cacheContentText) underline(w io.Writer, startX float64, startY float64
 	return nil
 }
 
-func (c *cacheContentText) createContent() (float64, float64, error) {
+func (c *cacheContentText) createContent(text string) (float64, float64, error) {
 
-	cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, err := createContent(c.fontSubset, c.text, c.fontSize, c.rectangle)
+	runes, glyphindexs, err := textToRunesAndGlyphindex(c.fontSubset, text)
+	if err != nil {
+		return 0, 0, err
+	}
+	return c.createContentByGlyphs(glyphindexs, runes)
+}
+
+func (c *cacheContentText) createContentByGlyphs(glyphIndexs []uint, runes []rune) (float64, float64, error) {
+
+	c.glyphindexs = append(c.glyphindexs, glyphIndexs...)
+	c.runes = append(c.runes, runes...)
+
+	cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, err := createContent(c.fontSubset, c.glyphindexs, c.runes, c.fontSize, c.rectangle)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -258,34 +268,57 @@ func (c *cacheContentText) createContent() (float64, float64, error) {
 	return cellWidthPdfUnit, cellHeightPdfUnit, nil
 }
 
-func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect) (float64, float64, float64, error) {
+func textToRunesAndGlyphindex(f *SubsetFontObj, text string) ([]rune, []uint, error) {
+	var glyphindexs []uint
+	var runes []rune
+	//cenvert text to glyphindexs
+	for _, r := range text {
+		glyphindex, err := f.CharIndex(r)
+		if err != nil {
+			return nil, nil, err
+		}
+		glyphindexs = append(glyphindexs, glyphindex)
+		runes = append(runes, r)
+	}
+
+	//override
+	/*
+		if f.funcGlyphOverride != nil {
+			var err error
+			runes, glyphindexs, err = f.funcGlyphOverride(runes, glyphindexs)
+			if err != nil {
+				return nil, nil, err
+			}
+		}*/
+
+	if len(runes) != len(glyphindexs) {
+		return nil, nil, fmt.Errorf("len(runes) != len(glyphindexs)")
+	}
+
+	return runes, glyphindexs, nil
+}
+
+func createContent(f *SubsetFontObj, glyphindexs []uint, runes []rune, fontSize int, rectangle *Rect) (float64, float64, float64, error) {
 
 	unitsPerEm := int(f.ttfp.UnitsPerEm())
 	var leftRune rune
 	var leftRuneIndex uint
 	sumWidth := int(0)
 	//fmt.Printf("unitsPerEm = %d", unitsPerEm)
-	for i, r := range text {
 
-		glyphindex, err := f.CharIndex(r)
-		if err != nil {
-			return 0, 0, 0, err
-		}
-
+	//createContent
+	for i, glyphindex := range glyphindexs {
 		pairvalPdfUnit := 0
 		if i > 0 && f.ttfFontOption.UseKerning { //kerning
+			r := runes[i]
 			pairval := kern(f, leftRune, r, leftRuneIndex, glyphindex)
 			pairvalPdfUnit = convertTTFUnit2PDFUnit(int(pairval), unitsPerEm)
+			leftRune = r
+			leftRuneIndex = glyphindex
 		}
 
-		width, err := f.CharWidth(r)
-		if err != nil {
-			return 0, 0, 0, err
-		}
-
+		width := f.GlyphIndexToPdfWidth(glyphindex)
 		sumWidth += int(width) + int(pairvalPdfUnit)
-		leftRune = r
-		leftRuneIndex = glyphindex
 	}
 
 	cellWidthPdfUnit := float64(0)
@@ -364,5 +397,12 @@ func (c *CacheContent) Setup(rectangle *Rect,
 
 //WriteTextToContent write text to content
 func (c *CacheContent) WriteTextToContent(text string) {
-	c.cacheContentText.text += text
+
+	runes, glyphindexs, err := textToRunesAndGlyphindex(c.fontSubset, text)
+	if err != nil {
+		return
+	}
+
+	c.cacheContentText.runes = append(c.cacheContentText.runes, runes...)
+	c.cacheContentText.glyphindexs = append(c.cacheContentText.glyphindexs, glyphindexs...)
 }

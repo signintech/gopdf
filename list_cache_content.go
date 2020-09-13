@@ -41,10 +41,51 @@ func (l *listCacheContent) appendContentText(cache cacheContentText, text string
 	}
 
 	//start add text
-	cacheFont.text += text
+	//cacheFont.text += text
 
 	//re-create contnet
-	textWidthPdfUnit, textHeightPdfUnit, err := cacheFont.createContent()
+	textWidthPdfUnit, textHeightPdfUnit, err := cacheFont.createContent(text)
+	if err != nil {
+		return x, y, err
+	}
+
+	if cacheFont.cellOpt.Float == 0 || cacheFont.cellOpt.Float&Right == Right || cacheFont.contentType == ContentTypeText {
+		x += textWidthPdfUnit
+	}
+	if cacheFont.cellOpt.Float&Bottom == Bottom {
+		y += textHeightPdfUnit
+	}
+
+	return x, y, nil
+}
+
+func (l *listCacheContent) appendContentTextByGlyphs(cache cacheContentText, glyphIndexs []uint, runes []rune) (float64, float64, error) {
+
+	x := cache.x
+	y := cache.y
+
+	mustMakeNewCache := true
+	var cacheFont *cacheContentText
+	var ok bool
+	last := l.last()
+	if cacheFont, ok = last.(*cacheContentText); ok {
+		if cacheFont != nil {
+			if cacheFont.isSame(cache) {
+				mustMakeNewCache = false
+			}
+		}
+	}
+
+	if mustMakeNewCache { //make new cell
+		l.caches = append(l.caches, &cache)
+		cacheFont = &cache
+	}
+
+	//start add text
+	//cacheFont.text += text
+
+	//re-create contnet
+	textWidthPdfUnit, textHeightPdfUnit, err := cacheFont.createContentByGlyphs(glyphIndexs, runes)
 	if err != nil {
 		return x, y, err
 	}

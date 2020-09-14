@@ -309,13 +309,13 @@ func main() {
     // Base trim-box
     pdf.Start(gopdf.Config{
         PageSize: *gopdf.PageSizeA4, //595.28, 841.89 = A4
-        TrimBox: gopdf.Box{Left: mm6ToPx, Top: mm6ToPx, Right: mm6ToPx + 595, Bottom: mm6ToPx + 842},
+        TrimBox: gopdf.Box{Left: mm6ToPx, Top: mm6ToPx, Right: 595 - mm6ToPx, Bottom: 842 - mm6ToPx},
     })
 
     // Page trim-box
     opt := gopdf.PageOption{
         PageSize: gopdf.PageSizeA4, //595.28, 841.89 = A4
-        TrimBox: &gopdf.Box{Left: mm6ToPx, Top: mm6ToPx, Right: mm6ToPx + 595, Bottom: mm6ToPx + 842},
+        TrimBox: &gopdf.Box{Left: mm6ToPx, Top: mm6ToPx, Right: 595 - mm6ToPx, Bottom: 842 - mm6ToPx},
     }
     pdf.AddPageWithOption(opt)
 

@@ -1,5 +1,3 @@
-github.com/phpdave11/gofpdi v0.0.0-20190504154921-ca25e8ed389d h1:wzkTf7+YLSD8h6d6+r+yqOrlz9M11P2t5wUWBYgd35s=
-github.com/phpdave11/gofpdi v0.0.0-20190504154921-ca25e8ed389d/go.mod h1:B7ryN7q4MLItB8BDM5PJAplblJegAAcaI98viOZUihg=
 github.com/phpdave11/gofpdi v1.0.8 h1:9HRg0Z0qDfWeMU7ska+YNQ13RHxTxqP5KTg/dBl4o7c=
 github.com/phpdave11/gofpdi v1.0.8/go.mod h1:vBmVV0Do6hSBHC8uKUQ71JGW+ZGQq74llk/7bXwjDoI=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=

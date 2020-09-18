@@ -290,8 +290,8 @@ func DownloadFile(filepath string, url string) error {
 
 ```
 
-### Possible to set Trim-box
- 
+### Possible to set [Trim-box](https://wiki.scribus.net/canvas/PDF_Boxes_:_mediabox,_cropbox,_bleedbox,_trimbox,_artbox)
+
 ```go
 package main
 

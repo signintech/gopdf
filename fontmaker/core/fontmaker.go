@@ -327,13 +327,13 @@ func (f *FontMaker) MakeWidthArray(widths map[int]int) (string, error) {
 	str := "\tme.cw = make(gopdf.FontCw)\n"
 	for c := 0; c <= 255; c++ {
 		str += "\tme.cw["
-		chr := string(c)
-		if chr == "\"" {
+		chr := rune(c)
+		if chr == '"' {
 			str += "gopdf.ToByte(\"\\\"\")"
-		} else if chr == "\\" {
+		} else if chr == '\\' {
 			str += "gopdf.ToByte(\"\\\\\")"
 		} else if c >= 32 && c <= 126 {
-			str += "gopdf.ToByte(\"" + chr + "\")"
+			str += "gopdf.ToByte(\"" + string(chr) + "\")"
 		} else {
 			str += fmt.Sprintf("gopdf.Chr(%d)", c)
 		}

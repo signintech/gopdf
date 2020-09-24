@@ -322,6 +322,11 @@ func (t *TTFParser) parse(rd io.Reader) error {
 		}
 	}
 
+	err = t.ParseGSUB(fd)
+	if err != nil {
+		return err
+	}
+
 	//fmt.Printf("%#v\n", me.widths)
 	t.cacheFontData = fontdata //t.readFontData(fontpath)
 

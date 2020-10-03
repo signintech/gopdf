@@ -160,7 +160,8 @@ func TestIssue143(t *testing.T) {
 	pdf.SetX(250)
 	pdf.SetY(200)
 
-	var glyphIndexs = []uint{154, 155}
+	//var glyphIndexs = []uint{172, 154}
+	var glyphIndexs = []uint{20, 20}
 	var justFakeRunes = []rune{rune(0), rune(0)}
 
 	err = pdf.writeGlyphs(glyphIndexs, justFakeRunes)
@@ -168,6 +169,10 @@ func TestIssue143(t *testing.T) {
 		t.Fatalf(err.Error())
 		return
 	}
+	_ = glyphIndexs
+	_ = justFakeRunes
+
+	//pdf.Text("ന്")
 
 	pdf.WritePdf("./test/out/issue_143.pdf")
 }

@@ -69,7 +69,6 @@ func (t *TTFParser) ParseGSUB(fd *bytes.Reader) error {
 func (t *TTFParser) processGSUBLookupListTable(fd *bytes.Reader, lookupTables []GSUBLookupTable) error {
 
 	for _, lookupTable := range lookupTables {
-
 		for _, subtable := range lookupTable.gsubLookupSubTables {
 			//_ = subtable
 			if subtable == nil {
@@ -78,7 +77,7 @@ func (t *TTFParser) processGSUBLookupListTable(fd *bytes.Reader, lookupTables []
 			//TODO: add other type
 			if subtable.LookupType() == 4 && subtable.Format() == 1 {
 				if subtable41, ok := subtable.(GSUBLookupSubTableType4Format1); ok {
-					err := t.processGSUBLookupListTableSubTableLookupType4Format1(fd, subtable41)
+					err := t.processGSUBLookupListTableSubTableLookupType4Format1(fd, lookupTable, subtable41)
 					if err != nil {
 						return err
 					}

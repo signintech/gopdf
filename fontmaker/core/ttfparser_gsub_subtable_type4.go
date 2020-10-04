@@ -101,15 +101,41 @@ func (t *TTFParser) parseGSUBLookupListTableSubTableLookupType4Format1(
 	return result, nil
 }
 
-func (t *TTFParser) processGSUBLookupListTableSubTableLookupType4Format1(fd *bytes.Reader,
+func (t *TTFParser) processGSUBLookupListTableSubTableLookupType4Format1(
+	fd *bytes.Reader,
+	table GSUBLookupTable,
 	subtable GSUBLookupSubTableType4Format1,
 ) error {
 	coverage, err := t.readCoverage(fd, subtable.coverageOffset)
 	if err != nil {
 		return err
 	}
+	glyphIDs := coverage.glyphIDs
 
 	fmt.Printf("%+v\n", coverage.glyphIDs)
 
+	for x, ligatureSetTable := range subtable.ligatureSetTables {
+		for y, ligatureTable := range ligatureSetTable.ligatureTables {
+			var replaces []uint
+			replaces = append(replaces, glyphIDs[x])
+			_ = ligatureTable
+			_ = y
+
+		}
+	}
+
 	return nil
+}
+
+func (t *TTFParser) processGSUBIsIgnore(
+	lookupFlag uint16,
+	glyphID uint16,
+	markFilteringSet uint16,
+) (bool, error) {
+	//TODO: ทำต่อ........................
+	if lookupFlag&0x0002 == 0x0002 {
+
+	}
+
+	return true, nil
 }

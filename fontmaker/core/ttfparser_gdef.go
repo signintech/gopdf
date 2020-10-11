@@ -2,39 +2,49 @@ package core
 
 import (
 	"bytes"
+
+	"github.com/signintech/gopdf/fontmaker/sliceutil"
 )
 
 //ParseGDEF parse GDEF — Glyph Definition Table
 //https://docs.microsoft.com/en-us/typography/opentype/spec/gdef
-func (t *TTFParser) ParseGDEF(fd *bytes.Reader) error {
+func (t *TTFParser) ParseGDEF(fd *bytes.Reader) (ParseGDEFResult, error) {
+
+	result := InitParseGDEFResult()
 
 	header, err := t.parseGDEFHeader(fd)
 	if err != nil {
-		return err
+		return ParseGDEFResult{}, err
 	}
 
-	glyphOfglyphClassDef := initParseClassDefinitionTableResult()
 	if header.glyphClassDefOffset != 0 {
-		result, err := t.parseClassDefinitionTable(fd, header.glyphClassDefOffset)
+		r, err := t.parseClassDefinitionTable(fd, header.glyphClassDefOffset)
 		if err != nil {
-			return err
+			return ParseGDEFResult{}, err
 		}
-		glyphOfglyphClassDef = result
+		result.glyphClassBases = r.GlyphClassBases()           //set
+		result.glyphClassComponents = r.GlyphClassComponents() //set
+		result.glyphClassLigatures = r.GlyphClassLigatures()   //set
+		result.glyphClassMarks = r.GlyphClassMarks()           //set
 	}
 
-	glyphOfmarkAttachClassDef := initParseClassDefinitionTableResult()
+	markAttachmentType := make(map[uint]([]uint)) // map[class]( array of glyphId)
 	if header.markAttachClassDefOffset != 0 {
-		result, err := t.parseClassDefinitionTable(fd, header.glyphClassDefOffset)
+		r, err := t.parseClassDefinitionTable(fd, header.markAttachClassDefOffset)
 		if err != nil {
-			return err
+			return ParseGDEFResult{}, err
 		}
-		glyphOfmarkAttachClassDef = result
+		marks := r.GlyphClassMarks()
+		for cls, glyphIDs := range r.mapClassWithGlyphIDs {
+			if len(marks) > 0 {
+				diff := sliceutil.DiffUInt(marks, glyphIDs)
+				markAttachmentType[cls] = diff
+			}
+		}
+		result.markAttachmentType = markAttachmentType //set
 	}
 
-	_ = glyphOfglyphClassDef
-	_ = glyphOfmarkAttachClassDef
-
-	return nil
+	return result, nil
 }
 
 func (t *TTFParser) parseGDEFHeader(fd *bytes.Reader) (gdefHeader, error) {
@@ -100,4 +110,20 @@ func (t *TTFParser) parseGDEFHeader(fd *bytes.Reader) (gdefHeader, error) {
 	}
 
 	return result, nil
+}
+
+//ParseGDEFResult result form ParseGDEF
+type ParseGDEFResult struct {
+	glyphClassBases      []uint //class 1
+	glyphClassLigatures  []uint //class 2
+	glyphClassMarks      []uint //class 3
+	glyphClassComponents []uint //class 4
+	markAttachmentType   map[uint]([]uint)
+}
+
+//InitParseGDEFResult init ParseGDEFResult
+func InitParseGDEFResult() ParseGDEFResult {
+	var r ParseGDEFResult
+	r.markAttachmentType = make(map[uint]([]uint))
+	return r
 }

@@ -1,6 +1,9 @@
 package core
 
-import "bytes"
+import (
+	"bytes"
+	"fmt"
+)
 
 //parseClassDefinitionTable parse Glyph Class Definition Table
 //https://docs.microsoft.com/en-us/typography/opentype/spec/chapter2#classDefTbl
@@ -11,7 +14,6 @@ func (t *TTFParser) parseClassDefinitionTable(fd *bytes.Reader, offset int64) (p
 	}
 
 	result := initParseClassDefinitionTableResult()
-
 	classFormat, err := t.ReadUShort(fd)
 	if err != nil {
 		return parseClassDefinitionTableResult{}, err
@@ -66,6 +68,7 @@ func (t *TTFParser) parseClassDefinitionTable(fd *bytes.Reader, offset int64) (p
 //
 type parseClassDefinitionTableResult struct {
 	mapClassWithGlyphIDs map[uint]([]uint) // map[class] array of glyphID
+
 }
 
 func initParseClassDefinitionTableResult() parseClassDefinitionTableResult {
@@ -85,4 +88,50 @@ func (p *parseClassDefinitionTableResult) isContainClass(class uint) bool {
 		}
 	}
 	return false
+}
+
+func (p *parseClassDefinitionTableResult) GlyphClassBases() []uint {
+	if glyphIDs, ok := p.mapClassWithGlyphIDs[1]; ok {
+		return glyphIDs
+	}
+	return []uint{}
+}
+
+func (p *parseClassDefinitionTableResult) GlyphClassLigatures() []uint {
+	if glyphIDs, ok := p.mapClassWithGlyphIDs[2]; ok {
+		return glyphIDs
+	}
+	return []uint{}
+}
+
+func (p *parseClassDefinitionTableResult) GlyphClassMarks() []uint {
+	if glyphIDs, ok := p.mapClassWithGlyphIDs[3]; ok {
+		return glyphIDs
+	}
+	return []uint{}
+}
+
+func (p *parseClassDefinitionTableResult) GlyphClassComponents() []uint {
+	if glyphIDs, ok := p.mapClassWithGlyphIDs[4]; ok {
+		return glyphIDs
+	}
+	return []uint{}
+}
+
+func (p *parseClassDefinitionTableResult) debug() string {
+	var buff bytes.Buffer
+	for cls, glyphIDs := range p.mapClassWithGlyphIDs {
+		fmt.Fprintf(&buff, "{\nclass:%d,\n", cls)
+		fmt.Fprintf(&buff, " glyphIDs:[")
+		for i, glyphID := range glyphIDs {
+			if i > 0 {
+				fmt.Fprintf(&buff, ",")
+			}
+			fmt.Fprintf(&buff, "%d", glyphID)
+		}
+		fmt.Fprintf(&buff, "]")
+		fmt.Fprintf(&buff, "\n}\n")
+	}
+
+	return buff.String()
 }

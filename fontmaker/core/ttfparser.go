@@ -322,12 +322,12 @@ func (t *TTFParser) parse(rd io.Reader) error {
 		}
 	}
 
-	err = t.ParseGDEF(fd)
+	gedfResult, err := t.ParseGDEF(fd)
 	if err != nil {
 		return err
 	}
 
-	err = t.ParseGSUB(fd)
+	err = t.ParseGSUB(fd, gedfResult)
 	if err != nil {
 		return err
 	}

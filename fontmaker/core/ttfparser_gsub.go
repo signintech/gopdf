@@ -5,7 +5,7 @@ import (
 )
 
 //ParseGSUB paese GSUB table https://docs.microsoft.com/en-us/typography/opentype/spec/gsub
-func (t *TTFParser) ParseGSUB(fd *bytes.Reader) error {
+func (t *TTFParser) ParseGSUB(fd *bytes.Reader, gdefResult ParseGDEFResult) error {
 	err := t.Seek(fd, "GSUB")
 	if err == ErrTableNotFound {
 		return nil
@@ -53,12 +53,12 @@ func (t *TTFParser) ParseGSUB(fd *bytes.Reader) error {
 	_ = lookupListOffset
 	//fmt.Printf("majorVersion=%d minorVersion=%d  scriptListOffset=%d featureListOffset=%d lookupListOffset=%d\n", majorVersion, minorVersion, scriptListOffset, featureListOffset, lookupListOffset)
 
-	lookupTables, err := t.parseGSUBLookupListTable(fd, int64(t.tables["GSUB"].Offset+lookupListOffset))
+	lookupTables, err := t.parseGSUBLookupListTable(fd, int64(t.tables["GSUB"].Offset+lookupListOffset), gdefResult)
 	if err != nil {
 		return err
 	}
 
-	err = t.processGSUBLookupListTable(fd, lookupTables)
+	err = t.processGSUBLookupListTable(fd, lookupTables, gdefResult)
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func (t *TTFParser) ParseGSUB(fd *bytes.Reader) error {
 	return nil
 }
 
-func (t *TTFParser) processGSUBLookupListTable(fd *bytes.Reader, lookupTables []GSUBLookupTable) error {
+func (t *TTFParser) processGSUBLookupListTable(fd *bytes.Reader, lookupTables []GSUBLookupTable, gdefResult ParseGDEFResult) error {
 
 	for _, lookupTable := range lookupTables {
 		for _, subtable := range lookupTable.gsubLookupSubTables {
@@ -77,7 +77,7 @@ func (t *TTFParser) processGSUBLookupListTable(fd *bytes.Reader, lookupTables []
 			//TODO: add other type
 			if subtable.LookupType() == 4 && subtable.Format() == 1 {
 				if subtable41, ok := subtable.(GSUBLookupSubTableType4Format1); ok {
-					err := t.processGSUBLookupListTableSubTableLookupType4Format1(fd, lookupTable, subtable41)
+					err := t.processGSUBLookupListTableSubTableLookupType4Format1(fd, lookupTable, subtable41, gdefResult)
 					if err != nil {
 						return err
 					}
@@ -89,7 +89,7 @@ func (t *TTFParser) processGSUBLookupListTable(fd *bytes.Reader, lookupTables []
 	return nil
 }
 
-func (t *TTFParser) parseGSUBLookupListTable(fd *bytes.Reader, offset int64) ([]GSUBLookupTable, error) {
+func (t *TTFParser) parseGSUBLookupListTable(fd *bytes.Reader, offset int64, gdefResult ParseGDEFResult) ([]GSUBLookupTable, error) {
 
 	_, err := fd.Seek(int64(offset), 0)
 	if err != nil {
@@ -164,7 +164,7 @@ func (t *TTFParser) parseGSUBLookupListTable(fd *bytes.Reader, offset int64) ([]
 		//fmt.Printf("lookupIndex =%d lookupType %d\n", lookupIndex, lookupType)
 		var subtables []gsubLookupSubTableTyper
 		for _, subtableOffset := range subtableOffsets {
-			subtable, err := t.parseGSUBLookupListTableSubTable(fd, subtableOffset, lookupType)
+			subtable, err := t.parseGSUBLookupListTableSubTable(fd, subtableOffset, lookupType, gdefResult)
 			if err != nil {
 				return nil, err
 			}
@@ -182,6 +182,8 @@ func (t *TTFParser) parseGSUBLookupListTableSubTable(
 	fd *bytes.Reader,
 	offset int64,
 	lookupType uint,
+	gdefResult ParseGDEFResult,
+
 ) (gsubLookupSubTableTyper, error) {
 	_, err := fd.Seek(int64(offset), 0)
 	if err != nil {
@@ -198,7 +200,7 @@ func (t *TTFParser) parseGSUBLookupListTableSubTable(
 	//LookupType 4: Ligature Substitution Subtable
 	if lookupType == 4 && substFormat == 1 {
 		//4.1 Ligature Substitution Format 1
-		subtable, err = t.parseGSUBLookupListTableSubTableLookupType4Format1(fd, offset, substFormat)
+		subtable, err = t.parseGSUBLookupListTableSubTableLookupType4Format1(fd, offset, substFormat, gdefResult)
 		if err != nil {
 			return nil, err
 		}

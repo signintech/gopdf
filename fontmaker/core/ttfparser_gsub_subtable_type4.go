@@ -2,7 +2,6 @@ package core
 
 import (
 	"bytes"
-	"fmt"
 
 	"github.com/signintech/gopdf/fontmaker/sliceutil"
 )
@@ -109,14 +108,15 @@ func (t *TTFParser) processGSUBLookupListTableSubTableLookupType4Format1(
 	table GSUBLookupTable,
 	subtable GSUBLookupSubTableType4Format1,
 	gdefResult ParseGDEFResult,
-) error {
+) (GSubLookupSubtableResult, error) {
 	coverage, err := t.readCoverage(fd, subtable.coverageOffset)
 	if err != nil {
-		return err
+		return GSubLookupSubtableResult{}, err
 	}
 	glyphIDs := coverage.glyphIDs
 
 	//fmt.Printf("%+v\n", coverage.glyphIDs)
+	result := GSubLookupSubtableResult{}
 
 	for x, ligatureSetTable := range subtable.ligatureSetTables {
 		for _, ligatureTable := range ligatureSetTable.ligatureTables {
@@ -124,18 +124,18 @@ func (t *TTFParser) processGSUBLookupListTableSubTableLookupType4Format1(
 			replaces = append(replaces, glyphIDs[x])
 			isIgnore, err := t.processGSUBIsIgnore(table.lookupFlag, replaces[0], table.markFilteringSet, gdefResult)
 			if err != nil {
-				return err
+				return GSubLookupSubtableResult{}, err
 			}
 			if isIgnore {
 				continue
 			}
-			//dj1
-			fmt.Printf("---> %d %d\n", ligatureTable.componentCount, len(ligatureTable.componentGlyphIDs))
+			//dg1
+			//fmt.Printf("---> %d %d\n", ligatureTable.componentCount, len(ligatureTable.componentGlyphIDs))
 			for z := uint(1); z < ligatureTable.componentCount; z++ {
 				glyphID := ligatureTable.componentGlyphIDs[z-1]
 				isIgnore, err := t.processGSUBIsIgnore(table.lookupFlag, glyphID, table.markFilteringSet, gdefResult)
 				if err != nil {
-					return err
+					return GSubLookupSubtableResult{}, err
 				}
 				if isIgnore {
 					continue
@@ -143,11 +143,22 @@ func (t *TTFParser) processGSUBLookupListTableSubTableLookupType4Format1(
 				replaces = append(replaces, glyphID)
 			}
 
-			fmt.Printf("%d => %v\n", ligatureTable.ligatureGlyph, replaces)
+			sub := GSubLookupSubtableSub{
+				ReplaceglyphIDs: replaces,
+				Substitute:      ligatureTable.ligatureGlyph,
+			}
+
+			result.Subs = append(result.Subs, sub)
+			/*
+				if ligatureTable.ligatureGlyph == 187 {
+					fmt.Printf("%d => %v\n", ligatureTable.ligatureGlyph, replaces)
+				}
+			*/
+
 		}
 	}
 
-	return nil
+	return result, nil
 }
 
 /*
@@ -160,6 +171,7 @@ func (t *TTFParser) processGSUBLookupListTableSubTableLookupType4Format1(
 0x00E0	reserved					For future use (Set to zero)
 0xFF00	markAttachmentType			If not zero, skips over all marks of attachment type different from specified.
 */
+//dj2
 func (t *TTFParser) processGSUBIsIgnore(
 	lookupFlag uint,
 	glyphID uint,

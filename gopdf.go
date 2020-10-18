@@ -511,12 +511,19 @@ func (gp *GoPdf) GetBytesPdf() []byte {
 //Text write text start at current x,y ( current y is the baseline of text )
 func (gp *GoPdf) Text(text string) error {
 
-	err := gp.curr.FontISubset.AddChars(text)
+	glyphIndexs, runes, err := gp.curr.FontISubset.AddChars(text)
 	if err != nil {
 		return err
 	}
+	/*
+		_ = glyphIndexs
+		_ = runes
+		err = gp.getContent().AppendStreamText(text)
+		if err != nil {
+			return err
+		}*/
 
-	err = gp.getContent().AppendStreamText(text)
+	err = gp.getContent().AppendStreamTextByGlyphs(glyphIndexs, runes)
 	if err != nil {
 		return err
 	}
@@ -530,6 +537,7 @@ func (gp *GoPdf) writeGlyphs(glyphIndexs []uint, runes []rune) error {
 		return fmt.Errorf("len(glyphs) != len(runes)")
 	}
 
+	//AddChars
 	for i, glyphindex := range glyphIndexs {
 		r := runes[i]
 		gp.curr.FontISubset.CharacterToGlyphIndex.Set(r, glyphindex)
@@ -546,7 +554,7 @@ func (gp *GoPdf) writeGlyphs(glyphIndexs []uint, runes []rune) error {
 //CellWithOption create cell of text ( use current x,y is upper-left corner of cell)
 func (gp *GoPdf) CellWithOption(rectangle *Rect, text string, opt CellOption) error {
 	rectangle = rectangle.UnitsToPoints(gp.config.Unit)
-	err := gp.curr.FontISubset.AddChars(text)
+	_, _, err := gp.curr.FontISubset.AddChars(text)
 	if err != nil {
 		return err
 	}
@@ -567,7 +575,7 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 		Float:  Right,
 	}
 
-	err := gp.curr.FontISubset.AddChars(text)
+	_, _, err := gp.curr.FontISubset.AddChars(text)
 	if err != nil {
 		return err
 	}
@@ -587,7 +595,7 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 	length := len([]rune(text))
 
 	// get lineHeight
-	if err := gp.curr.FontISubset.AddChars(text); err != nil {
+	if _, _, err := gp.curr.FontISubset.AddChars(text); err != nil {
 		return err
 	}
 
@@ -931,7 +939,7 @@ func (gp *GoPdf) SetFillColor(r uint8, g uint8, b uint8) {
 //MeasureTextWidth : measure Width of text (use current font)
 func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 
-	err := gp.curr.FontISubset.AddChars(text) //AddChars for create CharacterToGlyphIndex
+	_, _, err := gp.curr.FontISubset.AddChars(text) //AddChars for create CharacterToGlyphIndex
 	if err != nil {
 		return 0, err
 	}

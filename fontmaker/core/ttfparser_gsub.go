@@ -58,16 +58,17 @@ func (t *TTFParser) ParseGSUB(fd *bytes.Reader, gdefResult ParseGDEFResult) erro
 		return err
 	}
 
-	err = t.processGSUBLookupListTable(fd, lookupTables, gdefResult)
+	resultGsubLk, err := t.processGSUBLookupListTable(fd, lookupTables, gdefResult)
 	if err != nil {
 		return err
 	}
+	t.GSubLookupSubtable = resultGsubLk //set global value
 
 	return nil
 }
 
-func (t *TTFParser) processGSUBLookupListTable(fd *bytes.Reader, lookupTables []GSUBLookupTable, gdefResult ParseGDEFResult) error {
-
+func (t *TTFParser) processGSUBLookupListTable(fd *bytes.Reader, lookupTables []GSUBLookupTable, gdefResult ParseGDEFResult) (GSubLookupSubtableResult, error) {
+	var result GSubLookupSubtableResult
 	for _, lookupTable := range lookupTables {
 		for _, subtable := range lookupTable.gsubLookupSubTables {
 			//_ = subtable
@@ -77,16 +78,17 @@ func (t *TTFParser) processGSUBLookupListTable(fd *bytes.Reader, lookupTables []
 			//TODO: add other type
 			if subtable.LookupType() == 4 && subtable.Format() == 1 {
 				if subtable41, ok := subtable.(GSUBLookupSubTableType4Format1); ok {
-					err := t.processGSUBLookupListTableSubTableLookupType4Format1(fd, lookupTable, subtable41, gdefResult)
+					resultType4F1, err := t.processGSUBLookupListTableSubTableLookupType4Format1(fd, lookupTable, subtable41, gdefResult)
 					if err != nil {
-						return err
+						return GSubLookupSubtableResult{}, err
 					}
+					result.merge(resultType4F1)
 				}
 			}
 		}
 	}
 
-	return nil
+	return result, nil
 }
 
 func (t *TTFParser) parseGSUBLookupListTable(fd *bytes.Reader, offset int64, gdefResult ParseGDEFResult) ([]GSUBLookupTable, error) {
@@ -207,4 +209,17 @@ func (t *TTFParser) parseGSUBLookupListTableSubTable(
 	}
 
 	return subtable, nil
+}
+
+type GSubLookupSubtableResult struct {
+	Subs []GSubLookupSubtableSub
+}
+
+func (g *GSubLookupSubtableResult) merge(r GSubLookupSubtableResult) {
+	g.Subs = append(g.Subs, r.Subs...)
+}
+
+type GSubLookupSubtableSub struct {
+	ReplaceglyphIDs []uint
+	Substitute      uint
 }

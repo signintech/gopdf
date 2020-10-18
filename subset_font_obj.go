@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"github.com/signintech/gopdf/fontmaker/core"
+	"github.com/signintech/gopdf/fontmaker/sliceutil"
 )
 
 //ErrCharNotFound char not found
@@ -114,17 +115,40 @@ func (s *SubsetFontObj) SetTTFByReader(rd io.Reader) error {
 }
 
 //AddChars add char to map CharacterToGlyphIndex
-func (s *SubsetFontObj) AddChars(txt string) error {
+func (s *SubsetFontObj) AddChars(txt string) ([]uint, []rune, error) {
 
 	var glyphindexs []uint
 	var runes []rune
 	for _, r := range txt {
 		glyphindex, err := s.CharCodeToGlyphIndex(r)
 		if err != nil {
-			return err
+			return nil, nil, err
 		}
+		//fmt.Printf("glyphindex %d %x\n", glyphindex, r)
 		glyphindexs = append(glyphindexs, glyphindex)
 		runes = append(runes, r)
+	}
+	fmt.Printf("txt = %+v\n", glyphindexs)
+	if s.ttfFontOption.UseOpenTypeLayout { //find glyph to replace
+		for _, sub := range s.ttfp.GSubLookupSubtable.Subs {
+			matchs := sliceutil.ContainSliceUint(glyphindexs, sub.ReplaceglyphIDs)
+			if len(matchs) > 0 {
+				//replace
+				fmt.Printf("AAAAAAAA %+v\n", sub)
+				diffLen := 0
+				for _, match := range matchs {
+					start := glyphindexs[0 : match.FirstIndex+diffLen]
+					end := glyphindexs[match.FirstIndex+match.Length+diffLen:]
+					temp := start
+					temp = append(temp, sub.Substitute)
+					temp = append(temp, end...)
+					diffLen = len(temp) - len(glyphindexs)
+					glyphindexs = temp
+				}
+				fmt.Printf("BBBBBBB %+v\n", glyphindexs)
+				break
+			}
+		}
 	}
 
 	for i, glyphindex := range glyphindexs {
@@ -132,7 +156,7 @@ func (s *SubsetFontObj) AddChars(txt string) error {
 		s.CharacterToGlyphIndex.Set(r, glyphindex)
 	}
 
-	return nil
+	return glyphindexs, runes, nil
 }
 
 //CharIndex index of char in glyph table

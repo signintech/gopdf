@@ -146,7 +146,11 @@ func TestIssue143(t *testing.T) {
 	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
 	pdf.SetNoCompression()
 	pdf.AddPage()
-	err = pdf.AddTTFFont("noto", "./test/res/NotoSansMalayalamUI-Regular.ttf")
+
+	ttfOpt := defaultTtfFontOption()
+	ttfOpt.UseOpenTypeLayout = true
+
+	err = pdf.AddTTFFontWithOption("noto", "./test/res/NotoSansMalayalamUI-Regular.ttf", ttfOpt)
 	if err != nil {
 		t.Error(err)
 		return
@@ -159,20 +163,21 @@ func TestIssue143(t *testing.T) {
 	}
 	pdf.SetX(250)
 	pdf.SetY(200)
+	/*
+		var glyphIndexs = []uint{187, 172}
+		//var glyphIndexs = []uint{20, 20}
+		var justFakeRunes = []rune{rune(0), rune(0)}
 
-	//var glyphIndexs = []uint{172, 154}
-	var glyphIndexs = []uint{20, 20}
-	var justFakeRunes = []rune{rune(0), rune(0)}
+		err = pdf.writeGlyphs(glyphIndexs, justFakeRunes)
+		if err != nil {
+			t.Fatalf(err.Error())
+			return
+		}
+		_ = glyphIndexs
+		_ = justFakeRunes
+	*/
 
-	err = pdf.writeGlyphs(glyphIndexs, justFakeRunes)
-	if err != nil {
-		t.Fatalf(err.Error())
-		return
-	}
-	_ = glyphIndexs
-	_ = justFakeRunes
-
-	//pdf.Text("ന്")
+	pdf.Text("ന്മന്മ൬൲൵")
 
 	pdf.WritePdf("./test/out/issue_143.pdf")
 }

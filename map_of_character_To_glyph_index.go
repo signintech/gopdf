@@ -14,18 +14,25 @@ func NewMapOfCharacterToGlyphIndex() *MapOfCharacterToGlyphIndex {
 	return &m
 }
 
-//KeyExists key is exists?
-func (m *MapOfCharacterToGlyphIndex) KeyExists(k rune) bool {
-	/*for _, key := range m.Keys {
-		if k == key {
+//ValExists val is exists?
+func (m *MapOfCharacterToGlyphIndex) ValExists(glyph uint) bool {
+	for _, val := range m.Vals {
+		if glyph == val {
 			return true
 		}
-	}*/
+	}
+	return false
+}
+
+/*
+//KeyExists key is exists?
+func (m *MapOfCharacterToGlyphIndex) KeyExists(k rune) bool {
 	if _, ok := m.keyIndexs[k]; ok {
 		return true
 	}
 	return false
 }
+*/
 
 //Set set key and value to map
 func (m *MapOfCharacterToGlyphIndex) Set(k rune, v uint) {

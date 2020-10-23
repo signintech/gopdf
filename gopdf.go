@@ -515,13 +515,15 @@ func (gp *GoPdf) Text(text string) error {
 	if err != nil {
 		return err
 	}
+
 	/*
 		_ = glyphIndexs
 		_ = runes
 		err = gp.getContent().AppendStreamText(text)
 		if err != nil {
 			return err
-		}*/
+		}
+	*/
 
 	err = gp.getContent().AppendStreamTextByGlyphs(glyphIndexs, runes)
 	if err != nil {

@@ -148,7 +148,7 @@ func TestIssue143(t *testing.T) {
 	pdf.AddPage()
 
 	ttfOpt := defaultTtfFontOption()
-	ttfOpt.UseOpenTypeLayout = true
+	ttfOpt.UseOpenTypeLayout = false
 
 	err = pdf.AddTTFFontWithOption("noto", "./test/res/NotoSansMalayalamUI-Regular.ttf", ttfOpt)
 	if err != nil {
@@ -177,7 +177,8 @@ func TestIssue143(t *testing.T) {
 		_ = justFakeRunes
 	*/
 
-	pdf.Text("ന്മന്മ൬൲൵")
+	pdf.Text("ന്മന്മ")
+	pdf.Text("ന്മന്മ")
 
 	pdf.WritePdf("./test/out/issue_143.pdf")
 }

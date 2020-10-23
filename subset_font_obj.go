@@ -124,17 +124,16 @@ func (s *SubsetFontObj) AddChars(txt string) ([]uint, []rune, error) {
 		if err != nil {
 			return nil, nil, err
 		}
-		//fmt.Printf("glyphindex %d %x\n", glyphindex, r)
 		glyphindexs = append(glyphindexs, glyphindex)
 		runes = append(runes, r)
 	}
-	fmt.Printf("txt = %+v\n", glyphindexs)
-	if s.ttfFontOption.UseOpenTypeLayout { //find glyph to replace
+
+	if s.ttfFontOption.UseOpenTypeLayout {
+		//find glyph to replace
 		for _, sub := range s.ttfp.GSubLookupSubtable.Subs {
 			matchs := sliceutil.ContainSliceUint(glyphindexs, sub.ReplaceglyphIDs)
 			if len(matchs) > 0 {
 				//replace
-				fmt.Printf("AAAAAAAA %+v\n", sub)
 				diffLen := 0
 				for _, match := range matchs {
 					start := glyphindexs[0 : match.FirstIndex+diffLen]
@@ -145,19 +144,42 @@ func (s *SubsetFontObj) AddChars(txt string) ([]uint, []rune, error) {
 					diffLen = len(temp) - len(glyphindexs)
 					glyphindexs = temp
 				}
-				fmt.Printf("BBBBBBB %+v\n", glyphindexs)
 				break
 			}
 		}
 	}
 
 	for i, glyphindex := range glyphindexs {
+		if s.CharacterToGlyphIndex.ValExists(glyphindex) {
+			continue
+		}
 		r := runes[i]
 		s.CharacterToGlyphIndex.Set(r, glyphindex)
 	}
 
 	return glyphindexs, runes, nil
 }
+
+/*
+//AddChars add char to map CharacterToGlyphIndex
+func (s *SubsetFontObj) AddChars(txt string) ([]uint, []rune, error) {
+	var glyphIndexs []uint
+	var runes []rune
+	for _, runeValue := range txt {
+		if s.CharacterToGlyphIndex.KeyExists(runeValue) {
+			continue
+		}
+		glyphIndex, err := s.CharCodeToGlyphIndex(runeValue)
+		if err != nil {
+			return nil, nil, err
+		}
+		s.CharacterToGlyphIndex.Set(runeValue, glyphIndex) // [runeValue] = glyphIndex
+		glyphIndexs = append(glyphIndexs, glyphIndex)
+		runes = append(runes, runeValue)
+	}
+	return glyphIndexs, runes, nil
+}
+*/
 
 //CharIndex index of char in glyph table
 func (s *SubsetFontObj) CharIndex(r rune) (uint, error) {

@@ -199,8 +199,22 @@ func (t *TTFParser) parseGSUBLookupListTableSubTable(
 
 	var subtable gsubLookupSubTableTyper
 	//TODO: add other type
-	//LookupType 4: Ligature Substitution Subtable
-	if lookupType == 4 && substFormat == 1 {
+	if lookupType == 1 { //LookupType 1: Single Substitution Subtable
+
+		if substFormat == 1 {
+			subtable, err = t.parseGSUBLookupListTableSubTableLookupType1Format1(fd, offset, substFormat, gdefResult)
+			if err != nil {
+				return nil, err
+			}
+		} else if substFormat == 2 {
+			subtable, err = t.parseGSUBLookupListTableSubTableLookupType1Format2(fd, offset, substFormat, gdefResult)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+	} else if lookupType == 4 && substFormat == 1 {
+		//LookupType 4: Ligature Substitution Subtable
 		//4.1 Ligature Substitution Format 1
 		subtable, err = t.parseGSUBLookupListTableSubTableLookupType4Format1(fd, offset, substFormat, gdefResult)
 		if err != nil {

@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"fmt"
 )
 
 //ParseGSUB paese GSUB table https://docs.microsoft.com/en-us/typography/opentype/spec/gsub
@@ -76,13 +77,31 @@ func (t *TTFParser) processGSUBLookupListTable(fd *bytes.Reader, lookupTables []
 				continue
 			}
 			//TODO: add other type
-			if subtable.LookupType() == 4 && subtable.Format() == 1 {
-				if subtable41, ok := subtable.(GSUBLookupSubTableType4Format1); ok {
-					resultType4F1, err := t.processGSUBLookupListTableSubTableLookupType4Format1(fd, lookupTable, subtable41, gdefResult)
+			if subtable.LookupType() == 1 && subtable.Format() == 1 {
+				if subtable1F1, ok := subtable.(GSUBLookupSubTableType1Format1); ok {
+					resultType1F1, err := t.processGSUBLookupListTableSubTableLookupType1Format1(fd, lookupTable, subtable1F1, gdefResult)
+					if err != nil {
+						return GSubLookupSubtableResult{}, err
+					}
+					result.merge(resultType1F1)
+				}
+			} else if subtable.LookupType() == 1 && subtable.Format() == 2 {
+				if subtable1F2, ok := subtable.(GSUBLookupSubTableType1Format2); ok {
+					resultType1F2, err := t.processGSUBLookupListTableSubTableLookupType1Format2(fd, lookupTable, subtable1F2, gdefResult)
+					if err != nil {
+						return GSubLookupSubtableResult{}, err
+					}
+					result.merge(resultType1F2)
+				}
+			} else if subtable.LookupType() == 4 && subtable.Format() == 1 {
+				if subtable4F1, ok := subtable.(GSUBLookupSubTableType4Format1); ok {
+					resultType4F1, err := t.processGSUBLookupListTableSubTableLookupType4Format1(fd, lookupTable, subtable4F1, gdefResult)
 					if err != nil {
 						return GSubLookupSubtableResult{}, err
 					}
 					result.merge(resultType4F1)
+				} else {
+					return GSubLookupSubtableResult{}, fmt.Errorf("subtable not GSUBLookupSubTableType4Format1")
 				}
 			}
 		}

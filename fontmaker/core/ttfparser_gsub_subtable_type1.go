@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"fmt"
 )
 
 //1.1 Single Substitution Format 1
@@ -26,8 +27,8 @@ func (t *TTFParser) parseGSUBLookupListTableSubTableLookupType1Format1(
 	}
 
 	return GSUBLookupSubTableType1Format1{
-		CoverageOffset: coverageOffset,
-		DeltaGlyphID:   deltaGlyphID,
+		coverageOffset: int64(coverageOffset) + offset,
+		deltaGlyphID:   deltaGlyphID,
 	}, nil
 }
 
@@ -62,7 +63,69 @@ func (t *TTFParser) parseGSUBLookupListTableSubTableLookupType1Format2(
 	}
 
 	return GSUBLookupSubTableType1Format2{
-		CoverageOffset:     coverageOffset,
-		SubstituteGlyphIDs: substituteGlyphIDs,
+		coverageOffset:     int64(coverageOffset) + offset,
+		substituteGlyphIDs: substituteGlyphIDs,
 	}, nil
+}
+
+func (t *TTFParser) processGSUBLookupListTableSubTableLookupType1Format1(
+	fd *bytes.Reader,
+	table GSUBLookupTable,
+	subtable GSUBLookupSubTableType1Format1,
+	gdefResult ParseGDEFResult,
+) (GSubLookupSubtableResult, error) {
+
+	coverage, err := t.readCoverage(fd, subtable.coverageOffset)
+	if err != nil {
+		return GSubLookupSubtableResult{}, err
+	}
+	var result GSubLookupSubtableResult
+	glyphIDs := coverage.glyphIDs
+	for _, glyphID := range glyphIDs {
+
+		isIgnore, err := t.processGSUBIsIgnore(table.lookupFlag, glyphID, table.markFilteringSet, gdefResult)
+		if err != nil {
+			return GSubLookupSubtableResult{}, err
+		}
+		if isIgnore {
+			continue
+		}
+		var sub GSubLookupSubtableSub
+		sub.Substitute = uint(subtable.deltaGlyphID)
+		sub.ReplaceglyphIDs = append(sub.ReplaceglyphIDs, glyphID)
+		result.Subs = append(result.Subs, sub)
+		//fmt.Printf("ReplaceglyphIDs = %d Substitute =%d\n", glyphID, sub.Substitute)
+	}
+	return result, nil
+}
+
+func (t *TTFParser) processGSUBLookupListTableSubTableLookupType1Format2(
+	fd *bytes.Reader,
+	table GSUBLookupTable,
+	subtable GSUBLookupSubTableType1Format2,
+	gdefResult ParseGDEFResult,
+) (GSubLookupSubtableResult, error) {
+
+	coverage, err := t.readCoverage(fd, subtable.coverageOffset)
+	if err != nil {
+		return GSubLookupSubtableResult{}, err
+	}
+	var result GSubLookupSubtableResult
+	glyphIDs := coverage.glyphIDs
+	for _, glyphID := range glyphIDs {
+
+		isIgnore, err := t.processGSUBIsIgnore(table.lookupFlag, glyphID, table.markFilteringSet, gdefResult)
+		if err != nil {
+			return GSubLookupSubtableResult{}, err
+		}
+		if isIgnore {
+			continue
+		}
+		var sub GSubLookupSubtableSub
+		sub.Substitute = uint(subtable.substituteGlyphIDs[0])
+		sub.ReplaceglyphIDs = append(sub.ReplaceglyphIDs, glyphID)
+		result.Subs = append(result.Subs, sub)
+		fmt.Printf("ReplaceglyphIDs = %d Substitute =%d\n", glyphID, sub.Substitute)
+	}
+	return result, nil
 }

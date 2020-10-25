@@ -2,8 +2,8 @@ package core
 
 //GSUBLookupSubTableType1Format1 Single Substitution Format 1
 type GSUBLookupSubTableType1Format1 struct {
-	CoverageOffset uint
-	DeltaGlyphID   int
+	coverageOffset int64
+	deltaGlyphID   int
 }
 
 //LookupType get lookup type
@@ -18,8 +18,8 @@ func (g GSUBLookupSubTableType1Format1) Format() uint {
 
 //GSUBLookupSubTableType1Format2 Single Substitution Format 2
 type GSUBLookupSubTableType1Format2 struct {
-	CoverageOffset     uint
-	SubstituteGlyphIDs []uint
+	coverageOffset     int64
+	substituteGlyphIDs []uint
 }
 
 //LookupType get lookup type

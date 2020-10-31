@@ -2,7 +2,6 @@ package core
 
 import (
 	"bytes"
-	"fmt"
 )
 
 //1.1 Single Substitution Format 1
@@ -60,6 +59,7 @@ func (t *TTFParser) parseGSUBLookupListTableSubTableLookupType1Format2(
 			return GSUBLookupSubTableType1Format2{}, err
 		}
 		substituteGlyphIDs = append(substituteGlyphIDs, glyphID)
+		//fmt.Printf("glyphID %d\n", glyphID)
 	}
 
 	return GSUBLookupSubTableType1Format2{
@@ -94,7 +94,7 @@ func (t *TTFParser) processGSUBLookupListTableSubTableLookupType1Format1(
 		sub.Substitute = uint(subtable.deltaGlyphID)
 		sub.ReplaceglyphIDs = append(sub.ReplaceglyphIDs, glyphID)
 		result.Subs = append(result.Subs, sub)
-		//fmt.Printf("ReplaceglyphIDs = %d Substitute =%d\n", glyphID, sub.Substitute)
+		//fmt.Printf("A ReplaceglyphIDs = %d Substitute =%d\n", glyphID, sub.Substitute)
 	}
 	return result, nil
 }
@@ -112,7 +112,7 @@ func (t *TTFParser) processGSUBLookupListTableSubTableLookupType1Format2(
 	}
 	var result GSubLookupSubtableResult
 	glyphIDs := coverage.glyphIDs
-	for _, glyphID := range glyphIDs {
+	for i, glyphID := range glyphIDs {
 
 		isIgnore, err := t.processGSUBIsIgnore(table.lookupFlag, glyphID, table.markFilteringSet, gdefResult)
 		if err != nil {
@@ -122,10 +122,10 @@ func (t *TTFParser) processGSUBLookupListTableSubTableLookupType1Format2(
 			continue
 		}
 		var sub GSubLookupSubtableSub
-		sub.Substitute = uint(subtable.substituteGlyphIDs[0])
+		sub.Substitute = uint(subtable.substituteGlyphIDs[i])
 		sub.ReplaceglyphIDs = append(sub.ReplaceglyphIDs, glyphID)
 		result.Subs = append(result.Subs, sub)
-		fmt.Printf("ReplaceglyphIDs = %d Substitute =%d\n", glyphID, sub.Substitute)
+		//fmt.Printf("ReplaceglyphIDs = %d Substitute =%d\n", glyphID, sub.Substitute)
 	}
 	return result, nil
 }

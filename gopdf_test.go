@@ -148,7 +148,7 @@ func TestIssue143(t *testing.T) {
 	pdf.AddPage()
 
 	ttfOpt := defaultTtfFontOption()
-	ttfOpt.UseOpenTypeLayout = false
+	ttfOpt.UseOpenTypeLayout = true
 
 	err = pdf.AddTTFFontWithOption("noto", "./test/res/NotoSansMalayalamUI-Regular.ttf", ttfOpt)
 	if err != nil {
@@ -176,7 +176,19 @@ func TestIssue143(t *testing.T) {
 		_ = glyphIndexs
 		_ = justFakeRunes
 	*/
+	/*
+		var glyphIndexs = []uint{72, 72}
+		//var glyphIndexs = []uint{20, 20}
+		var justFakeRunes = []rune{rune(0), rune(0)}
 
+		err = pdf.writeGlyphs(glyphIndexs, justFakeRunes)
+		if err != nil {
+			t.Fatalf(err.Error())
+			return
+		}
+		_ = glyphIndexs
+		_ = justFakeRunes
+	*/
 	pdf.Text("ന്മന്മ")
 	pdf.Text("ന്മന്മ")
 

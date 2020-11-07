@@ -91,7 +91,7 @@ func (t *TTFParser) processGSUBLookupListTableSubTableLookupType1Format1(
 			continue
 		}
 		var sub GSubLookupSubtableSub
-		sub.Substitute = glyphID + uint(subtable.deltaGlyphID)
+		sub.Substitute = []uint{glyphID + uint(subtable.deltaGlyphID)}
 		sub.ReplaceglyphIDs = append(sub.ReplaceglyphIDs, glyphID)
 		result.Subs = append(result.Subs, sub)
 		//fmt.Printf("A ReplaceglyphIDs = %d Substitute =%d\n", glyphID, sub.Substitute)
@@ -122,7 +122,7 @@ func (t *TTFParser) processGSUBLookupListTableSubTableLookupType1Format2(
 			continue
 		}
 		var sub GSubLookupSubtableSub
-		sub.Substitute = uint(subtable.substituteGlyphIDs[i])
+		sub.Substitute = []uint{uint(subtable.substituteGlyphIDs[i])}
 		sub.ReplaceglyphIDs = append(sub.ReplaceglyphIDs, glyphID)
 		result.Subs = append(result.Subs, sub)
 		//fmt.Printf("ReplaceglyphIDs = %d Substitute =%d\n", glyphID, sub.Substitute)

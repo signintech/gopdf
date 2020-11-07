@@ -139,7 +139,7 @@ func (s *SubsetFontObj) AddChars(txt string) ([]uint, []rune, error) {
 					start := glyphindexs[0 : match.FirstIndex+diffLen]
 					end := glyphindexs[match.FirstIndex+match.Length+diffLen:]
 					temp := start
-					temp = append(temp, sub.Substitute)
+					temp = append(temp, sub.Substitute...)
 					temp = append(temp, end...)
 					diffLen = len(temp) - len(glyphindexs)
 					glyphindexs = temp

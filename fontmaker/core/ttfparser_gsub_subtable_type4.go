@@ -145,7 +145,7 @@ func (t *TTFParser) processGSUBLookupListTableSubTableLookupType4Format1(
 
 			sub := GSubLookupSubtableSub{
 				ReplaceglyphIDs: replaces,
-				Substitute:      ligatureTable.ligatureGlyph,
+				Substitute:      []uint{ligatureTable.ligatureGlyph},
 			}
 
 			result.Subs = append(result.Subs, sub)

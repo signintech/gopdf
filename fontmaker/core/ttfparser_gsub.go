@@ -93,6 +93,14 @@ func (t *TTFParser) processGSUBLookupListTable(fd *bytes.Reader, lookupTables []
 					}
 					result.merge(resultType1F2)
 				}
+			} else if subtable.LookupType() == 2 && subtable.Format() == 1 {
+				if subtable2F1, ok := subtable.(GSUBLookupSubTableType2Format1); ok {
+					resultType2F1, err := t.processGSUBLookupListTableSubTableLookupType2Format1(fd, lookupTable, subtable2F1, gdefResult)
+					if err != nil {
+						return GSubLookupSubtableResult{}, err
+					}
+					result.merge(resultType2F1)
+				}
 			} else if subtable.LookupType() == 4 && subtable.Format() == 1 {
 				if subtable4F1, ok := subtable.(GSUBLookupSubTableType4Format1); ok {
 					resultType4F1, err := t.processGSUBLookupListTableSubTableLookupType4Format1(fd, lookupTable, subtable4F1, gdefResult)
@@ -269,5 +277,5 @@ func (g *GSubLookupSubtableResult) merge(r GSubLookupSubtableResult) {
 
 type GSubLookupSubtableSub struct {
 	ReplaceglyphIDs []uint
-	Substitute      uint
+	Substitute      []uint
 }

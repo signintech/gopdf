@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"fmt"
 )
 
 //2.1 Multiple Substitution Format 1
@@ -65,6 +66,48 @@ func (t *TTFParser) parseGSUBLookupListTableSubTableLookupType2Format1(
 	}
 
 	result.sequenceTable = sequenceTables
+
+	return result, nil
+}
+
+func (t *TTFParser) processGSUBLookupListTableSubTableLookupType2Format1(
+	fd *bytes.Reader,
+	table GSUBLookupTable,
+	subtable GSUBLookupSubTableType2Format1,
+	gdefResult ParseGDEFResult,
+) (GSubLookupSubtableResult, error) {
+	var result GSubLookupSubtableResult
+
+	coverage, err := t.readCoverage(fd, subtable.coverageOffset)
+	if err != nil {
+		return GSubLookupSubtableResult{}, err
+	}
+
+	glyphIDs := coverage.glyphIDs
+	for i, glyphID := range glyphIDs {
+		isIgnore, err := t.processGSUBIsIgnore(table.lookupFlag, glyphID, table.markFilteringSet, gdefResult)
+		if err != nil {
+			return GSubLookupSubtableResult{}, err
+		}
+		if isIgnore {
+			continue
+		}
+
+		if len(subtable.sequenceTable[i].substituteGlyphIDs) <= 0 {
+			continue
+		}
+		var substitutes []uint
+		for _, substituteGlyphID := range subtable.sequenceTable[i].substituteGlyphIDs {
+			substitutes = append(substitutes, substituteGlyphID)
+		}
+		fmt.Printf("sss %d %+v\n", glyphID, substitutes)
+		sub := GSubLookupSubtableSub{
+			ReplaceglyphIDs: []uint{glyphID},
+			Substitute:      substitutes,
+		}
+
+		result.Subs = append(result.Subs, sub)
+	}
 
 	return result, nil
 }

@@ -2,7 +2,6 @@ package core
 
 import (
 	"bytes"
-	"fmt"
 )
 
 //2.1 Multiple Substitution Format 1
@@ -100,7 +99,7 @@ func (t *TTFParser) processGSUBLookupListTableSubTableLookupType2Format1(
 		for _, substituteGlyphID := range subtable.sequenceTable[i].substituteGlyphIDs {
 			substitutes = append(substitutes, substituteGlyphID)
 		}
-		fmt.Printf("sss %d %+v\n", glyphID, substitutes)
+		//fmt.Printf("sss %d %+v\n", glyphID, substitutes)
 		sub := GSubLookupSubtableSub{
 			ReplaceglyphIDs: []uint{glyphID},
 			Substitute:      substitutes,

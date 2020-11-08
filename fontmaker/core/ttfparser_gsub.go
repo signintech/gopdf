@@ -251,6 +251,13 @@ func (t *TTFParser) parseGSUBLookupListTableSubTable(
 		} else {
 			return nil, fmt.Errorf("unsuport lookup type %d format %d", lookupType, substFormat)
 		}
+	} else if lookupType == 3 {
+		if substFormat == 1 {
+			subtable, err = t.parseGSUBLookupListTableSubTableLookupType3Format1(fd, offset, substFormat, gdefResult)
+			if err != nil {
+				return nil, err
+			}
+		}
 	} else if lookupType == 4 {
 		//LookupType 4: Ligature Substitution Subtable
 		//4.1 Ligature Substitution Format 1

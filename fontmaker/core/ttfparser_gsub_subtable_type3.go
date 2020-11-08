@@ -1,6 +1,8 @@
 package core
 
-import "bytes"
+import (
+	"bytes"
+)
 
 //3.1 Alternate Substitution Format 1
 func (t *TTFParser) parseGSUBLookupListTableSubTableLookupType3Format1(
@@ -39,7 +41,6 @@ func (t *TTFParser) parseGSUBLookupListTableSubTableLookupType3Format1(
 
 	var alternateSetTables []AlternateSetTable
 	for _, alternateSetOffset := range result.alternateSetOffsets {
-
 		_, err := fd.Seek(alternateSetOffset, 0)
 		if err != nil {
 			return GSUBLookupSubTableType3Format1{}, err
@@ -65,5 +66,42 @@ func (t *TTFParser) parseGSUBLookupListTableSubTableLookupType3Format1(
 	}
 	result.alternateSetTables = alternateSetTables //set result
 
+	return result, nil
+}
+
+func (t *TTFParser) processGSUBLookupListTableSubTableLookupType3Format1(
+	fd *bytes.Reader,
+	table GSUBLookupTable,
+	subtable GSUBLookupSubTableType3Format1,
+	gdefResult ParseGDEFResult,
+) (GSubLookupSubtableResult, error) {
+	var result GSubLookupSubtableResult
+	coverage, err := t.readCoverage(fd, subtable.coverageOffset)
+	if err != nil {
+		return GSubLookupSubtableResult{}, err
+	}
+	glyphIDs := coverage.glyphIDs
+	for i, glyphID := range glyphIDs {
+		isIgnore, err := t.processGSUBIsIgnore(table.lookupFlag, glyphID, table.markFilteringSet, gdefResult)
+		if err != nil {
+			return GSubLookupSubtableResult{}, err
+		}
+		if isIgnore {
+			continue
+		}
+		if len(subtable.alternateSetTables[i].alternateGlyphIDs) > 0 {
+			continue
+		}
+
+		var sub GSubLookupSubtableSub
+		sub.Substitute = []uint{
+			subtable.alternateSetTables[i].alternateGlyphIDs[0],
+		}
+		sub.ReplaceglyphIDs = []uint{
+			glyphID,
+		}
+		result.Subs = append(result.Subs, sub)
+		//fmt.Printf(">>> %+v\n", result)
+	}
 	return result, nil
 }

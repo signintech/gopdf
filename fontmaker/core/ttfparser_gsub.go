@@ -277,6 +277,15 @@ func (t *TTFParser) parseGSUBLookupListTableSubTable(
 		} else {
 			return nil, fmt.Errorf("unsuport lookup type %d format %d", lookupType, substFormat)
 		}
+	} else if lookupType == 5 {
+		if substFormat == 1 {
+			subtable, err = t.parseGSUBLookupListTableSubTableLookupType5Format1(fd, offset, substFormat, gdefResult)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, fmt.Errorf("unsuport lookup type %d format %d", lookupType, substFormat)
+		}
 	}
 
 	return subtable, nil

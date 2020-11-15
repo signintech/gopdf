@@ -1,9 +1,7 @@
 package core
 
-import (
-	"bytes"
-)
-
+/*
+NOT SUPPORT YET
 //5.1 Context Substitution Format 1: Simple Glyph Contexts
 func (t *TTFParser) parseGSUBLookupListTableSubTableLookupType5Format1(
 	fd *bytes.Reader,
@@ -80,7 +78,7 @@ func (t *TTFParser) parseGSUBLookupListTableSubTableLookupType5Format1(
 
 			//parse inputSequence
 			var inputSequence []uint
-			for j := uint(0); j < glyphCount; j++ {
+			for j := uint(1); j < glyphCount; j++ {
 				input, err := t.ReadUShort(fd)
 				if err != nil {
 					return GSUBLookupSubTableType5Format1{}, err
@@ -119,3 +117,32 @@ func (t *TTFParser) parseGSUBLookupListTableSubTableLookupType5Format1(
 	result.subRuleSets = subRuleSets //set result
 	return result, nil
 }
+
+func (t *TTFParser) processGSUBLookupListTableSubTableLookupType5Format1(
+	fd *bytes.Reader,
+	table GSUBLookupTable,
+	subtable GSUBLookupSubTableType5Format1,
+	gdefResult ParseGDEFResult,
+) (GSubLookupSubtableResult, error) {
+
+	var result GSubLookupSubtableResult
+	coverage, err := t.readCoverage(fd, subtable.coverageOffset)
+	if err != nil {
+		return GSubLookupSubtableResult{}, err
+	}
+	glyphIDs := coverage.glyphIDs
+	_ = glyphIDs
+
+	for i, subRuleSet := range subtable.subRuleSets {
+		firstGlyph := glyphIDs[i]
+		fmt.Printf("firstGlyph = %d\n", firstGlyph)
+		for _, subRule := range subRuleSet.subRules {
+			for _, glyphID := range subRule.inputSequence {
+				fmt.Printf("\tglyphID =%d\n", glyphID)
+			}
+		}
+	}
+
+	return result, nil
+}
+*/

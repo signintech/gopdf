@@ -14,6 +14,8 @@ func (t *TTFParser) ParseGSUB(fd *bytes.Reader, gdefResult ParseGDEFResult) erro
 		return err
 	}
 
+	gsubOffset := t.tables["GSUB"].Offset
+
 	majorVersion, err := t.ReadUShort(fd)
 	if err != nil {
 		return err
@@ -49,12 +51,22 @@ func (t *TTFParser) ParseGSUB(fd *bytes.Reader, gdefResult ParseGDEFResult) erro
 	_ = featureVariationsOffset
 	_ = majorVersion
 	_ = minorVersion
-	_ = scriptListOffset
+	//_ = scriptListOffset
 	_ = featureListOffset
 	_ = lookupListOffset
 	//fmt.Printf("majorVersion=%d minorVersion=%d  scriptListOffset=%d featureListOffset=%d lookupListOffset=%d\n", majorVersion, minorVersion, scriptListOffset, featureListOffset, lookupListOffset)
 
-	lookupTables, err := t.parseGSUBLookupListTable(fd, int64(t.tables["GSUB"].Offset+lookupListOffset), gdefResult)
+	_, err = t.parseScriptList(fd, int64(gsubOffset+scriptListOffset))
+	if err != nil {
+		return err
+	}
+
+	err = t.parseFeatureList(fd, int64(gsubOffset+featureListOffset))
+	if err != nil {
+		return err
+	}
+
+	lookupTables, err := t.parseGSUBLookupListTable(fd, int64(gsubOffset+lookupListOffset), gdefResult)
 	if err != nil {
 		return err
 	}
@@ -120,6 +132,7 @@ func (t *TTFParser) processGSUBLookupListTable(fd *bytes.Reader, lookupTables []
 					return GSubLookupSubtableResult{}, fmt.Errorf("subtable not GSUBLookupSubTableType4Format1")
 				}
 			}
+
 		}
 	}
 
@@ -271,15 +284,6 @@ func (t *TTFParser) parseGSUBLookupListTableSubTable(
 		//4.1 Ligature Substitution Format 1
 		if substFormat == 1 {
 			subtable, err = t.parseGSUBLookupListTableSubTableLookupType4Format1(fd, offset, substFormat, gdefResult)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, fmt.Errorf("unsuport lookup type %d format %d", lookupType, substFormat)
-		}
-	} else if lookupType == 5 {
-		if substFormat == 1 {
-			subtable, err = t.parseGSUBLookupListTableSubTableLookupType5Format1(fd, offset, substFormat, gdefResult)
 			if err != nil {
 				return nil, err
 			}

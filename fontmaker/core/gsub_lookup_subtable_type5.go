@@ -1,5 +1,7 @@
 package core
 
+/*
+NOT SUPPORT YET
 //GSUBLookupSubTableType5Format1 5.1 Context Substitution Format 1: Simple Glyph Contexts
 type GSUBLookupSubTableType5Format1 struct {
 	coverageOffset    int64   //Offset to Coverage table, from beginning of substitution subtable
@@ -38,3 +40,5 @@ type SubstLookupRecord struct {
 	glyphSequenceIndex uint
 	lookupListIndex    uint
 }
+
+*/

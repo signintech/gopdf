@@ -8,13 +8,15 @@ type GSUBScriptListTable struct {
 
 //GSUBScriptRecord Script Record https://docs.microsoft.com/en-us/typography/opentype/spec/chapter2#slTbl_sRec
 type GSUBScriptRecord struct {
-	scriptTag    []byte //4-byte script tag identifier
+	scriptTag    string //4-byte script tag identifier
 	scriptOffset int64  //Offset to Script table, from beginning of ScriptList
+	scriptTable  GSUBScriptTable
 }
 
+/*
 func (g GSUBScriptRecord) scriptTagString() string {
 	return string(g.scriptTag)
-}
+}*/
 
 //GSUBScriptTable Script Table https://docs.microsoft.com/en-us/typography/opentype/spec/chapter2#script-table-and-language-system-record
 type GSUBScriptTable struct {
@@ -34,7 +36,7 @@ func (g GSUBScriptTable) convertToMap() map[string]int64 {
 
 //LangSysRecord Language System Record https://docs.microsoft.com/en-us/typography/opentype/spec/chapter2#script-table-and-language-system-record
 type LangSysRecord struct {
-	langSysTag    []byte //4-byte LangSysTag identifier
+	langSysTag    string //4-byte LangSysTag identifier
 	langSysOffset int64  //Offset to LangSys table, from beginning of Script table
 }
 
@@ -46,23 +48,48 @@ type LanguageSystemTable struct {
 	featureIndices       []uint //Array of indices into the FeatureList, in arbitrary order
 }
 
+func (l LanguageSystemTable) allFeatureIndex() []uint {
+	var indexs []uint
+	if l.requiredFeatureIndex != 0xFFFF {
+		indexs = append(indexs, l.requiredFeatureIndex)
+	}
+	indexs = append(indexs, l.featureIndices...)
+	return indexs
+}
+
 //GSUBParseScriptListResult result for parseScriptList
 type GSUBParseScriptListResult struct {
-	data map[string]map[string]([]uint)
+	scripts map[string]GSUBParseScriptListItem //map[scriptTag]GSUBParseScriptListItem
 }
 
-func (g *GSUBParseScriptListResult) append(scriptTag, tag string, langSysTable LanguageSystemTable) {
+func InitGSUBParseScriptListResult() GSUBParseScriptListResult {
+	r := GSUBParseScriptListResult{}
+	r.scripts = make(map[string]GSUBParseScriptListItem)
+	return r
+}
+
+type GSUBParseScriptListItem struct {
+	isDefaultLangSysAvailable bool //defaultLangSys มีค่ารึเปล่า?
+	defaultLangSys            LanguageSystemTable
+	langSys                   map[string]LanguageSystemTable //map[langSysTag]
+}
+
+func InitGSUBParseScriptListItem() GSUBParseScriptListItem {
+	var script GSUBParseScriptListItem
+	script.isDefaultLangSysAvailable = false
+	script.langSys = make(map[string]LanguageSystemTable)
+	return script
+}
+
+/*
+func (g *GSUBParseScriptListResult) addData(scriptTag, tag string, langSysTable LanguageSystemTable) {
+	//fmt.Printf("%s %s\n", scriptTag, tag)
 	if g.data == nil {
-		g.data = make(map[string]map[string]([]uint))
+		g.data = make(map[string]map[string](LanguageSystemTable))
 	}
 	if g.data[scriptTag] == nil {
-		g.data[scriptTag] = make(map[string]([]uint))
+		g.data[scriptTag] = make(map[string](LanguageSystemTable))
 	}
-
-	var indexs []uint
-	if langSysTable.requiredFeatureIndex != 0xFFFF {
-		indexs = append(indexs, langSysTable.requiredFeatureIndex)
-	}
-	indexs = append(indexs, langSysTable.featureIndices...)
-	g.data[scriptTag][tag] = indexs
+	g.data[scriptTag][tag] = langSysTable
 }
+*/

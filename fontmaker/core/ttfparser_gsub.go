@@ -13,60 +13,29 @@ func (t *TTFParser) ParseGSUB(fd *bytes.Reader, gdefResult ParseGDEFResult) erro
 	} else if err != nil {
 		return err
 	}
-
 	gsubOffset := t.tables["GSUB"].Offset
 
-	majorVersion, err := t.ReadUShort(fd)
+	header, err := t.parseGSBHeader(fd, int64(gsubOffset))
 	if err != nil {
 		return err
 	}
 
-	minorVersion, err := t.ReadShort(fd)
+	parseScriptListResult, err := t.parseScriptList(fd, header.scriptListOffset)
 	if err != nil {
 		return err
 	}
 
-	scriptListOffset, err := t.ReadUShort(fd)
+	parseFeatureListResult, err := t.parseFeatureList(fd, header.featureListOffset, parseScriptListResult)
 	if err != nil {
 		return err
 	}
 
-	featureListOffset, err := t.ReadUShort(fd)
-	if err != nil {
-		return err
-	}
+	_ = parseFeatureListResult
+	//TEST
 
-	lookupListOffset, err := t.ReadUShort(fd)
-	if err != nil {
-		return err
-	}
+	//END TEST
 
-	featureVariationsOffset := uint(0)
-	if minorVersion == 1 {
-		featureVariationsOffset, err = t.ReadULong(fd)
-		if err != nil {
-			return err
-		}
-	}
-	_ = featureVariationsOffset
-	_ = majorVersion
-	_ = minorVersion
-	//_ = scriptListOffset
-	_ = featureListOffset
-	_ = lookupListOffset
-	//fmt.Printf("majorVersion=%d minorVersion=%d  scriptListOffset=%d featureListOffset=%d lookupListOffset=%d\n", majorVersion, minorVersion, scriptListOffset, featureListOffset, lookupListOffset)
-
-	_, err = t.parseScriptList(fd, int64(gsubOffset+scriptListOffset))
-	if err != nil {
-		return err
-	}
-
-	err = t.parseFeatureList(fd, int64(gsubOffset+featureListOffset))
-	if err != nil {
-		return err
-	}
-
-	lookupTables, err := t.parseGSUBLookupListTable(fd, int64(gsubOffset+lookupListOffset), gdefResult)
+	lookupTables, err := t.parseGSUBLookupListTable(fd, header.lookupListOffset, gdefResult)
 	if err != nil {
 		return err
 	}
@@ -78,6 +47,48 @@ func (t *TTFParser) ParseGSUB(fd *bytes.Reader, gdefResult ParseGDEFResult) erro
 	t.GSubLookupSubtable = resultGsubLk //set global value
 
 	return nil
+}
+
+func (t *TTFParser) parseGSBHeader(fd *bytes.Reader, offset int64) (GSUBHeader, error) {
+
+	_, err := fd.Seek(offset, 0)
+	if err != nil {
+		return GSUBHeader{}, err
+	}
+
+	majorVersion, err := t.ReadUShort(fd)
+	if err != nil {
+		return GSUBHeader{}, err
+	}
+
+	minorVersion, err := t.ReadShort(fd)
+	if err != nil {
+		return GSUBHeader{}, err
+	}
+
+	scriptListOffset, err := t.ReadUShort(fd)
+	if err != nil {
+		return GSUBHeader{}, err
+	}
+
+	featureListOffset, err := t.ReadUShort(fd)
+	if err != nil {
+		return GSUBHeader{}, err
+	}
+
+	lookupListOffset, err := t.ReadUShort(fd)
+	if err != nil {
+		return GSUBHeader{}, err
+	}
+
+	return GSUBHeader{
+		gsubOffset:        offset,
+		majorVersion:      majorVersion,
+		minorVersion:      minorVersion,
+		scriptListOffset:  int64(scriptListOffset) + offset,
+		featureListOffset: int64(featureListOffset) + offset,
+		lookupListOffset:  int64(lookupListOffset) + offset,
+	}, nil
 }
 
 func (t *TTFParser) processGSUBLookupListTable(fd *bytes.Reader, lookupTables []GSUBLookupTable, gdefResult ParseGDEFResult) (GSubLookupSubtableResult, error) {

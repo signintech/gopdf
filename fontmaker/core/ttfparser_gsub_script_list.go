@@ -28,14 +28,14 @@ func (t *TTFParser) parseScriptList(fd *bytes.Reader, scriptListOffset int64) (G
 		}
 
 		scriptRecords = append(scriptRecords, GSUBScriptRecord{
-			scriptTag:    scriptTag,
+			scriptTag:    string(scriptTag),
 			scriptOffset: scriptListOffset + int64(scriptOffset),
 		})
 	}
 
 	//parse ScriptTable
-	scriptTables := make(map[string]GSUBScriptTable)
-	for _, scriptRecord := range scriptRecords {
+	//scriptTables := make(map[string]GSUBScriptTable)
+	for i, scriptRecord := range scriptRecords {
 		_, err := fd.Seek(scriptRecord.scriptOffset, 0)
 		if err != nil {
 			return GSUBParseScriptListResult{}, err
@@ -62,7 +62,7 @@ func (t *TTFParser) parseScriptList(fd *bytes.Reader, scriptListOffset int64) (G
 			}
 
 			langSysRecords = append(langSysRecords, LangSysRecord{
-				langSysTag:    langSysTag,
+				langSysTag:    string(langSysTag),
 				langSysOffset: scriptRecord.scriptOffset + int64(langSysOffset),
 			})
 		}
@@ -77,51 +77,111 @@ func (t *TTFParser) parseScriptList(fd *bytes.Reader, scriptListOffset int64) (G
 			langSysCount:   langSysCount,
 			langSysRecords: langSysRecords,
 		}
-		scriptTables[scriptRecord.scriptTagString()] = scriptTable
+		scriptRecords[i].scriptTable = scriptTable
+		//scriptTables[scriptRecord.scriptTagString()] = scriptTable
 	}
 
-	var result GSUBParseScriptListResult
-	for scriptTag, scriptTable := range scriptTables {
-		mm := scriptTable.convertToMap()
-		var languageSystemTable LanguageSystemTable
-		for tag, langsystableOffset := range mm {
-
-			_, err := fd.Seek(langsystableOffset, 0)
+	result := InitGSUBParseScriptListResult()
+	for _, scriptRecord := range scriptRecords {
+		script := InitGSUBParseScriptListItem()
+		var scriptTable = scriptRecord.scriptTable
+		if scriptTable.defaultLangSys > 0 {
+			langSysTable, err := t.parseGSUBLangSys(fd, scriptTable.defaultLangSys)
 			if err != nil {
 				return GSUBParseScriptListResult{}, err
 			}
-
-			err = t.Skip(fd, 2) //lookupOrder	= NULL (reserved for an offset to a reordering table)
+			script.defaultLangSys = langSysTable
+			script.isDefaultLangSysAvailable = true
+		}
+		for _, langSysRecord := range scriptTable.langSysRecords {
+			langSysTable, err := t.parseGSUBLangSys(fd, langSysRecord.langSysOffset)
 			if err != nil {
 				return GSUBParseScriptListResult{}, err
 			}
+			script.langSys[langSysRecord.langSysTag] = langSysTable
+		}
+		result.scripts[scriptRecord.scriptTag] = script
+	}
+	/*
+		var result GSUBParseScriptListResult
+		for scriptTagb, scriptTable := range scriptTables {
+			mm := scriptTable.convertToMap()
+			var languageSystemTable LanguageSystemTable
+			for tag, langsystableOffset := range mm {
 
-			requiredFeatureIndex, err := t.ReadUShort(fd)
-			if err != nil {
-				return GSUBParseScriptListResult{}, err
-			}
-
-			featureIndexCount, err := t.ReadUShort(fd)
-			if err != nil {
-				return GSUBParseScriptListResult{}, err
-			}
-
-			var featureIndices []uint
-			for j := uint(0); j < featureIndexCount; j++ {
-				featureIndice, err := t.ReadUShort(fd)
+				_, err := fd.Seek(langsystableOffset, 0)
 				if err != nil {
 					return GSUBParseScriptListResult{}, err
 				}
-				featureIndices = append(featureIndices, featureIndice)
+
+				err = t.Skip(fd, 2) //lookupOrder	= NULL (reserved for an offset to a reordering table)
+				if err != nil {
+					return GSUBParseScriptListResult{}, err
+				}
+
+				requiredFeatureIndex, err := t.ReadUShort(fd)
+				if err != nil {
+					return GSUBParseScriptListResult{}, err
+				}
+
+				featureIndexCount, err := t.ReadUShort(fd)
+				if err != nil {
+					return GSUBParseScriptListResult{}, err
+				}
+
+				var featureIndices []uint
+				for j := uint(0); j < featureIndexCount; j++ {
+					featureIndice, err := t.ReadUShort(fd)
+					if err != nil {
+						return GSUBParseScriptListResult{}, err
+					}
+					featureIndices = append(featureIndices, featureIndice)
+				}
+				//set languageSystemTables
+				languageSystemTable.requiredFeatureIndex = requiredFeatureIndex
+				languageSystemTable.featureIndexCount = featureIndexCount
+				languageSystemTable.featureIndices = featureIndices
+				//end set languageSystemTables
+				result.addData(scriptTag, tag, languageSystemTable)
 			}
-			//set languageSystemTables
-			languageSystemTable.requiredFeatureIndex = requiredFeatureIndex
-			languageSystemTable.featureIndexCount = featureIndexCount
-			languageSystemTable.featureIndices = featureIndices
-			//end set languageSystemTables
-			result.append(scriptTag, tag, languageSystemTable)
 		}
+	*/
+	return result, nil
+}
+
+func (t *TTFParser) parseGSUBLangSys(fd *bytes.Reader, offset int64) (LanguageSystemTable, error) {
+	_, err := fd.Seek(offset, 0)
+	if err != nil {
+		return LanguageSystemTable{}, err
 	}
 
-	return result, nil
+	err = t.Skip(fd, 2) //lookupOrder	= NULL (reserved for an offset to a reordering table)
+	if err != nil {
+		return LanguageSystemTable{}, err
+	}
+
+	requiredFeatureIndex, err := t.ReadUShort(fd)
+	if err != nil {
+		return LanguageSystemTable{}, err
+	}
+
+	featureIndexCount, err := t.ReadUShort(fd)
+	if err != nil {
+		return LanguageSystemTable{}, err
+	}
+
+	var featureIndices []uint
+	for j := uint(0); j < featureIndexCount; j++ {
+		featureIndice, err := t.ReadUShort(fd)
+		if err != nil {
+			return LanguageSystemTable{}, err
+		}
+		featureIndices = append(featureIndices, featureIndice)
+	}
+	//set languageSystemTables
+	var langSysTable LanguageSystemTable
+	langSysTable.requiredFeatureIndex = requiredFeatureIndex
+	langSysTable.featureIndexCount = featureIndexCount
+	langSysTable.featureIndices = featureIndices
+	return langSysTable, nil
 }

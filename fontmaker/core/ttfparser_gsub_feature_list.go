@@ -2,70 +2,68 @@ package core
 
 import (
 	"bytes"
-	"fmt"
 )
 
-func (t *TTFParser) parseFeatureList(fd *bytes.Reader, featureListOffset int64) error {
+func (t *TTFParser) parseFeatureList(fd *bytes.Reader, featureListOffset int64, parseScriptListResult GSUBParseScriptListResult) (GSUBParseFeatureListResult, error) {
 
 	_, err := fd.Seek(featureListOffset, 0)
 	if err != nil {
-		return err
+		return GSUBParseFeatureListResult{}, err
 	}
 
-	//Number of FeatureRecords in this table
 	featureCount, err := t.ReadUShort(fd)
 	if err != nil {
-		return err
+		return GSUBParseFeatureListResult{}, err
 	}
 
 	var featureRecords []FeatureRecord
 	for i := uint(0); i < featureCount; i++ {
 		featureTag, err := t.Read(fd, 4)
 		if err != nil {
-			return err
+			return GSUBParseFeatureListResult{}, err
 		}
 		featureOffset, err := t.ReadUShort(fd)
 		if err != nil {
-			return err
+			return GSUBParseFeatureListResult{}, err
 		}
 		featureRecords = append(featureRecords, FeatureRecord{
-			featureTag:    featureTag,
+			featureTag:    string(featureTag),
 			featureOffset: featureListOffset + int64(featureOffset),
 		})
 	}
 
-	var featureTables []FeatureTable
-	for _, fr := range featureRecords {
+	//var featureTables []FeatureTable
+	for i, fr := range featureRecords {
 		_, err := fd.Seek(fr.featureOffset, 0)
 		if err != nil {
-			return err
+			return GSUBParseFeatureListResult{}, err
 		}
 		featureParamsOffset, err := t.ReadUShort(fd)
 		if err != nil {
-			return err
+			return GSUBParseFeatureListResult{}, err
 		}
 		lookupIndexCount, err := t.ReadUShort(fd)
 		if err != nil {
-			return err
+			return GSUBParseFeatureListResult{}, err
 		}
 		var lookupListIndices []uint
 		for j := uint(0); j < lookupIndexCount; j++ {
 			lookupListIndex, err := t.ReadUShort(fd)
 			if err != nil {
-				return err
+				return GSUBParseFeatureListResult{}, err
 			}
 			lookupListIndices = append(lookupListIndices, lookupListIndex)
 		}
 
-		featureTables = append(featureTables, FeatureTable{
+		featureTable := FeatureTable{
 			featureParamsOffset: fr.featureOffset + int64(featureParamsOffset),
 			lookupIndexCount:    lookupIndexCount,
 			lookupListIndices:   lookupListIndices,
-		})
-		//Offset16	featureParamsOffset
+		}
+		featureRecords[i].featureTable = featureTable
 	}
 
-	fmt.Printf("featureCount = %d\n", featureCount)
-
-	return nil
+	return GSUBParseFeatureListResult{
+		featureRecords: featureRecords,
+	}, nil
 }

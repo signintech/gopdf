@@ -190,7 +190,7 @@ func TestIssue143(t *testing.T) {
 		_ = justFakeRunes
 	*/
 	pdf.Text("ന്മന്മ")
-	pdf.Text("ന്മന്മ")
+	//pdf.Text("ന്മന്മ")
 
 	pdf.WritePdf("./test/out/issue_143.pdf")
 }

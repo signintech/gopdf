@@ -6,7 +6,7 @@ import (
 )
 
 //ParseGSUB paese GSUB table https://docs.microsoft.com/en-us/typography/opentype/spec/gsub
-func (t *TTFParser) ParseGSUB(fd *bytes.Reader, gdefResult ParseGDEFResult) error {
+func (t *TTFParser) ParseGSUB(fd *bytes.Reader, gdef ParseGDEFResult) error {
 	err := t.Seek(fd, "GSUB")
 	if err == ErrTableNotFound {
 		return nil
@@ -24,27 +24,47 @@ func (t *TTFParser) ParseGSUB(fd *bytes.Reader, gdefResult ParseGDEFResult) erro
 	if err != nil {
 		return err
 	}
+	t.gsubScriptList = parseScriptListResult //set result
 
-	parseFeatureListResult, err := t.parseFeatureList(fd, header.featureListOffset, parseScriptListResult)
+	parseFeatureListResult, err := t.parseFeatureList(fd, header.featureListOffset)
 	if err != nil {
 		return err
 	}
-
-	_ = parseFeatureListResult
+	t.gsubFeatureList = parseFeatureListResult //set result
+	//_ = parseFeatureListResult
 	//TEST
+	/*
+		var featureRecords []FeatureRecord
+		for scriptTag, script := range parseScriptListResult.scripts {
+			if scriptTag == "mlym" {
+				var indexs = script.defaultLangSys.featureIndices
+				sort.Slice(indexs, func(i, j int) bool {
+					if script.defaultLangSys.featureIndices[i] <= script.defaultLangSys.featureIndices[j] {
+						return true
+					}
+					return false
+				})
+				for _, index := range indexs {
+					featureRecords = append(featureRecords, parseFeatureListResult.featureRecords[index])
+				}
+				break
+			}
+		}
 
+		fmt.Printf("%+v  %d   %d\n", featureRecords, len(featureRecords), len(parseFeatureListResult.featureRecords))
+	*/
 	//END TEST
 
-	lookupTables, err := t.parseGSUBLookupListTable(fd, header.lookupListOffset, gdefResult)
+	lookupTables, err := t.parseGSUBLookupListTable(fd, header.lookupListOffset, gdef)
 	if err != nil {
 		return err
 	}
+	t.gsubLookups = lookupTables //set result
 
-	resultGsubLk, err := t.processGSUBLookupListTable(fd, lookupTables, gdefResult)
+	err = t.processGSUBLookupListTable(fd, lookupTables, gdef)
 	if err != nil {
 		return err
 	}
-	t.GSubLookupSubtable = resultGsubLk //set global value
 
 	return nil
 }
@@ -91,76 +111,35 @@ func (t *TTFParser) parseGSBHeader(fd *bytes.Reader, offset int64) (GSUBHeader, 
 	}, nil
 }
 
-func (t *TTFParser) processGSUBLookupListTable(fd *bytes.Reader, lookupTables []GSUBLookupTable, gdefResult ParseGDEFResult) (GSubLookupSubtableResult, error) {
-	var result GSubLookupSubtableResult
-	for _, lookupTable := range lookupTables {
-		for _, subtable := range lookupTable.gsubLookupSubTables {
+func (t *TTFParser) processGSUBLookupListTable(fd *bytes.Reader, lookupTables GSUBLookupTables, gdef ParseGDEFResult) error {
+	//var result GSubLookupSubtableResult
+	for _, lookupTable := range lookupTables.lookups {
+		for _, subtable := range lookupTable.subTables {
 			//_ = subtable
 			if subtable == nil {
 				continue
 			}
-			//TODO: add other type
-			if subtable.LookupType() == 1 && subtable.Format() == 1 {
-				if subtable1F1, ok := subtable.(GSUBLookupSubTableType1Format1); ok {
-					resultType1F1, err := t.processGSUBLookupListTableSubTableLookupType1Format1(fd, lookupTable, subtable1F1, gdefResult)
-					if err != nil {
-						return GSubLookupSubtableResult{}, err
-					}
-					result.merge(resultType1F1)
-				}
-			} else if subtable.LookupType() == 1 && subtable.Format() == 2 {
-				if subtable1F2, ok := subtable.(GSUBLookupSubTableType1Format2); ok {
-					resultType1F2, err := t.processGSUBLookupListTableSubTableLookupType1Format2(fd, lookupTable, subtable1F2, gdefResult)
-					if err != nil {
-						return GSubLookupSubtableResult{}, err
-					}
-					result.merge(resultType1F2)
-				}
-			} else if subtable.LookupType() == 2 && subtable.Format() == 1 {
-				if subtable2F1, ok := subtable.(GSUBLookupSubTableType2Format1); ok {
-					resultType2F1, err := t.processGSUBLookupListTableSubTableLookupType2Format1(fd, lookupTable, subtable2F1, gdefResult)
-					if err != nil {
-						return GSubLookupSubtableResult{}, err
-					}
-					result.merge(resultType2F1)
-				}
-			} else if subtable.LookupType() == 3 && subtable.Format() == 1 {
-				if subtable3F1, ok := subtable.(GSUBLookupSubTableType3Format1); ok {
-					resultType3F1, err := t.processGSUBLookupListTableSubTableLookupType3Format1(fd, lookupTable, subtable3F1, gdefResult)
-					if err != nil {
-						return GSubLookupSubtableResult{}, err
-					}
-					result.merge(resultType3F1)
-				}
-			} else if subtable.LookupType() == 4 && subtable.Format() == 1 {
-				if subtable4F1, ok := subtable.(GSUBLookupSubTableType4Format1); ok {
-					resultType4F1, err := t.processGSUBLookupListTableSubTableLookupType4Format1(fd, lookupTable, subtable4F1, gdefResult)
-					if err != nil {
-						return GSubLookupSubtableResult{}, err
-					}
-					result.merge(resultType4F1)
-				} else {
-					return GSubLookupSubtableResult{}, fmt.Errorf("subtable not GSUBLookupSubTableType4Format1")
-				}
+			err := subtable.processSubTable(t, fd, lookupTable, gdef)
+			if err != nil {
+				return err
 			}
-
 		}
 	}
 
-	return result, nil
+	return nil
 }
 
-func (t *TTFParser) parseGSUBLookupListTable(fd *bytes.Reader, offset int64, gdefResult ParseGDEFResult) ([]GSUBLookupTable, error) {
+func (t *TTFParser) parseGSUBLookupListTable(fd *bytes.Reader, offset int64, gdefResult ParseGDEFResult) (GSUBLookupTables, error) {
 
 	_, err := fd.Seek(int64(offset), 0)
 	if err != nil {
-		return nil, err
+		return GSUBLookupTables{}, err
 	}
 
 	//Number of lookups in this table
 	lookupCount, err := t.ReadUShort(fd)
 	if err != nil {
-		return nil, err
+		return GSUBLookupTables{}, err
 	}
 
 	//Array of offsets to Lookup tables,
@@ -169,7 +148,7 @@ func (t *TTFParser) parseGSUBLookupListTable(fd *bytes.Reader, offset int64, gde
 	for i := uint(0); i < lookupCount; i++ {
 		l, err := t.ReadUShort(fd)
 		if err != nil {
-			return nil, err
+			return GSUBLookupTables{}, err
 		}
 		lookups = append(lookups, l)
 	}
@@ -183,26 +162,26 @@ func (t *TTFParser) parseGSUBLookupListTable(fd *bytes.Reader, offset int64, gde
 
 		_, err := fd.Seek(offsetLookup, 0)
 		if err != nil {
-			return nil, err
+			return GSUBLookupTables{}, err
 		}
 
 		//lookupType: Different enumerations for GSUB and GPOS
 		lookupType, err := t.ReadUShort(fd)
 		if err != nil {
-			return nil, err
+			return GSUBLookupTables{}, err
 		}
 		lookupTable.lookupType = lookupType //set
 
 		//lookupFlag: Lookup qualifiers
 		lookupFlag, err := t.ReadUShort(fd)
 		if err != nil {
-			return nil, err
+			return GSUBLookupTables{}, err
 		}
 		lookupTable.lookupFlag = lookupFlag //set
 
 		subTableCount, err := t.ReadUShort(fd)
 		if err != nil {
-			return nil, err
+			return GSUBLookupTables{}, err
 		}
 		lookupTable.subTableCount = subTableCount //set
 
@@ -210,7 +189,7 @@ func (t *TTFParser) parseGSUBLookupListTable(fd *bytes.Reader, offset int64, gde
 		for s := uint(0); s < subTableCount; s++ {
 			subtableOffset, err := t.ReadUShort(fd)
 			if err != nil {
-				return nil, err
+				return GSUBLookupTables{}, err
 			}
 			subtableOffsets = append(subtableOffsets, offsetLookup+int64(subtableOffset))
 		}
@@ -218,25 +197,25 @@ func (t *TTFParser) parseGSUBLookupListTable(fd *bytes.Reader, offset int64, gde
 
 		markFilteringSet, err := t.ReadUShort(fd)
 		if err != nil {
-			return nil, err
+			return GSUBLookupTables{}, err
 		}
 		lookupTable.markFilteringSet = markFilteringSet //set
 
 		//fmt.Printf("lookupIndex =%d lookupType %d\n", lookupIndex, lookupType)
-		var subtables []gsubLookupSubTableTyper
+		var subtables []gsubLookupSubTabler
 		for _, subtableOffset := range subtableOffsets {
 			subtable, err := t.parseGSUBLookupListTableSubTable(fd, subtableOffset, lookupType, gdefResult)
 			if err != nil {
-				return nil, err
+				return GSUBLookupTables{}, err
 			}
 			subtables = append(subtables, subtable)
 		}
-		lookupTable.gsubLookupSubTables = subtables
+		lookupTable.subTables = subtables
 
 		lookupTables = append(lookupTables, lookupTable) //set
 	}
 
-	return lookupTables, nil
+	return GSUBLookupTables{lookups: lookupTables}, nil
 }
 
 func (t *TTFParser) parseGSUBLookupListTableSubTable(
@@ -245,7 +224,7 @@ func (t *TTFParser) parseGSUBLookupListTableSubTable(
 	lookupType uint,
 	gdefResult ParseGDEFResult,
 
-) (gsubLookupSubTableTyper, error) {
+) (gsubLookupSubTabler, error) {
 	_, err := fd.Seek(int64(offset), 0)
 	if err != nil {
 		return nil, err
@@ -256,7 +235,7 @@ func (t *TTFParser) parseGSUBLookupListTableSubTable(
 		return nil, err
 	}
 
-	var subtable gsubLookupSubTableTyper
+	var subtable gsubLookupSubTabler
 	//TODO: add other type
 	if lookupType == 1 { //LookupType 1: Single Substitution Subtable
 

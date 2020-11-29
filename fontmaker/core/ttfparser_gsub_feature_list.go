@@ -4,7 +4,7 @@ import (
 	"bytes"
 )
 
-func (t *TTFParser) parseFeatureList(fd *bytes.Reader, featureListOffset int64, parseScriptListResult GSUBParseScriptListResult) (GSUBParseFeatureListResult, error) {
+func (t *TTFParser) parseFeatureList(fd *bytes.Reader, featureListOffset int64) (GSUBParseFeatureListResult, error) {
 
 	_, err := fd.Seek(featureListOffset, 0)
 	if err != nil {

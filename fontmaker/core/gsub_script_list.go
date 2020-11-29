@@ -25,15 +25,6 @@ type GSUBScriptTable struct {
 	langSysRecords []LangSysRecord //Array of LangSysRecords, listed alphabetically by LangSys tag
 }
 
-func (g GSUBScriptTable) convertToMap() map[string]int64 {
-	m := make(map[string]int64)
-	m["DFLT"] = g.defaultLangSys
-	for _, r := range g.langSysRecords {
-		m[string(r.langSysTag)] = r.langSysOffset
-	}
-	return m
-}
-
 //LangSysRecord Language System Record https://docs.microsoft.com/en-us/typography/opentype/spec/chapter2#script-table-and-language-system-record
 type LangSysRecord struct {
 	langSysTag    string //4-byte LangSysTag identifier
@@ -62,6 +53,7 @@ type GSUBParseScriptListResult struct {
 	scripts map[string]GSUBParseScriptListItem //map[scriptTag]GSUBParseScriptListItem
 }
 
+//InitGSUBParseScriptListResult init GSUBParseScriptListResult
 func InitGSUBParseScriptListResult() GSUBParseScriptListResult {
 	r := GSUBParseScriptListResult{}
 	r.scripts = make(map[string]GSUBParseScriptListItem)
@@ -80,16 +72,3 @@ func InitGSUBParseScriptListItem() GSUBParseScriptListItem {
 	script.langSys = make(map[string]LanguageSystemTable)
 	return script
 }
-
-/*
-func (g *GSUBParseScriptListResult) addData(scriptTag, tag string, langSysTable LanguageSystemTable) {
-	//fmt.Printf("%s %s\n", scriptTag, tag)
-	if g.data == nil {
-		g.data = make(map[string]map[string](LanguageSystemTable))
-	}
-	if g.data[scriptTag] == nil {
-		g.data[scriptTag] = make(map[string](LanguageSystemTable))
-	}
-	g.data[scriptTag][tag] = langSysTable
-}
-*/

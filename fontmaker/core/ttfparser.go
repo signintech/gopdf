@@ -81,7 +81,9 @@ type TTFParser struct {
 	kern       *KernTable
 
 	//gsub
-	GSubLookupSubtable GSubLookupSubtableResult
+	gsubLookups     GSUBLookupTables
+	gsubFeatureList GSUBParseFeatureListResult
+	gsubScriptList  GSUBParseScriptListResult
 }
 
 var Symbolic = 1 << 2

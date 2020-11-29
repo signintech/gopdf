@@ -128,10 +128,11 @@ func (s *SubsetFontObj) AddChars(txt string) ([]uint, []rune, error) {
 	}
 
 	if s.ttfFontOption.UseOpenTypeLayout {
-		_, err := s.ttfp.GSUBProcessGlyphs(glyphindexs)
+		gs, err := s.ttfp.GSUBProcessGlyphs(glyphindexs)
 		if err != nil {
 			return nil, nil, err
 		}
+		glyphindexs = gs
 	}
 	/*
 		if s.ttfFontOption.UseOpenTypeLayout {

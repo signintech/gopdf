@@ -31,40 +31,17 @@ func (t *TTFParser) ParseGSUB(fd *bytes.Reader, gdef ParseGDEFResult) error {
 		return err
 	}
 	t.gsubFeatureList = parseFeatureListResult //set result
-	//_ = parseFeatureListResult
-	//TEST
-	/*
-		var featureRecords []FeatureRecord
-		for scriptTag, script := range parseScriptListResult.scripts {
-			if scriptTag == "mlym" {
-				var indexs = script.defaultLangSys.featureIndices
-				sort.Slice(indexs, func(i, j int) bool {
-					if script.defaultLangSys.featureIndices[i] <= script.defaultLangSys.featureIndices[j] {
-						return true
-					}
-					return false
-				})
-				for _, index := range indexs {
-					featureRecords = append(featureRecords, parseFeatureListResult.featureRecords[index])
-				}
-				break
-			}
-		}
-
-		fmt.Printf("%+v  %d   %d\n", featureRecords, len(featureRecords), len(parseFeatureListResult.featureRecords))
-	*/
-	//END TEST
 
 	lookupTables, err := t.parseGSUBLookupListTable(fd, header.lookupListOffset, gdef)
 	if err != nil {
 		return err
 	}
-	t.gsubLookups = lookupTables //set result
-
 	err = t.processGSUBLookupListTable(fd, lookupTables, gdef)
 	if err != nil {
 		return err
 	}
+
+	t.gsubLookups = lookupTables //set result
 
 	return nil
 }
@@ -285,15 +262,15 @@ func (t *TTFParser) parseGSUBLookupListTableSubTable(
 	return subtable, nil
 }
 
-type GSubLookupSubtableResult struct {
-	Subs []GSubLookupSubtableSub
+type GSubLookupSubtableReplaceInfo struct {
+	Rules []ReplaceRule
 }
 
-func (g *GSubLookupSubtableResult) merge(r GSubLookupSubtableResult) {
-	g.Subs = append(g.Subs, r.Subs...)
+func (g *GSubLookupSubtableReplaceInfo) merge(r GSubLookupSubtableReplaceInfo) {
+	g.Rules = append(g.Rules, r.Rules...)
 }
 
-type GSubLookupSubtableSub struct {
-	ReplaceglyphIDs []uint
+type ReplaceRule struct {
+	ReplaceGlyphIDs []uint
 	Substitute      []uint
 }

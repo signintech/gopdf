@@ -7,19 +7,32 @@ import (
 
 func (t *TTFParser) GSUBProcessGlyphs(glyphindexs []uint) ([]uint, error) {
 	fmt.Printf("warn: fake mlym")
-	err := t.gsubPreprocessGlyphs("mlym") //JUST for test
+	lookupIndexes, err := t.gsubPreprocessGlyphs("mlym") //JUST for test
 	if err != nil {
 		return nil, err
+	}
+
+	for _, lkindex := range lookupIndexes {
+		lkTable := t.gsubLookups.lookups[int(lkindex.lookupListIndex)]
+		for _, subTable := range lkTable.subTables {
+			if s, ok := subTable.(*GSUBLookupSubTableType4Format1); ok { //ทดลองเท่านั้น จริงๆต้อง สรา้ง func ใน interface
+				gs, err := s.process(glyphindexs)
+				if err != nil {
+					return nil, err
+				}
+				glyphindexs = gs
+			}
+		}
 	}
 
 	return glyphindexs, nil
 }
 
-func (t *TTFParser) gsubPreprocessGlyphs(script string) error {
+func (t *TTFParser) gsubPreprocessGlyphs(script string) ([]preprocessLookupIndex, error) {
 
 	featureRecords, err := findFeatureRecordsForScript(script, t.gsubScriptList, t.gsubFeatureList)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var lookupIndexes []preprocessLookupIndex
@@ -39,12 +52,7 @@ func (t *TTFParser) gsubPreprocessGlyphs(script string) error {
 		return false
 	})
 
-	lookups := t.gsubLookups
-	for _, lookupIndex := range lookupIndexes {
-		_ = lookupIndex
-	}
-	_ = lookups
-	return nil
+	return lookupIndexes, nil
 }
 
 func findFeatureRecordsForScript(script string, scriptList GSUBParseScriptListResult, featureList GSUBParseFeatureListResult) ([]FeatureRecord, error) {

@@ -15,6 +15,7 @@ type GSUBLookupSubTableType4Format1 struct {
 	ligatureSetOffsets []int64 //Array of offsets to LigatureSet tables. Offsets are from beginning of substitution subtable, ordered by Coverage index
 	//table
 	ligatureSetTables []LigatureSetTable
+	replaseInfo       GSubLookupSubtableReplaceInfo
 }
 
 //LookupType 4: Ligature Substitution Subtable
@@ -33,11 +34,34 @@ func (g *GSUBLookupSubTableType4Format1) processSubTable(
 	table GSUBLookupTable,
 	gdefResult ParseGDEFResult,
 ) error {
-	_, err := processGSUBLookupListTableSubTableLookupType4Format1(t, fd, table, *g, gdefResult)
+	replaseInfo, err := processGSUBLookupListTableSubTableLookupType4Format1(t, fd, table, *g, gdefResult)
 	if err != nil {
 		return err
 	}
+	g.replaseInfo = replaseInfo
 	return nil
+}
+
+func (g *GSUBLookupSubTableType4Format1) process(glyphindexs []uint) ([]uint, error) {
+
+	for _, rule := range g.replaseInfo.Rules {
+		matchs := sliceutil.ContainSliceUint(glyphindexs, rule.ReplaceGlyphIDs)
+		if len(matchs) > 0 {
+			diffLen := 0
+			for _, match := range matchs {
+				start := glyphindexs[0 : match.FirstIndex+diffLen]
+				end := glyphindexs[match.FirstIndex+match.Length+diffLen:]
+				temp := start
+				temp = append(temp, rule.Substitute...)
+				temp = append(temp, end...)
+				diffLen = len(temp) - len(glyphindexs)
+				glyphindexs = temp
+			}
+			break
+		}
+	}
+
+	return glyphindexs, nil
 }
 
 func processGSUBLookupListTableSubTableLookupType4Format1(
@@ -46,15 +70,15 @@ func processGSUBLookupListTableSubTableLookupType4Format1(
 	table GSUBLookupTable,
 	subtable GSUBLookupSubTableType4Format1,
 	gdefResult ParseGDEFResult,
-) (GSubLookupSubtableResult, error) {
+) (GSubLookupSubtableReplaceInfo, error) {
 	coverage, err := t.readCoverage(fd, subtable.coverageOffset)
 	if err != nil {
-		return GSubLookupSubtableResult{}, err
+		return GSubLookupSubtableReplaceInfo{}, err
 	}
 	glyphIDs := coverage.glyphIDs
 
 	//fmt.Printf("%+v\n", coverage.glyphIDs)
-	result := GSubLookupSubtableResult{}
+	result := GSubLookupSubtableReplaceInfo{}
 
 	for x, ligatureSetTable := range subtable.ligatureSetTables {
 		for _, ligatureTable := range ligatureSetTable.ligatureTables {
@@ -62,7 +86,7 @@ func processGSUBLookupListTableSubTableLookupType4Format1(
 			replaces = append(replaces, glyphIDs[x])
 			isIgnore, err := processGSUBIsIgnore(table.lookupFlag, replaces[0], table.markFilteringSet, gdefResult)
 			if err != nil {
-				return GSubLookupSubtableResult{}, err
+				return GSubLookupSubtableReplaceInfo{}, err
 			}
 			if isIgnore {
 				continue
@@ -73,7 +97,7 @@ func processGSUBLookupListTableSubTableLookupType4Format1(
 				glyphID := ligatureTable.componentGlyphIDs[z-1]
 				isIgnore, err := processGSUBIsIgnore(table.lookupFlag, glyphID, table.markFilteringSet, gdefResult)
 				if err != nil {
-					return GSubLookupSubtableResult{}, err
+					return GSubLookupSubtableReplaceInfo{}, err
 				}
 				if isIgnore {
 					continue
@@ -81,17 +105,12 @@ func processGSUBLookupListTableSubTableLookupType4Format1(
 				replaces = append(replaces, glyphID)
 			}
 
-			sub := GSubLookupSubtableSub{
-				ReplaceglyphIDs: replaces,
+			sub := ReplaceRule{
+				ReplaceGlyphIDs: replaces,
 				Substitute:      []uint{ligatureTable.ligatureGlyph},
 			}
 
-			result.Subs = append(result.Subs, sub)
-			/*
-				if ligatureTable.ligatureGlyph == 187 {
-					fmt.Printf("%d => %v\n", ligatureTable.ligatureGlyph, replaces)
-				}
-			*/
+			result.Rules = append(result.Rules, sub)
 
 		}
 	}

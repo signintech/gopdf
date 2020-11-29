@@ -37,17 +37,17 @@ func processGSUBLookupListTableSubTableLookupType3Format1(
 	table GSUBLookupTable,
 	subtable GSUBLookupSubTableType3Format1,
 	gdefResult ParseGDEFResult,
-) (GSubLookupSubtableResult, error) {
-	var result GSubLookupSubtableResult
+) (GSubLookupSubtableReplaceInfo, error) {
+	var result GSubLookupSubtableReplaceInfo
 	coverage, err := t.readCoverage(fd, subtable.coverageOffset)
 	if err != nil {
-		return GSubLookupSubtableResult{}, err
+		return GSubLookupSubtableReplaceInfo{}, err
 	}
 	glyphIDs := coverage.glyphIDs
 	for i, glyphID := range glyphIDs {
 		isIgnore, err := processGSUBIsIgnore(table.lookupFlag, glyphID, table.markFilteringSet, gdefResult)
 		if err != nil {
-			return GSubLookupSubtableResult{}, err
+			return GSubLookupSubtableReplaceInfo{}, err
 		}
 		if isIgnore {
 			continue
@@ -56,14 +56,14 @@ func processGSUBLookupListTableSubTableLookupType3Format1(
 			continue
 		}
 
-		var sub GSubLookupSubtableSub
+		var sub ReplaceRule
 		sub.Substitute = []uint{
 			subtable.alternateSetTables[i].alternateGlyphIDs[0],
 		}
-		sub.ReplaceglyphIDs = []uint{
+		sub.ReplaceGlyphIDs = []uint{
 			glyphID,
 		}
-		result.Subs = append(result.Subs, sub)
+		result.Rules = append(result.Rules, sub)
 		//fmt.Printf(">>> %+v\n", result)
 	}
 	return result, nil

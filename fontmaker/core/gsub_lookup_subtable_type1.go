@@ -37,27 +37,27 @@ func processGSUBLookupListTableSubTableLookupType1Format1(
 	table GSUBLookupTable,
 	subtable GSUBLookupSubTableType1Format1,
 	gdefResult ParseGDEFResult,
-) (GSubLookupSubtableResult, error) {
+) (GSubLookupSubtableReplaceInfo, error) {
 
 	coverage, err := t.readCoverage(fd, subtable.coverageOffset)
 	if err != nil {
-		return GSubLookupSubtableResult{}, err
+		return GSubLookupSubtableReplaceInfo{}, err
 	}
-	var result GSubLookupSubtableResult
+	var result GSubLookupSubtableReplaceInfo
 	glyphIDs := coverage.glyphIDs
 	for _, glyphID := range glyphIDs {
 
 		isIgnore, err := processGSUBIsIgnore(table.lookupFlag, glyphID, table.markFilteringSet, gdefResult)
 		if err != nil {
-			return GSubLookupSubtableResult{}, err
+			return GSubLookupSubtableReplaceInfo{}, err
 		}
 		if isIgnore {
 			continue
 		}
-		var sub GSubLookupSubtableSub
+		var sub ReplaceRule
 		sub.Substitute = []uint{glyphID + uint(subtable.deltaGlyphID)}
-		sub.ReplaceglyphIDs = append(sub.ReplaceglyphIDs, glyphID)
-		result.Subs = append(result.Subs, sub)
+		sub.ReplaceGlyphIDs = append(sub.ReplaceGlyphIDs, glyphID)
+		result.Rules = append(result.Rules, sub)
 		//fmt.Printf("A ReplaceglyphIDs = %d Substitute =%d\n", glyphID, sub.Substitute)
 	}
 	return result, nil
@@ -98,27 +98,27 @@ func processGSUBLookupListTableSubTableLookupType1Format2(
 	table GSUBLookupTable,
 	subtable GSUBLookupSubTableType1Format2,
 	gdefResult ParseGDEFResult,
-) (GSubLookupSubtableResult, error) {
+) (GSubLookupSubtableReplaceInfo, error) {
 
 	coverage, err := t.readCoverage(fd, subtable.coverageOffset)
 	if err != nil {
-		return GSubLookupSubtableResult{}, err
+		return GSubLookupSubtableReplaceInfo{}, err
 	}
-	var result GSubLookupSubtableResult
+	var result GSubLookupSubtableReplaceInfo
 	glyphIDs := coverage.glyphIDs
 	for i, glyphID := range glyphIDs {
 
 		isIgnore, err := processGSUBIsIgnore(table.lookupFlag, glyphID, table.markFilteringSet, gdefResult)
 		if err != nil {
-			return GSubLookupSubtableResult{}, err
+			return GSubLookupSubtableReplaceInfo{}, err
 		}
 		if isIgnore {
 			continue
 		}
-		var sub GSubLookupSubtableSub
+		var sub ReplaceRule
 		sub.Substitute = []uint{uint(subtable.substituteGlyphIDs[i])}
-		sub.ReplaceglyphIDs = append(sub.ReplaceglyphIDs, glyphID)
-		result.Subs = append(result.Subs, sub)
+		sub.ReplaceGlyphIDs = append(sub.ReplaceGlyphIDs, glyphID)
+		result.Rules = append(result.Rules, sub)
 		//fmt.Printf("ReplaceglyphIDs = %d Substitute =%d\n", glyphID, sub.Substitute)
 	}
 	return result, nil

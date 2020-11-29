@@ -189,8 +189,9 @@ func TestIssue143(t *testing.T) {
 		_ = glyphIndexs
 		_ = justFakeRunes
 	*/
-	pdf.Text("ന്മന്മ")
 	//pdf.Text("ന്മന്മ")
+	//pdf.Text("സംയുക്തം")
+	pdf.Text("അവലംബം")
 
 	pdf.WritePdf("./test/out/issue_143.pdf")
 }

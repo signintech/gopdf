@@ -74,6 +74,35 @@ type GoPdf struct {
 	fpdi *gofpdi.Importer
 }
 
+func NewFromBytes(pdfBytes []byte, config Config) (gp *GoPdf) {
+	gp = new(GoPdf)
+	gp.Start(config)
+
+	rs := io.ReadSeeker(bytes.NewReader(pdfBytes))
+
+	gp.fpdi.SetSourceStream(&rs)
+
+	templateID := gp.fpdi.ImportPage(1, "/MediaBox")
+	pageSizes := gp.fpdi.GetPageSizes()
+
+	for i := 1; i < len(pageSizes); i++ {
+		gp.AddPage()
+
+		if i > 1 {
+			templateID = gp.fpdi.ImportPage(i, "/MediaBox")
+		}
+
+		gp.fpdi.UseTemplate(
+			templateID,
+			0,
+			0,
+			pageSizes[i]["/MediaBox"]["w"],
+			pageSizes[i]["/MediaBox"]["h"])
+	}
+
+	return gp
+}
+
 //SetLineWidth : set line width
 func (gp *GoPdf) SetLineWidth(width float64) {
 	gp.curr.lineWidth = gp.UnitsToPoints(width)

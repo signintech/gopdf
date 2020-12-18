@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+//https://docs.microsoft.com/en-us/typography/script-development/malayalam
 //ParseGSUB paese GSUB table https://docs.microsoft.com/en-us/typography/opentype/spec/gsub
 func (t *TTFParser) ParseGSUB(fd *bytes.Reader, gdef ParseGDEFResult) error {
 	err := t.Seek(fd, "GSUB")

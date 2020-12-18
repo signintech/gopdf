@@ -516,6 +516,8 @@ func (gp *GoPdf) Text(text string) error {
 		return err
 	}
 
+	//fmt.Printf("--- %+v", glyphIndexs)
+
 	/*
 		_ = glyphIndexs
 		_ = runes

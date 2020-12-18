@@ -127,6 +127,8 @@ func (s *SubsetFontObj) AddChars(txt string) ([]uint, []rune, error) {
 		runes = append(runes, r)
 	}
 
+	//fmt.Printf("\nin--- %+v\n", glyphindexs)
+
 	if s.ttfFontOption.UseOpenTypeLayout {
 		gs, err := s.ttfp.GSUBProcessGlyphs(glyphindexs)
 		if err != nil {
@@ -134,6 +136,8 @@ func (s *SubsetFontObj) AddChars(txt string) ([]uint, []rune, error) {
 		}
 		glyphindexs = gs
 	}
+
+	//fmt.Printf("\nout--- %+v\n", glyphindexs)
 	/*
 		if s.ttfFontOption.UseOpenTypeLayout {
 			//find glyph to replace

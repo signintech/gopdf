@@ -15,7 +15,7 @@ func (t *TTFParser) GSUBProcessGlyphs(glyphindexs []uint) ([]uint, error) {
 	for _, lkindex := range lookupIndexes {
 		lkTable := t.gsubLookups.lookups[int(lkindex.lookupListIndex)]
 		for _, subTable := range lkTable.subTables {
-			if s, ok := subTable.(*GSUBLookupSubTableType4Format1); ok { //ทดลองเท่านั้น จริงๆต้อง สรา้ง func ใน interface
+			if s, ok := subTable.(gsubLookupSubtableProcessor); ok { //ทดลองเท่านั้น จริงๆต้อง สรา้ง func ใน interface
 				gs, err := s.process(glyphindexs)
 				if err != nil {
 					return nil, err

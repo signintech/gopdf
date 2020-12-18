@@ -1,6 +1,9 @@
 package core
 
-import "bytes"
+import (
+	"bytes"
+	"fmt"
+)
 
 //GSUBLookupSubTableType3Format1 3.1 Alternate Substitution Format 1
 type GSUBLookupSubTableType3Format1 struct {
@@ -63,6 +66,7 @@ func processGSUBLookupListTableSubTableLookupType3Format1(
 		sub.ReplaceGlyphIDs = []uint{
 			glyphID,
 		}
+		fmt.Printf("glyphID %d  %v\n", glyphID, subtable.alternateSetTables[i].alternateGlyphIDs[0])
 		result.Rules = append(result.Rules, sub)
 		//fmt.Printf(">>> %+v\n", result)
 	}

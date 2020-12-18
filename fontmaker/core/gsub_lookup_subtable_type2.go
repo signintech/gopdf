@@ -1,6 +1,8 @@
 package core
 
-import "bytes"
+import (
+	"bytes"
+)
 
 //GSUBLookupSubTableType2Format1 -> 2.1 Multiple Substitution Format 1
 type GSUBLookupSubTableType2Format1 struct {
@@ -9,6 +11,7 @@ type GSUBLookupSubTableType2Format1 struct {
 	sequenceCount   uint    //Number of Sequence table offsets in the sequenceOffsets array
 	sequenceOffsets []int64 //Array of offsets to Sequence tables. Offsets are from beginning of substitution subtable, ordered by Coverage index
 	sequenceTable   []GSUBLookupSequenceTable
+	replaseInfo     GSubLookupSubtableReplaceInfo
 }
 
 //LookupType get lookup type
@@ -27,10 +30,11 @@ func (g *GSUBLookupSubTableType2Format1) processSubTable(
 	table GSUBLookupTable,
 	gdefResult ParseGDEFResult,
 ) error {
-	_, err := processGSUBLookupListTableSubTableLookupType2Format1(t, fd, table, *g, gdefResult)
+	replaseInfo, err := processGSUBLookupListTableSubTableLookupType2Format1(t, fd, table, *g, gdefResult)
 	if err != nil {
 		return err
 	}
+	g.replaseInfo = replaseInfo
 	return nil
 }
 
@@ -75,6 +79,30 @@ func processGSUBLookupListTableSubTableLookupType2Format1(
 	}
 
 	return result, nil
+}
+
+func (g *GSUBLookupSubTableType2Format1) process(glyphindexs []uint) ([]uint, error) {
+
+	var results []uint
+	for _, glyph := range glyphindexs {
+		substitute := []uint{}
+		for _, rule := range g.replaseInfo.Rules {
+			if len(rule.ReplaceGlyphIDs) <= 0 {
+				continue
+			}
+			if rule.ReplaceGlyphIDs[0] == glyph {
+				substitute = rule.Substitute
+				break
+			}
+		}
+		if len(substitute) > 0 {
+			results = append(results, substitute...)
+		} else {
+			results = append(results, glyph)
+		}
+	}
+
+	return results, nil
 }
 
 //GSUBLookupSequenceTable Sequence table

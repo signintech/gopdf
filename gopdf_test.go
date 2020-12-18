@@ -177,9 +177,9 @@ func TestIssue143(t *testing.T) {
 		_ = justFakeRunes
 	*/
 	/*
-		var glyphIndexs = []uint{72, 72}
+		var glyphIndexs = []uint{72}
 		//var glyphIndexs = []uint{20, 20}
-		var justFakeRunes = []rune{rune(0), rune(0)}
+		var justFakeRunes = []rune{rune(0)}
 
 		err = pdf.writeGlyphs(glyphIndexs, justFakeRunes)
 		if err != nil {
@@ -191,7 +191,10 @@ func TestIssue143(t *testing.T) {
 	*/
 	//pdf.Text("ന്മന്മ")
 	//pdf.Text("സംയുക്തം")
-	pdf.Text("അവലംബം")
+	err = pdf.Text("ബ്രഹ്മ")
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 
 	pdf.WritePdf("./test/out/issue_143.pdf")
 }

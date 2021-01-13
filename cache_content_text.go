@@ -126,9 +126,15 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 
 	if c.transparency.IndexOfExtGState != 0 {
 		linkToGSObj := fmt.Sprintf("/GS%d gs\n", c.transparency.IndexOfExtGState)
-		io.WriteString(w, linkToGSObj)
+		if _, err := io.WriteString(w, linkToGSObj); err != nil {
+			return err
+		}
 	}
-	io.WriteString(w, "BT\n")
+
+	if _, err := io.WriteString(w, "BT\n"); err != nil {
+		return err
+	}
+
 	fmt.Fprintf(w, "%0.2f %0.2f TD\n", x, y)
 	fmt.Fprintf(w, "/F%d %d Tf\n", c.fontCountIndex, c.fontSize)
 	if c.txtColorMode == "color" {

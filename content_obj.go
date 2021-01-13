@@ -36,7 +36,9 @@ func (c *ContentObj) write(w io.Writer, objID int) error {
 		if err := c.listCache.write(ww, c.protection()); err != nil {
 			return err
 		}
-		ww.Close()
+		if err := ww.Close(); err != nil {
+			return err
+		}
 	} else {
 		if err := c.listCache.write(buff, c.protection()); err != nil {
 			return err
@@ -45,27 +47,51 @@ func (c *ContentObj) write(w io.Writer, objID int) error {
 
 	streamlen := buff.Len()
 
-	io.WriteString(w, "<<\n")
-	if isFlate {
-		io.WriteString(w, "/Filter/FlateDecode")
+	if _, err := io.WriteString(w, "<<\n"); err != nil {
+		return err
 	}
-	fmt.Fprintf(w, "/Length %d\n", streamlen)
-	io.WriteString(w, ">>\n")
-	io.WriteString(w, "stream\n")
+
+	if isFlate {
+		if _, err := io.WriteString(w, "/Filter/FlateDecode"); err != nil {
+			return err
+		}
+	}
+	if _, err := fmt.Fprintf(w, "/Length %d\n", streamlen); err != nil {
+		return err
+	}
+	if _, err := io.WriteString(w, ">>\n"); err != nil {
+		return err
+	}
+	if _, err := io.WriteString(w, "stream\n"); err != nil {
+		return err
+	}
+
 	if c.protection() != nil {
 		tmp, err := rc4Cip(c.protection().objectkey(objID), buff.Bytes())
 		if err != nil {
 			return err
 		}
-		w.Write(tmp)
-		io.WriteString(w, "\n")
+
+		if _, err := w.Write(tmp); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(w, "\n"); err != nil {
+			return err
+		}
 	} else {
-		buff.WriteTo(w)
+		if _, err := buff.WriteTo(w); err != nil {
+			return err
+		}
+
 		if isFlate {
-			io.WriteString(w, "\n")
+			if _, err := io.WriteString(w, "\n"); err != nil {
+				return err
+			}
 		}
 	}
-	io.WriteString(w, "endstream\n")
+	if _, err := io.WriteString(w, "endstream\n"); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -285,12 +311,17 @@ func (c *ContentObj) AppendStreamSetColorFill(r uint8, g uint8, b uint8) {
 func (c *ContentObj) AppendStreamImage(index int, x float64, y float64, rect *Rect) {
 	//fmt.Printf("index = %d",index)
 	h := c.getRoot().curr.pageSize.H
-	var cache cacheContentImage
-	cache.h = h
-	cache.x = x
-	cache.y = y
-	cache.rect = *rect
-	cache.index = index
+	transparency := c.getRoot().curr.transparency
+
+	cache := cacheContentImage{
+		h:            h,
+		x:            x,
+		y:            y,
+		rect:         *rect,
+		index:        index,
+		transparency: transparency,
+	}
+
 	c.listCache.append(&cache)
 	//c.stream.WriteString(fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", rect.W, rect.H, x, h-(y+rect.H), index+1))
 }

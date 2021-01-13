@@ -47,19 +47,36 @@ func (i *ImageObj) write(w io.Writer, objID int) error {
 		return err
 	}
 
-	fmt.Fprintf(w, "/Length %d\n>>\n", len(i.imginfo.data)) // /Length 62303>>\n
-	io.WriteString(w, "stream\n")
+
+	if _, err := fmt.Fprintf(w, "/Length %d\n>>\n", len(i.imginfo.data)); err != nil {
+		return err
+	}
+
+	if _, err := io.WriteString(w, "stream\n"); err != nil {
+		return err
+	}
+
 	if i.protection() != nil {
 		tmp, err := rc4Cip(i.protection().objectkey(objID), i.imginfo.data)
 		if err != nil {
 			return err
 		}
-		w.Write(tmp)
-		io.WriteString(w, "\n")
+
+		if _, err := w.Write(tmp); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(w, "\n"); err != nil {
+			return err
+		}
 	} else {
-		w.Write(i.imginfo.data)
+		if _, err := w.Write(i.imginfo.data); err != nil {
+			return err
+		}
 	}
-	io.WriteString(w, "\nendstream\n")
+
+	if _, err := io.WriteString(w, "\nendstream\n"); err != nil {
+		return err
+	}
 
 	return nil
 }

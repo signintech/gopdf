@@ -166,7 +166,7 @@ pdf.Text("Hello...")
 pdf.RotateReset() //reset
 ```
 
-### Set transparency for text
+### Set transparency
 Read about [transparency in pdf](https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/PDF32000_2008.pdf) `(page 320, section 11)`
 ```go
 pdf.SetAlpha(alpha float64, blendMode string)

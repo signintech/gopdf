@@ -308,18 +308,20 @@ func (c *ContentObj) AppendStreamSetColorFill(r uint8, g uint8, b uint8) {
 }
 
 //AppendStreamImage append image
-func (c *ContentObj) AppendStreamImage(index int, x float64, y float64, rect *Rect) {
+func (c *ContentObj) AppendStreamImage(index int, opts ImageOptions) {
 	//fmt.Printf("index = %d",index)
 	h := c.getRoot().curr.pageSize.H
 	transparency := c.getRoot().curr.transparency
 
 	cache := cacheContentImage{
-		h:            h,
-		x:            x,
-		y:            y,
-		rect:         *rect,
-		index:        index,
-		transparency: transparency,
+		h:              h,
+		index:          index,
+		x:              opts.X,
+		y:              opts.Y,
+		rect:           *opts.Rect,
+		transparency:   transparency,
+		flipVertical:   opts.FlipVertical,
+		flipHorizontal: opts.FlipHorizontal,
 	}
 
 	c.listCache.append(&cache)

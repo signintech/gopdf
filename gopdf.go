@@ -74,6 +74,14 @@ type GoPdf struct {
 	fpdi *gofpdi.Importer
 }
 
+type ImageOptions struct {
+	FlipVertical   bool
+	FlipHorizontal bool
+	X              float64
+	Y              float64
+	Rect           *Rect
+}
+
 //SetLineWidth : set line width
 func (gp *GoPdf) SetLineWidth(width float64) {
 	gp.curr.lineWidth = gp.UnitsToPoints(width)
@@ -205,12 +213,27 @@ func (gp *GoPdf) GetY() float64 {
 //ImageByHolder : draw image by ImageHolder
 func (gp *GoPdf) ImageByHolder(img ImageHolder, x float64, y float64, rect *Rect) error {
 	gp.UnitsToPointsVar(&x, &y)
+
 	rect = rect.UnitsToPoints(gp.config.Unit)
 
-	return gp.imageByHolder(img, x, y, rect)
+	imageOptions := ImageOptions{
+		X:              x,
+		Y:              y,
+		Rect:           rect,
+	}
+
+	return gp.imageByHolder(img, imageOptions)
 }
 
-func (gp *GoPdf) imageByHolder(img ImageHolder, x float64, y float64, rect *Rect) error {
+func (gp *GoPdf) ImageByHolderWithOptions(img ImageHolder, opts ImageOptions) error {
+	gp.UnitsToPointsVar(&opts.X, &opts.Y)
+
+	opts.Rect = opts.Rect.UnitsToPoints(gp.config.Unit)
+
+	return gp.imageByHolder(img, opts)
+}
+
+func (gp *GoPdf) imageByHolder(img ImageHolder, opts ImageOptions) error {
 	cacheImageIndex := -1
 	for _, imgcache := range gp.curr.ImgCaches {
 		if img.ID() == imgcache.Path {
@@ -233,14 +256,10 @@ func (gp *GoPdf) imageByHolder(img ImageHolder, x float64, y float64, rect *Rect
 			return err
 		}
 
-		var imgRect *Rect
-		if rect == nil {
-			imgRect, err = imgobj.getRect()
-			if err != nil {
+		if opts.Rect == nil {
+			if opts.Rect, err = imgobj.getRect(); err != nil {
 				return err
 			}
-		} else {
-			imgRect = rect
 		}
 
 		err = imgobj.parse()
@@ -251,13 +270,13 @@ func (gp *GoPdf) imageByHolder(img ImageHolder, x float64, y float64, rect *Rect
 		if gp.indexOfProcSet != -1 {
 			//ยัดรูป
 			procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
-			gp.getContent().AppendStreamImage(gp.curr.CountOfImg, x, y, imgRect)
+			gp.getContent().AppendStreamImage(gp.curr.CountOfImg, opts)
 			procset.RelateXobjs = append(procset.RelateXobjs, RelateXobject{IndexOfObj: index})
 			//เก็บข้อมูลรูปเอาไว้
 			var imgcache ImageCache
 			imgcache.Index = gp.curr.CountOfImg
 			imgcache.Path = img.ID()
-			imgcache.Rect = imgRect
+			imgcache.Rect = opts.Rect
 			gp.curr.ImgCaches = append(gp.curr.ImgCaches, imgcache)
 			gp.curr.CountOfImg++
 		}
@@ -282,13 +301,11 @@ func (gp *GoPdf) imageByHolder(img ImageHolder, x float64, y float64, rect *Rect
 		}
 
 	} else { //same img
-		var imgRect *Rect
-		if rect == nil {
-			imgRect = gp.curr.ImgCaches[cacheImageIndex].Rect
-		} else {
-			imgRect = rect
+		if opts.Rect == nil {
+			opts.Rect = gp.curr.ImgCaches[cacheImageIndex].Rect
 		}
-		gp.getContent().AppendStreamImage(cacheImageIndex, x, y, imgRect)
+
+		gp.getContent().AppendStreamImage(cacheImageIndex, opts)
 	}
 	return nil
 }
@@ -301,7 +318,14 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 	if err != nil {
 		return err
 	}
-	return gp.imageByHolder(imgh, x, y, rect)
+
+	imageOptions := ImageOptions{
+		X:              x,
+		Y:              y,
+		Rect:           rect,
+	}
+
+	return gp.imageByHolder(imgh, imageOptions)
 }
 
 //AddPage : add new page

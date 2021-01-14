@@ -75,8 +75,8 @@ type GoPdf struct {
 }
 
 type ImageOptions struct {
-	FlipVertical   bool
-	FlipHorizontal bool
+	VerticalFlip   bool
+	HorizontalFlip bool
 	X              float64
 	Y              float64
 	Rect           *Rect

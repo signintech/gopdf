@@ -320,8 +320,8 @@ func (c *ContentObj) AppendStreamImage(index int, opts ImageOptions) {
 		y:              opts.Y,
 		rect:           *opts.Rect,
 		transparency:   transparency,
-		flipVertical:   opts.FlipVertical,
-		flipHorizontal: opts.FlipHorizontal,
+		VerticalFlip:   opts.VerticalFlip,
+		HorizontalFlip: opts.HorizontalFlip,
 	}
 
 	c.listCache.append(&cache)

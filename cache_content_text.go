@@ -124,15 +124,15 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 		return err
 	}
 
-	if _, err := io.WriteString(w, "BT\n"); err != nil {
-		return err
-	}
-
 	if c.cellOpt.Transparency != nil && c.cellOpt.Transparency.Alpha != 1 {
 		linkToGSObj := fmt.Sprintf("/GS%d gs\n", c.cellOpt.Transparency.indexOfExtGState)
 		if _, err := io.WriteString(w, linkToGSObj); err != nil {
 			return err
 		}
+	}
+
+	if _, err := io.WriteString(w, "BT\n"); err != nil {
+		return err
 	}
 
 	fmt.Fprintf(w, "%0.2f %0.2f TD\n", x, y)

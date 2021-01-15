@@ -243,8 +243,25 @@ func (gp *GoPdf) imageByHolder(img ImageHolder, opts ImageOptions) error {
 		}
 	}
 
-	cacheTransparency := gp.curr.transparencyMap.GetSet(opts.Transparency)
-	opts.Transparency = cacheTransparency
+	if opts.Transparency == nil {
+		opts.Transparency = gp.curr.transparency
+	} else {
+		cached, ok := gp.curr.transparencyMap.Find(*opts.Transparency)
+		if ok {
+			opts.Transparency = &cached
+		} else {
+			index, err := gp.addExtGStateObj(&ExtGStateObj{
+				ca: opts.Transparency.Alpha,
+				CA: opts.Transparency.Alpha,
+				BM: string(opts.Transparency.BlendModeType),
+			})
+			if err != nil {
+				return err
+			}
+
+			opts.Transparency.indexOfExtGState = index + 1
+		}
+	}
 
 	if cacheImageIndex == -1 { //new image
 
@@ -554,6 +571,26 @@ func (gp *GoPdf) Text(text string) error {
 
 //CellWithOption create cell of text ( use current x,y is upper-left corner of cell)
 func (gp *GoPdf) CellWithOption(rectangle *Rect, text string, opt CellOption) error {
+	if opt.Transparency == nil {
+		opt.Transparency = gp.curr.transparency
+	} else {
+		cached, ok := gp.curr.transparencyMap.Find(*opt.Transparency)
+		if ok {
+			opt.Transparency = &cached
+		} else {
+			index, err := gp.addExtGStateObj(&ExtGStateObj{
+				ca: opt.Transparency.Alpha,
+				CA: opt.Transparency.Alpha,
+				BM: string(opt.Transparency.BlendModeType),
+			})
+			if err != nil {
+				return err
+			}
+
+			opt.Transparency.indexOfExtGState = index + 1
+		}
+	}
+
 	rectangle = rectangle.UnitsToPoints(gp.config.Unit)
 	err := gp.curr.FontISubset.AddChars(text)
 	if err != nil {
@@ -1238,8 +1275,13 @@ func infodate(t time.Time) string {
 // blendMode:   blend mode, one of the following:
 //          		Normal, Multiply, Screen, Overlay, Darken, Lighten, ColorDodge, ColorBurn,
 //          		HardLight, SoftLight, Difference, Exclusion, Hue, Saturation, Color, Luminosity
-func (gp *GoPdf) SetTransparency(transparency *Transparency) error {
-	if _, ok := gp.curr.transparencyMap.Find(transparency); !ok {
+func (gp *GoPdf) SetTransparency(transparency Transparency) error {
+	var t Transparency
+
+	cached, ok := gp.curr.transparencyMap.Find(transparency)
+	if ok {
+		t = cached
+	} else {
 		index, err := gp.addExtGStateObj(&ExtGStateObj{
 			ca: transparency.Alpha,
 			CA: transparency.Alpha,
@@ -1253,9 +1295,11 @@ func (gp *GoPdf) SetTransparency(transparency *Transparency) error {
 		transparency.indexOfExtGState = index + 1
 
 		gp.curr.transparencyMap.Save(transparency)
+
+		t = transparency
 	}
 
-	gp.curr.transparency = *transparency
+	gp.curr.transparency = &t
 
 	return nil
 }

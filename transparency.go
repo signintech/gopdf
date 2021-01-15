@@ -35,17 +35,17 @@ type Transparency struct {
 	BlendModeType    BlendModeType
 }
 
-func NewTransparency(alpha float64, blendModeType string) (*Transparency, error) {
+func NewTransparency(alpha float64, blendModeType string) (Transparency, error) {
 	if alpha < 0.0 || alpha > 1.0 {
-		return nil, errors.Errorf("alpha value is out of range (0.0 - 1.0): %.3f", alpha)
+		return Transparency{}, errors.Errorf("alpha value is out of range (0.0 - 1.0): %.3f", alpha)
 	}
 
 	bmtType, err := defineBlendModeType(blendModeType)
 	if err != nil {
-		return nil, err
+		return Transparency{}, err
 	}
 
-	return &Transparency{
+	return Transparency{
 		Alpha:         alpha,
 		BlendModeType: bmtType,
 	}, nil
@@ -59,26 +59,17 @@ func (t Transparency) GetId() string {
 
 type TransparencyMap struct {
 	syncer sync.Mutex
-	table  map[string]*Transparency
+	table  map[string]Transparency
 }
 
 func NewTransparencyMap() TransparencyMap {
 	return TransparencyMap{
 		syncer: sync.Mutex{},
-		table:  make(map[string]*Transparency),
+		table:  make(map[string]Transparency),
 	}
 }
 
-func (tm *TransparencyMap) GetSet(transparency *Transparency) *Transparency {
-	stored, ok := tm.Find(transparency)
-	if !ok {
-		return tm.Save(transparency)
-	}
-
-	return stored
-}
-
-func (tm *TransparencyMap) Find(transparency *Transparency) (*Transparency, bool) {
+func (tm *TransparencyMap) Find(transparency Transparency) (Transparency, bool) {
 	key := transparency.GetId()
 
 	tm.syncer.Lock()
@@ -86,14 +77,14 @@ func (tm *TransparencyMap) Find(transparency *Transparency) (*Transparency, bool
 
 	t, ok := tm.table[key]
 	if !ok {
-		return nil, false
+		return Transparency{}, false
 	}
 
 	return t, ok
 
 }
 
-func (tm *TransparencyMap) Save(transparency *Transparency) *Transparency {
+func (tm *TransparencyMap) Save(transparency Transparency) Transparency {
 	tm.syncer.Lock()
 	defer tm.syncer.Unlock()
 

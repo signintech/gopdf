@@ -249,7 +249,7 @@ func (gp *GoPdf) imageByHolder(img ImageHolder, opts ImageOptions) error {
 		cached, ok := gp.curr.transparencyMap.Find(*opts.Transparency)
 		if ok {
 			opts.Transparency = &cached
-		} else {
+		} else if opts.Transparency.Alpha != DefaultAplhaValue{
 			index, err := gp.addExtGStateObj(&ExtGStateObj{
 				ca: opts.Transparency.Alpha,
 				CA: opts.Transparency.Alpha,
@@ -260,6 +260,8 @@ func (gp *GoPdf) imageByHolder(img ImageHolder, opts ImageOptions) error {
 			}
 
 			opts.Transparency.indexOfExtGState = index + 1
+
+			gp.curr.transparencyMap.Save(*opts.Transparency)
 		}
 	}
 
@@ -577,7 +579,7 @@ func (gp *GoPdf) CellWithOption(rectangle *Rect, text string, opt CellOption) er
 		cached, ok := gp.curr.transparencyMap.Find(*opt.Transparency)
 		if ok {
 			opt.Transparency = &cached
-		} else {
+		} else if opt.Transparency.Alpha != DefaultAplhaValue {
 			index, err := gp.addExtGStateObj(&ExtGStateObj{
 				ca: opt.Transparency.Alpha,
 				CA: opt.Transparency.Alpha,
@@ -588,6 +590,8 @@ func (gp *GoPdf) CellWithOption(rectangle *Rect, text string, opt CellOption) er
 			}
 
 			opt.Transparency.indexOfExtGState = index + 1
+
+			gp.curr.transparencyMap.Save(*opt.Transparency)
 		}
 	}
 
@@ -1281,7 +1285,7 @@ func (gp *GoPdf) SetTransparency(transparency Transparency) error {
 	cached, ok := gp.curr.transparencyMap.Find(transparency)
 	if ok {
 		t = cached
-	} else {
+	} else if transparency.Alpha != DefaultAplhaValue {
 		index, err := gp.addExtGStateObj(&ExtGStateObj{
 			ca: transparency.Alpha,
 			CA: transparency.Alpha,

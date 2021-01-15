@@ -28,6 +28,8 @@ const (
 	ColorDodge BlendModeType = "ColorDodge"
 )
 
+const DefaultAplhaValue = 1
+
 // Transparency defines an object alpha.
 type Transparency struct {
 	indexOfExtGState int

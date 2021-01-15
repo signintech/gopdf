@@ -6,14 +6,14 @@ import (
 )
 
 type cacheContentImage struct {
-	VerticalFlip   bool
-	HorizontalFlip bool
+	verticalFlip   bool
+	horizontalFlip bool
 	index          int
 	x              float64
 	y              float64
 	h              float64
 	rect           Rect
-	transparency   Transparency
+	transparency   *Transparency
 }
 
 func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error {
@@ -24,19 +24,19 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 
 	contentStream := "q\n"
 
-	if c.transparency.IndexOfExtGState != 0 {
-		contentStream += fmt.Sprintf("/GS%d gs\n", c.transparency.IndexOfExtGState)
+	if c.transparency != nil {
+		contentStream += fmt.Sprintf("/GS%d gs\n", c.transparency.indexOfExtGState)
 	}
 
-	if c.HorizontalFlip || c.VerticalFlip {
+	if c.horizontalFlip || c.verticalFlip {
 		fh := "1"
-		if c.HorizontalFlip {
+		if c.horizontalFlip {
 			fh = "-1"
 			x = -1 * x - width
 		}
 
 		fv := "1"
-		if c.VerticalFlip {
+		if c.verticalFlip {
 			fv = "-1"
 			y = -1 * y - height
 		}

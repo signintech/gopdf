@@ -80,6 +80,7 @@ type ImageOptions struct {
 	X              float64
 	Y              float64
 	Rect           *Rect
+	Transparency   *Transparency
 }
 
 //SetLineWidth : set line width
@@ -217,9 +218,9 @@ func (gp *GoPdf) ImageByHolder(img ImageHolder, x float64, y float64, rect *Rect
 	rect = rect.UnitsToPoints(gp.config.Unit)
 
 	imageOptions := ImageOptions{
-		X:              x,
-		Y:              y,
-		Rect:           rect,
+		X:    x,
+		Y:    y,
+		Rect: rect,
 	}
 
 	return gp.imageByHolder(img, imageOptions)
@@ -241,6 +242,9 @@ func (gp *GoPdf) imageByHolder(img ImageHolder, opts ImageOptions) error {
 			break
 		}
 	}
+
+	cacheTransparency := gp.curr.transparencyMap.GetSet(opts.Transparency)
+	opts.Transparency = cacheTransparency
 
 	if cacheImageIndex == -1 { //new image
 
@@ -320,9 +324,9 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 	}
 
 	imageOptions := ImageOptions{
-		X:              x,
-		Y:              y,
-		Rect:           rect,
+		X:    x,
+		Y:    y,
+		Rect: rect,
 	}
 
 	return gp.imageByHolder(imgh, imageOptions)
@@ -1001,7 +1005,7 @@ func (gp *GoPdf) init() {
 	gp.curr.CountOfL = 0
 	gp.curr.CountOfImg = 0 //img
 	gp.curr.ImgCaches = *new([]ImageCache)
-	gp.curr.transparencyMap = make(map[string]Transparency)
+	gp.curr.transparencyMap = NewTransparencyMap()
 	gp.anchors = make(map[string]anchorOption)
 	gp.curr.txtColorMode = "gray"
 
@@ -1229,73 +1233,31 @@ func infodate(t time.Time) string {
 	return ft
 }
 
-// SetAlpha sets transparency.
+// SetTransparency sets transparency.
 // alpha: 		value from 0 (transparent) to 1 (opaque)
 // blendMode:   blend mode, one of the following:
 //          		Normal, Multiply, Screen, Overlay, Darken, Lighten, ColorDodge, ColorBurn,
 //          		HardLight, SoftLight, Difference, Exclusion, Hue, Saturation, Color, Luminosity
-func (gp *GoPdf) SetAlpha(alpha float64, blendModeStr string) error {
-	if alpha < 0.0 || alpha > 1.0 {
-		return errors.Unwrap(fmt.Errorf("alpha value (0.0 - 1.0) is out of range: %.3f", alpha))
-	}
-
-	blendMode, err := getBlendMode(blendModeStr)
-	if err != nil {
-		return err
-	}
-
-	alphaStr := fmt.Sprintf("%.3f", alpha)
-	keyStr := fmt.Sprintf("%s %s", alphaStr, blendMode)
-
-	transparency, ok := gp.curr.transparencyMap[keyStr]
-	if !ok {
+func (gp *GoPdf) SetTransparency(transparency *Transparency) error {
+	if _, ok := gp.curr.transparencyMap.Find(transparency); !ok {
 		index, err := gp.addExtGStateObj(&ExtGStateObj{
-			ca: alpha,
-			CA: alpha,
-			BM: blendMode,
+			ca: transparency.Alpha,
+			CA: transparency.Alpha,
+			BM: string(transparency.BlendModeType),
 		})
 
 		if err != nil {
 			return err
 		}
 
-		transparency = Transparency{IndexOfExtGState: index + 1}
+		transparency.indexOfExtGState = index + 1
 
-		gp.curr.transparencyMap[keyStr] = transparency
+		gp.curr.transparencyMap.Save(transparency)
 	}
 
-	gp.curr.transparency = transparency
+	gp.curr.transparency = *transparency
 
-	return err
-}
-
-func getBlendMode(blendModeStr string) (bl string, err error) {
-	switch blendModeStr {
-	case
-		"Hue",
-		"Color",
-		"Normal",
-		"Screen",
-		"Darken",
-		"Overlay",
-		"Lighten",
-		"Multiply",
-		"ColorBurn",
-		"HardLight",
-		"SoftLight",
-		"Exclusion",
-		"Difference",
-		"ColorDodge",
-		"Saturation",
-		"Luminosity":
-		bl = "/" + blendModeStr
-	case "":
-		bl = "/Normal"
-	default:
-		err = errors.Unwrap(fmt.Errorf("blendMode is unknown"))
-	}
-
-	return bl, err
+	return nil
 }
 
 func (gp *GoPdf) addExtGStateObj(extGStateObj *ExtGStateObj) (index int, err error) {

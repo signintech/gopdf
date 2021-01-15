@@ -130,7 +130,7 @@ func (c *ContentObj) AppendStreamText(text string) error {
 		contentType:    ContentTypeText,
 		lineWidth:      c.getRoot().curr.lineWidth,
 		txtColorMode:   c.getRoot().curr.txtColorMode,
-		transparency:   transparency,
+		transparency:   &transparency,
 	}
 
 	var err error
@@ -172,7 +172,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOp
 		cellOpt:        cellOpt,
 		lineWidth:      c.getRoot().curr.lineWidth,
 		txtColorMode:   c.getRoot().curr.txtColorMode,
-		transparency:   transparency,
+		transparency:   &transparency,
 	}
 	var err error
 	c.getRoot().curr.X, c.getRoot().curr.Y, err = c.listCache.appendContentText(cache, text)
@@ -311,7 +311,6 @@ func (c *ContentObj) AppendStreamSetColorFill(r uint8, g uint8, b uint8) {
 func (c *ContentObj) AppendStreamImage(index int, opts ImageOptions) {
 	//fmt.Printf("index = %d",index)
 	h := c.getRoot().curr.pageSize.H
-	transparency := c.getRoot().curr.transparency
 
 	cache := cacheContentImage{
 		h:              h,
@@ -319,9 +318,9 @@ func (c *ContentObj) AppendStreamImage(index int, opts ImageOptions) {
 		x:              opts.X,
 		y:              opts.Y,
 		rect:           *opts.Rect,
-		transparency:   transparency,
-		VerticalFlip:   opts.VerticalFlip,
-		HorizontalFlip: opts.HorizontalFlip,
+		transparency:   opts.Transparency,
+		verticalFlip:   opts.VerticalFlip,
+		horizontalFlip: opts.HorizontalFlip,
 	}
 
 	c.listCache.append(&cache)

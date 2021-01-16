@@ -169,10 +169,15 @@ pdf.RotateReset() //reset
 ### Set transparency
 Read about [transparency in pdf](https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/PDF32000_2008.pdf) `(page 320, section 11)`
 ```go
-pdf.SetTransparency(alpha float64, blendMode string)
+// alpha - value of transparency, can be between `0` and `1`
+// blendMode - default value is `/Normal` - read about [blendMode and kinds of its](https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/PDF32000_2008.pdf) `(page 325, section 11.3.5)`
+
+transparency := Transparency{
+	Alpha: 0.5,
+	BlendModeType: "",
+}
+pdf.SetTransparency(transparency Transparency)
 ```
-- `alpha` - value of transparency, can be between `0` and `1` 
-- `blendMode` - default value is `Normal` - read about [blendMode and kinds of its](https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/PDF32000_2008.pdf) `(page 325, section 11.3.5)`  
 
 ### Password protection
 ```go

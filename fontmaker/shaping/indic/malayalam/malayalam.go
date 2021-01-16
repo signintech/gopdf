@@ -1,11 +1,19 @@
 package malayalam
 
 import (
-	"fmt"
+	"bytes"
+	"regexp"
 	"unicode"
 
 	"github.com/signintech/gopdf/fontmaker/shaping/indic"
 )
+
+// syllable_type
+const ConsonantSyllable = 0
+const VowelSyllable = 1
+const StandaloneCluster = 2
+const BrokenCluster = 3
+const NonIndicCluster = 4
 
 //Malayalam https://docs.microsoft.com/en-us/typography/script-development/malayalam
 type Malayalam struct {
@@ -13,12 +21,46 @@ type Malayalam struct {
 
 //Reorder order
 func (m Malayalam) Reorder(glyphindexs []uint, runes []rune) ([]uint, []rune, error) {
+	otlinfos, err := m.findOTLInfo(glyphindexs, runes)
+	if err != nil {
+		return nil, nil, err
+	}
 
+	otlinfos, _, err = m.syllables(otlinfos)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = m.initReordering(otlinfos)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return nil, nil, nil
+}
+
+func (m Malayalam) initReordering(otlInfos []otlInfo) error {
+	var count = len(otlInfos)
+	for i := 0; i < count; i++ {
+		if otlInfos[i].pos == indic.PosBaseC {
+			//c := otlInfos[i].char
+		}
+	}
+	return nil
+}
+
+func (m Malayalam) updateConsonantPositions(otlInfos []otlInfo) error {
+
+	return nil
+}
+
+func (m Malayalam) findOTLInfo(glyphindexs []uint, runes []rune) ([]otlInfo, error) {
+	var posAndCats []otlInfo
 	for i, r := range runes {
 		g := glyphindexs[i]
 		indicType, err := m.indicGetCategories(g, r)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		indicCat := indicType & 0x7F
@@ -27,9 +69,6 @@ func (m Malayalam) Reorder(glyphindexs []uint, runes []rune) ([]uint, []rune, er
 		if r == 0x17D1 {
 			indicCat = indic.OtX
 		}
-
-		xxx := m.inRange(0x17CE, 0x17CB, 0x17D3)
-		fmt.Printf("%v\n", xxx)
 
 		if indicCat == indic.OtX && m.inRange(uint(r), 0x17CB, 0x17D3) { /* Khmer Various signs */
 			/* These are like Top Matras. */
@@ -75,32 +114,109 @@ func (m Malayalam) Reorder(glyphindexs []uint, runes []rune) ([]uint, []rune, er
 		}
 
 		// Re-assign position.
+		if (m.flag(int(indicCat)) & (m.flag(indic.OtC) | m.flag(indic.OtCM) | m.flag(indic.OtRA) | m.flag(indic.OtV) | m.flag(indic.OtNBSP) | m.flag(indic.OtDOTTEDCIRCLE))) > 0 { // = CONSONANT_FLAGS like is_consonant
+			//if ($scriptblock == Ucdn::SCRIPT_KHMER) {
+			if unicode.In(r, unicode.Khmer) {
+				indicPos = indic.PosBelowC
+			} else { /* Khmer differs from Indic here. */
+				indicPos = indic.PosBaseC
+			} /* Will recategorize later based on font lookups. */
+			if indic.IsRuneRA(r) {
+				indicCat = indic.OtRA
+			}
+		} else if indicCat == indic.OtM {
+			indicPos = indic.MatraPosition(r, indicPos)
+		} else if indicCat == indic.OtSM || indicCat == indic.OtVD {
+			indicPos = indic.PosSMVD
+		}
 
-		 if ((self::FLAG($cat) & (self::FLAG(self::OT_C) | self::FLAG(self::OT_CM) | self::FLAG(self::OT_RA) | self::FLAG(self::OT_V) | self::FLAG(self::OT_NBSP) | self::FLAG(self::OT_DOTTEDCIRCLE)))) { // = CONSONANT_FLAGS like is_consonant
-		 	if ($scriptblock == Ucdn::SCRIPT_KHMER) {
-		 		$pos = self::POS_BELOW_C;
-		 	} /* Khmer differs from Indic here. */
-		 	else {
-		 		$pos = self::POS_BASE_C;
-		 	} /* Will recategorize later based on font lookups. *
-		 	if (self::is_ra($u)) {
-		 		$cat = self::OT_RA;
-		 	}
-		 } elseif ($cat == self::OT_M) {
-		 	$pos = self::matra_position($u, $pos);
-		 } elseif ($cat == self::OT_SM || $cat == self::OT_VD) {
-		 	$pos = self::POS_SMVD;
-		 }
+		if r == 0x0B01 {
+			indicPos = indic.PosBeforeSUB
+		} /* Oriya Bindu is BeforeSub in the spec. */
 
-		// if ($u == 0x0B01) {
-		// 	$pos = self::POS_BEFORE_SUB;
-		// } /* Oriya Bindu is BeforeSub in the spec. */
+		posAndCats = append(posAndCats, otlInfo{
+			glyphindex: g,
+			char:       r,
+			pos:        indicPos,
+			cat:        indicCat,
+		})
+	}
+	return posAndCats, nil
+}
 
-		// $info['indic_category'] = $cat;
-		// $info['indic_position'] = $pos;
+func (m Malayalam) syllables(info []otlInfo) ([]otlInfo, bool, error) {
+
+	var buff bytes.Buffer
+	for _, p := range info {
+		buff.WriteString(indic.CategoryChar[p.cat])
 	}
 
-	return nil, nil, nil
+	var result = info
+	brokenSyllables := false
+
+	s := 0
+	str := buff.String()
+	size := len(str)
+	syllableSerial := 1
+	// CONSONANT_SYLLABLE Consonant syllable
+	conRegex, err := regexp.Compile("^([CR]m*[N]?(H[ZJ]?|[ZJ]H))*[CR]m*[N]?[A]?(H[ZJ]?|[M]*[N]?[H]?)?[S]?[v]{0,2}")
+	if err != nil {
+		return nil, brokenSyllables, err
+	}
+	// VOWEL_SYLLABLE Vowel-based syllable
+	vowelRegex, err := regexp.Compile("/^(RH|r)?V[N]?([ZJ]?H[CR]m*|J[CR]m*)?([M]*[N]?[H]?)?[S]?[v]{0,2}/")
+	if err != nil {
+		return nil, brokenSyllables, err
+	}
+
+	standaloneRegex, err := regexp.Compile("^(RH|r)?[sD][N]?([ZJ]?H[CR]m*)?([M]*[N]?[H]?)?[S]?[v]{0,2}")
+	if err != nil {
+		return nil, brokenSyllables, err
+	}
+
+	brokenRegex, err := regexp.Compile("^(RH|r)?[N]?([ZJ]?H[CR])?([M]*[N]?[H]?)?[S]?[v]{0,2}")
+	if err != nil {
+		return nil, brokenSyllables, err
+	}
+	//brokenSyllables := false
+	for s < size {
+		syllableLen := 1
+		syllableType := NonIndicCluster //self::NON_INDIC_CLUSTER;
+		sub := str[s:]
+		if conRegex.MatchString(sub) {
+			match := conRegex.FindAllString(sub, -1)
+			syllableLen = len(match[0])
+			syllableType = ConsonantSyllable
+		} else if vowelRegex.MatchString(sub) {
+			match := vowelRegex.FindAllString(sub, -1)
+			syllableLen = len(match[0])
+			syllableType = VowelSyllable
+		} else if (s == 0 || (!unicode.Is(unicode.Categories["L"], info[s-1].char) && !unicode.Is(unicode.Categories["M"], info[s-1].char))) &&
+			standaloneRegex.MatchString(sub) {
+			match := standaloneRegex.FindAllString(sub, -1)
+			syllableLen = len(match[0])
+			syllableType = StandaloneCluster
+		} else if brokenRegex.MatchString(sub) {
+			match := brokenRegex.FindAllString(sub, -1)
+			if len(match[0]) > 0 { // May match blank
+				syllableLen = len(match[0])
+				syllableType = BrokenCluster
+				brokenSyllables = true
+			}
+		}
+
+		for i := s; i < s+syllableLen; i++ {
+			result[i].syllable = (syllableSerial << 4) | syllableType
+		}
+
+		s += syllableLen
+		syllableSerial++
+		if syllableSerial == 16 {
+			syllableSerial = 1
+		}
+	}
+
+	return result, brokenSyllables, nil
 }
 
 func (m Malayalam) indicGetCategories(glyph uint, r rune) (uint, error) {
@@ -128,4 +244,16 @@ func (m Malayalam) inRange(u uint, lo uint, hi uint) bool {
 		return ((u & ^(lo ^ hi)) == lo)
 	}
 	return lo <= u && u <= hi
+}
+
+func (m Malayalam) flag(n int) int {
+	return 1 << n
+}
+
+type otlInfo struct {
+	glyphindex uint
+	char       rune //rune
+	pos        uint
+	cat        uint
+	syllable   int
 }

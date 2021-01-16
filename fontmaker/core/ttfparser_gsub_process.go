@@ -7,7 +7,7 @@ import (
 
 func (t *TTFParser) GSUBProcessGlyphs(glyphindexs []uint) ([]uint, error) {
 	fmt.Printf("warn: fake mlym")
-	lookupIndexes, err := t.gsubPreprocessGlyphs("mlym") //JUST for test
+	lookupIndexes, err := t.gsubPreprocessGlyphs("mlm2") //JUST for test
 	if err != nil {
 		return nil, err
 	}

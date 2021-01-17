@@ -45,8 +45,8 @@ type Current struct {
 	//current trim box
 	trimBox *Box
 
-	transparency    Transparency
-	transparencyMap map[string]Transparency
+	transparency    *Transparency
+	transparencyMap TransparencyMap
 }
 
 func (c *Current) setTextColor(rgb Rgb) {
@@ -91,9 +91,4 @@ func (rgb Rgb) equal(obj Rgb) bool {
 		return true
 	}
 	return false
-}
-
-// Transparency defines an object alpha.
-type Transparency struct {
-	IndexOfExtGState int
 }

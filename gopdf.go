@@ -74,6 +74,15 @@ type GoPdf struct {
 	fpdi *gofpdi.Importer
 }
 
+type ImageOptions struct {
+	VerticalFlip   bool
+	HorizontalFlip bool
+	X              float64
+	Y              float64
+	Rect           *Rect
+	Transparency   *Transparency
+}
+
 //SetLineWidth : set line width
 func (gp *GoPdf) SetLineWidth(width float64) {
 	gp.curr.lineWidth = gp.UnitsToPoints(width)
@@ -205,18 +214,44 @@ func (gp *GoPdf) GetY() float64 {
 //ImageByHolder : draw image by ImageHolder
 func (gp *GoPdf) ImageByHolder(img ImageHolder, x float64, y float64, rect *Rect) error {
 	gp.UnitsToPointsVar(&x, &y)
+
 	rect = rect.UnitsToPoints(gp.config.Unit)
 
-	return gp.imageByHolder(img, x, y, rect)
+	imageOptions := ImageOptions{
+		X:    x,
+		Y:    y,
+		Rect: rect,
+	}
+
+	return gp.imageByHolder(img, imageOptions)
 }
 
-func (gp *GoPdf) imageByHolder(img ImageHolder, x float64, y float64, rect *Rect) error {
+func (gp *GoPdf) ImageByHolderWithOptions(img ImageHolder, opts ImageOptions) error {
+	gp.UnitsToPointsVar(&opts.X, &opts.Y)
+
+	opts.Rect = opts.Rect.UnitsToPoints(gp.config.Unit)
+
+	return gp.imageByHolder(img, opts)
+}
+
+func (gp *GoPdf) imageByHolder(img ImageHolder, opts ImageOptions) error {
 	cacheImageIndex := -1
 	for _, imgcache := range gp.curr.ImgCaches {
 		if img.ID() == imgcache.Path {
 			cacheImageIndex = imgcache.Index
 			break
 		}
+	}
+
+	if opts.Transparency == nil {
+		opts.Transparency = gp.curr.transparency
+	} else {
+		cached, err := gp.saveTransparency(opts.Transparency)
+		if err != nil {
+			return err
+		}
+
+		opts.Transparency = cached
 	}
 
 	if cacheImageIndex == -1 { //new image
@@ -233,14 +268,10 @@ func (gp *GoPdf) imageByHolder(img ImageHolder, x float64, y float64, rect *Rect
 			return err
 		}
 
-		var imgRect *Rect
-		if rect == nil {
-			imgRect, err = imgobj.getRect()
-			if err != nil {
+		if opts.Rect == nil {
+			if opts.Rect, err = imgobj.getRect(); err != nil {
 				return err
 			}
-		} else {
-			imgRect = rect
 		}
 
 		err = imgobj.parse()
@@ -251,13 +282,13 @@ func (gp *GoPdf) imageByHolder(img ImageHolder, x float64, y float64, rect *Rect
 		if gp.indexOfProcSet != -1 {
 			//ยัดรูป
 			procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
-			gp.getContent().AppendStreamImage(gp.curr.CountOfImg, x, y, imgRect)
+			gp.getContent().AppendStreamImage(gp.curr.CountOfImg, opts)
 			procset.RelateXobjs = append(procset.RelateXobjs, RelateXobject{IndexOfObj: index})
 			//เก็บข้อมูลรูปเอาไว้
 			var imgcache ImageCache
 			imgcache.Index = gp.curr.CountOfImg
 			imgcache.Path = img.ID()
-			imgcache.Rect = imgRect
+			imgcache.Rect = opts.Rect
 			gp.curr.ImgCaches = append(gp.curr.ImgCaches, imgcache)
 			gp.curr.CountOfImg++
 		}
@@ -282,13 +313,11 @@ func (gp *GoPdf) imageByHolder(img ImageHolder, x float64, y float64, rect *Rect
 		}
 
 	} else { //same img
-		var imgRect *Rect
-		if rect == nil {
-			imgRect = gp.curr.ImgCaches[cacheImageIndex].Rect
-		} else {
-			imgRect = rect
+		if opts.Rect == nil {
+			opts.Rect = gp.curr.ImgCaches[cacheImageIndex].Rect
 		}
-		gp.getContent().AppendStreamImage(cacheImageIndex, x, y, imgRect)
+
+		gp.getContent().AppendStreamImage(cacheImageIndex, opts)
 	}
 	return nil
 }
@@ -301,7 +330,14 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 	if err != nil {
 		return err
 	}
-	return gp.imageByHolder(imgh, x, y, rect)
+
+	imageOptions := ImageOptions{
+		X:    x,
+		Y:    y,
+		Rect: rect,
+	}
+
+	return gp.imageByHolder(imgh, imageOptions)
 }
 
 //AddPage : add new page
@@ -526,6 +562,17 @@ func (gp *GoPdf) Text(text string) error {
 
 //CellWithOption create cell of text ( use current x,y is upper-left corner of cell)
 func (gp *GoPdf) CellWithOption(rectangle *Rect, text string, opt CellOption) error {
+	if opt.Transparency == nil {
+		opt.Transparency = gp.curr.transparency
+	} else {
+		cached, err := gp.saveTransparency(opt.Transparency)
+		if err != nil {
+			return err
+		}
+
+		opt.Transparency = cached
+	}
+
 	rectangle = rectangle.UnitsToPoints(gp.config.Unit)
 	err := gp.curr.FontISubset.AddChars(text)
 	if err != nil {
@@ -977,7 +1024,7 @@ func (gp *GoPdf) init() {
 	gp.curr.CountOfL = 0
 	gp.curr.CountOfImg = 0 //img
 	gp.curr.ImgCaches = *new([]ImageCache)
-	gp.curr.transparencyMap = make(map[string]Transparency)
+	gp.curr.transparencyMap = NewTransparencyMap()
 	gp.anchors = make(map[string]anchorOption)
 	gp.curr.txtColorMode = "gray"
 
@@ -1205,73 +1252,45 @@ func infodate(t time.Time) string {
 	return ft
 }
 
-// SetAlpha sets transparency.
+// SetTransparency sets transparency.
 // alpha: 		value from 0 (transparent) to 1 (opaque)
 // blendMode:   blend mode, one of the following:
 //          		Normal, Multiply, Screen, Overlay, Darken, Lighten, ColorDodge, ColorBurn,
 //          		HardLight, SoftLight, Difference, Exclusion, Hue, Saturation, Color, Luminosity
-func (gp *GoPdf) SetAlpha(alpha float64, blendModeStr string) error {
-	if alpha < 0.0 || alpha > 1.0 {
-		return errors.Unwrap(fmt.Errorf("alpha value (0.0 - 1.0) is out of range: %.3f", alpha))
-	}
-
-	blendMode, err := getBlendMode(blendModeStr)
+func (gp *GoPdf) SetTransparency(transparency Transparency) error {
+	t, err := gp.saveTransparency(&transparency)
 	if err != nil {
 		return err
 	}
 
-	alphaStr := fmt.Sprintf("%.3f", alpha)
-	keyStr := fmt.Sprintf("%s %s", alphaStr, blendMode)
+	gp.curr.transparency = t
 
-	transparency, ok := gp.curr.transparencyMap[keyStr]
-	if !ok {
+	return nil
+}
+
+func (gp *GoPdf) saveTransparency(transparency *Transparency) (*Transparency, error) {
+	cached, ok := gp.curr.transparencyMap.Find(*transparency)
+	if ok {
+		return &cached, nil
+	} else if transparency.Alpha != DefaultAplhaValue {
 		index, err := gp.addExtGStateObj(&ExtGStateObj{
-			ca: alpha,
-			CA: alpha,
-			BM: blendMode,
+			ca: transparency.Alpha,
+			CA: transparency.Alpha,
+			BM: string(transparency.BlendModeType),
 		})
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		transparency = Transparency{IndexOfExtGState: index + 1}
+		transparency.indexOfExtGState = index + 1
 
-		gp.curr.transparencyMap[keyStr] = transparency
+		gp.curr.transparencyMap.Save(*transparency)
+
+		return transparency, nil
 	}
 
-	gp.curr.transparency = transparency
-
-	return err
-}
-
-func getBlendMode(blendModeStr string) (bl string, err error) {
-	switch blendModeStr {
-	case
-		"Hue",
-		"Color",
-		"Normal",
-		"Screen",
-		"Darken",
-		"Overlay",
-		"Lighten",
-		"Multiply",
-		"ColorBurn",
-		"HardLight",
-		"SoftLight",
-		"Exclusion",
-		"Difference",
-		"ColorDodge",
-		"Saturation",
-		"Luminosity":
-		bl = "/" + blendModeStr
-	case "":
-		bl = "/Normal"
-	default:
-		err = errors.Unwrap(fmt.Errorf("blendMode is unknown"))
-	}
-
-	return bl, err
+	return nil, nil
 }
 
 func (gp *GoPdf) addExtGStateObj(extGStateObj *ExtGStateObj) (index int, err error) {

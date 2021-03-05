@@ -152,7 +152,6 @@ func TestRetrievingNumberOfPdfPage(t *testing.T) {
 		return
 	}
 
-	log.Printf("pages count: %d", pdf.GetNumberOfPages())
 	if pdf.GetNumberOfPages() != 1 {
 		t.Error(err)
 		return
@@ -168,7 +167,6 @@ func TestRetrievingNumberOfPdfPage(t *testing.T) {
 	pdf.SetY(200)
 	pdf.Cell(nil, "gopher and gopher again")
 
-	log.Printf("pages count: %d", pdf.GetNumberOfPages())
 	if pdf.GetNumberOfPages() != 2 {
 		t.Error(err)
 		return

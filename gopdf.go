@@ -38,6 +38,9 @@ type GoPdf struct {
 	//index ของ obj pages
 	indexOfPagesObj int
 
+	//number of pages
+	numOfPagesObj int
+
 	//index ของ obj page อันแรก
 	indexOfFirstPageObj int
 
@@ -374,6 +377,8 @@ func (gp *GoPdf) AddPageWithOption(opt PageOption) {
 		gp.indexOfFirstPageObj = index
 	}
 	gp.curr.IndexOfPageObj = index
+
+	gp.numOfPagesObj++
 
 	//reset
 	gp.indexOfContent = -1
@@ -766,6 +771,11 @@ func (gp *GoPdf) UseImportedTemplate(tplid int, x float64, y float64, w float64,
 // GetNextObjectID gets the next object ID so that gofpdi knows where to start the object IDs.
 func (gp *GoPdf) GetNextObjectID() int {
 	return len(gp.pdfObjs) + 1
+}
+
+// GetNumberOfPages gets the number of pages from the PDF.
+func (gp *GoPdf) GetNumberOfPages() int {
+	return gp.numOfPagesObj
 }
 
 // ImportObjects imports objects from gofpdi into current document.

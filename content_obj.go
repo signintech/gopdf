@@ -317,6 +317,7 @@ func (c *ContentObj) AppendStreamImage(index int, opts ImageOptions) {
 		x:              opts.X,
 		y:              opts.Y,
 		rect:           *opts.Rect,
+		crop:           opts.Crop,
 		transparency:   opts.Transparency,
 		verticalFlip:   opts.VerticalFlip,
 		horizontalFlip: opts.HorizontalFlip,

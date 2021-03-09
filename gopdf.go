@@ -74,6 +74,13 @@ type GoPdf struct {
 	fpdi *gofpdi.Importer
 }
 
+type CropOptions struct {
+	X      float64
+	Y      float64
+	Width  float64
+	Height float64
+}
+
 type ImageOptions struct {
 	VerticalFlip   bool
 	HorizontalFlip bool
@@ -81,6 +88,7 @@ type ImageOptions struct {
 	Y              float64
 	Rect           *Rect
 	Transparency   *Transparency
+	Crop           *CropOptions
 }
 
 //SetLineWidth : set line width

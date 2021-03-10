@@ -243,16 +243,23 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 
 		clippingY := c.h - (c.crop.Y + c.crop.Height)
 		if c.verticalFlip {
-			clippingY = -clippingY - c.crop.Height
+			clippingY = -(c.crop.Y + c.crop.Height)
 		}
 
-		startX := x - c.crop.X
-		startY := y - c.crop.Y
+		startX := c.x - c.crop.X
+		if c.horizontalFlip {
+			startX = -1 * startX - width
+		}
 
-		contentStream += fmt.Sprintf("\t\t%0.2f %0.2f %0.2f %0.2f re W* n\n", clippingX, clippingY, c.crop.Width, c.crop.Height)
-		contentStream += fmt.Sprintf("\t\tq %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", width, height, startX, startY, c.index+1)
+		startY := y - c.crop.Y
+		//if c.verticalFlip {
+		//	startY = -1 * startY - height
+		//}
+
+		contentStream += fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re W* n\n", clippingX, clippingY, c.crop.Width, c.crop.Height)
+		contentStream += fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", width, height, startX, startY, c.index+1)
 	} else {
-		contentStream += fmt.Sprintf("\tq %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", width, height, x, y, c.index+1)
+		contentStream += fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", width, height, x, y, c.index+1)
 	}
 
 	contentStream += "Q\n"

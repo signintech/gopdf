@@ -175,6 +175,82 @@ func TestRetrievingNumberOfPdfPage(t *testing.T) {
 	pdf.WritePdf("./test/out/number_of_pages_test.pdf")
 }
 
+func TestImageCrop(t *testing.T) {
+	pdf := GoPdf{}
+	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	if pdf.GetNumberOfPages() != 0 {
+		t.Error("Invalid starting number of pages, should be 0")
+		return
+	}
+
+	pdf.AddPage()
+	err := pdf.AddTTFFont("loma", "./test/res/times.ttf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = pdf.SetFont("loma", "", 14)
+	if err != nil {
+		log.Print(err.Error())
+		return
+	}
+
+	bytesOfImg, err := ioutil.ReadFile("./test/res/gopher01.jpg")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	imgH, err := ImageHolderByBytes(bytesOfImg)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	//err = pdf.ImageByHolder(imgH, 20.0, 20, nil)
+	err = pdf.ImageByHolderWithOptions(imgH, ImageOptions{
+		//VerticalFlip: true,
+		//HorizontalFlip: true,
+		Rect: &Rect{
+			W: 100,
+			H: 100,
+		},
+		Crop: &CropOptions{
+			X:      0,
+			Y:      0,
+			Width:  10,
+			Height: 100,
+		},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if pdf.GetNumberOfPages() != 1 {
+		t.Error(err)
+		return
+	}
+
+	pdf.SetX(250)
+	pdf.SetY(200)
+	pdf.Cell(nil, "gopher and gopher")
+
+	pdf.AddPage()
+
+	pdf.SetX(250)
+	pdf.SetY(200)
+	pdf.Cell(nil, "gopher and gopher again")
+
+	if pdf.GetNumberOfPages() != 2 {
+		t.Error(err)
+		return
+	}
+
+	pdf.WritePdf("./test/out/image_crop.pdf")
+}
+
 /*
 func TestBuffer(t *testing.T) {
 	b := bytes.NewReader([]byte("ssssssss"))

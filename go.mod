@@ -1,4 +1,4 @@
-module github.com/crello/gopdf
+module github.com/signintech/gopdf
 
 go 1.11
 

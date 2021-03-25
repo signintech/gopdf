@@ -361,10 +361,11 @@ func (f *FontMaker) FileSize(path string) (int64, error) {
 func (f *FontMaker) GetInfoFromTrueType(fontpath string, fontmaps []FontMap) (TtfInfo, error) {
 
 	var parser TTFParser
-	err := parser.Parse(fontpath)
+	fontdata, err := parser.Parse(fontpath)
 	if err != nil {
 		return nil, err
 	}
+	parser.CacheFontData = fontdata
 
 	if !parser.Embeddable {
 		return nil, ErrFontLicenseDoesNotAllowEmbedding

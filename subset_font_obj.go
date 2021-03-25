@@ -6,7 +6,7 @@ import (
 
 	"io"
 
-	"github.com/HENNGE/gopdf/fontmaker/core"
+	"github.com/signintech/gopdf/fontmaker/core"
 )
 
 //ErrCharNotFound char not found

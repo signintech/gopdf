@@ -210,19 +210,25 @@ func (t *TTFParser) Parse(filepath string) ([]byte, error) {
 		return nil, err
 	}
 	buff := bytes.NewBuffer(data)
-	return t.parse(buff)
+	return t.parse(buff, nil)
 }
 
 //ParseByReader parse by io.reader
-func (t *TTFParser) ParseByReader(rd io.Reader) ([]byte, error) {
-	return t.parse(rd)
+func (t *TTFParser) ParseByReader(rd io.Reader, fontdata []byte) ([]byte, error) {
+	return t.parse(rd, fontdata)
 }
 
-func (t *TTFParser) parse(rd io.Reader) ([]byte, error) {
+func (t *TTFParser) parse(rd io.Reader, loadedFontdata []byte) ([]byte, error) {
 
-	fontdata, err := ioutil.ReadAll(rd)
-	if err != nil {
-		return nil, err
+	var fontdata []byte
+	if loadedFontdata == nil {
+		var err error
+		fontdata, err = ioutil.ReadAll(rd)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		fontdata = loadedFontdata
 	}
 	fd := bytes.NewReader(fontdata)
 

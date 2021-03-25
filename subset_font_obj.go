@@ -107,7 +107,7 @@ func (s *SubsetFontObj) SetTTFByPath(ttfpath string) error {
 func (s *SubsetFontObj) SetTTFByReader(rd io.Reader) error {
 	useKerning := s.ttfFontOption.UseKerning
 	s.ttfp.SetUseKerning(useKerning)
-	fontdata, err := s.ttfp.ParseByReader(rd)
+	fontdata, err := s.ttfp.ParseByReader(rd, nil)
 	if err != nil {
 		return err
 	}
@@ -117,14 +117,19 @@ func (s *SubsetFontObj) SetTTFByReader(rd io.Reader) error {
 
 //ParseTTFByReader parses ttf
 func (s *SubsetFontObj) ParseTTFByReader(rd io.Reader) ([]byte, error) {
-	return s.ttfp.ParseByReader(rd)
+	return s.ttfp.ParseByReader(rd, nil)
 }
 
 //SetParsedTTFByReader sets parsed ttf.
-func (s *SubsetFontObj) SetParsedTTFByReader(fontdata []byte) {
+func (s *SubsetFontObj) SetParsedTTFByReader(fontdata []byte) error {
 	useKerning := s.ttfFontOption.UseKerning
 	s.ttfp.SetUseKerning(useKerning)
+	fontdata, err := s.ttfp.ParseByReader(nil, fontdata)
+	if err != nil {
+		return err
+	}
 	s.ttfp.CacheFontData = fontdata
+	return nil
 }
 
 //AddChars add char to map CharacterToGlyphIndex

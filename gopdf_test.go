@@ -18,13 +18,13 @@ func BenchmarkPdfWithImageHolder(b *testing.B) {
 	pdf := GoPdf{}
 	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
 	pdf.AddPage()
-	err = pdf.AddTTFFont("loma", "./test/res/times.ttf")
+	err = pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
 	if err != nil {
 		b.Error(err)
 		return
 	}
 
-	err = pdf.SetFont("loma", "", 14)
+	err = pdf.SetFont("LiberationSerif-Regular", "", 14)
 	if err != nil {
 		log.Print(err.Error())
 		return
@@ -70,13 +70,13 @@ func TestPdfWithImageHolder(t *testing.T) {
 	pdf := GoPdf{}
 	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
 	pdf.AddPage()
-	err = pdf.AddTTFFont("loma", "./test/res/times.ttf")
+	err = pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	err = pdf.SetFont("loma", "", 14)
+	err = pdf.SetFont("LiberationSerif-Regular", "", 14)
 	if err != nil {
 		log.Print(err.Error())
 		return
@@ -122,13 +122,13 @@ func TestRetrievingNumberOfPdfPage(t *testing.T) {
 	}
 
 	pdf.AddPage()
-	err := pdf.AddTTFFont("loma", "./test/res/times.ttf")
+	err := pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	err = pdf.SetFont("loma", "", 14)
+	err = pdf.SetFont("LiberationSerif-Regular", "", 14)
 	if err != nil {
 		log.Print(err.Error())
 		return
@@ -184,13 +184,13 @@ func TestImageCrop(t *testing.T) {
 	}
 
 	pdf.AddPage()
-	err := pdf.AddTTFFont("loma", "./test/res/times.ttf")
+	err := pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	err = pdf.SetFont("loma", "", 14)
+	err = pdf.SetFont("LiberationSerif-Regular", "", 14)
 	if err != nil {
 		log.Print(err.Error())
 		return

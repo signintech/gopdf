@@ -1,6 +1,8 @@
 package gopdf
 
 import (
+	"bytes"
+	"errors"
 	"io/ioutil"
 	"log"
 	"os"
@@ -270,3 +272,70 @@ func TestBuffer(t *testing.T) {
 
 	fmt.Printf("+>%s\n", string(b2))
 }*/
+
+func TestParseTTFFontByReader(t *testing.T) {
+	ttf, err := os.Open("test/res/LiberationSerif-Regular.ttf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	defer ttf.Close()
+
+	fontParser := GoPdf{}
+	parsedFontdata, err := fontParser.ParseTTFFontByReader(ttf)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	pdf1 := &GoPdf{}
+	rst1, err := generatePDFBytesByParsedTTFFont(pdf1, parsedFontdata)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	// Reuse the parsed font data.
+	pdf2 := &GoPdf{}
+	rst2, err := generatePDFBytesByParsedTTFFont(pdf2, parsedFontdata)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if bytes.Compare(rst1, rst2) != 0 {
+		t.Error(errors.New("The generated files must be exactly the same."))
+		return
+	}
+
+	if err := os.WriteFile("./test/out/result1_by_parsed_ttf_font.pdf", rst1, 0644); err != nil {
+		t.Error(err)
+		return
+	}
+	if err := os.WriteFile("./test/out/result2_by_parsed_ttf_font.pdf", rst1, 0644); err != nil {
+		t.Error(err)
+		return
+	}
+}
+
+func generatePDFBytesByParsedTTFFont(pdf *GoPdf, fontdata []byte) ([]byte, error) {
+	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	if pdf.GetNumberOfPages() != 0 {
+		return nil, errors.New("Invalid starting number of pages, should be 0")
+	}
+
+	if err := pdf.AddParsedTTFFont("LiberationSerif-Regular", fontdata); err != nil {
+		return nil, err
+	}
+
+	if err := pdf.SetFont("LiberationSerif-Regular", "", 14); err != nil {
+		return nil, err
+	}
+
+	pdf.AddPage()
+	if err := pdf.Text("Test PDF content."); err != nil {
+		return nil, err
+	}
+
+	return pdf.GetBytesPdfReturnErr()
+}

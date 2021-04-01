@@ -209,8 +209,7 @@ func (t *TTFParser) Parse(filepath string) error {
 	if err != nil {
 		return err
 	}
-	buff := bytes.NewBuffer(data)
-	return t.ParseByReader(buff)
+	return t.ParseFontData(data)
 }
 
 //ParseByReader parse by io.reader

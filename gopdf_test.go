@@ -273,7 +273,53 @@ func TestBuffer(t *testing.T) {
 	fmt.Printf("+>%s\n", string(b2))
 }*/
 
-func TestParseTTFFontByReader(t *testing.T) {
+func BenchmarkAddTTFFontByReader(b *testing.B) {
+	ttf, err := os.Open("test/res/LiberationSerif-Regular.ttf")
+	if err != nil {
+		b.Error(err)
+		return
+	}
+	defer ttf.Close()
+
+	fontdata, err := ioutil.ReadAll(ttf)
+	if err != nil {
+		b.Error(err)
+		return
+	}
+
+	for n := 0; n < b.N; n++ {
+		pdf := &GoPdf{}
+		pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+		if err := pdf.AddTTFFontByReader("LiberationSerif-Regular", bytes.NewReader(fontdata)); err != nil {
+			return
+		}
+	}
+}
+
+func BenchmarkAddTTFFontData(b *testing.B) {
+	ttf, err := os.Open("test/res/LiberationSerif-Regular.ttf")
+	if err != nil {
+		b.Error(err)
+		return
+	}
+	defer ttf.Close()
+
+	fontdata, err := ioutil.ReadAll(ttf)
+	if err != nil {
+		b.Error(err)
+		return
+	}
+
+	for n := 0; n < b.N; n++ {
+		pdf := &GoPdf{}
+		pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+		if err := pdf.AddTTFFontData("LiberationSerif-Regular", fontdata); err != nil {
+			return
+		}
+	}
+}
+
+func TestReuseFontData(t *testing.T) {
 	ttf, err := os.Open("test/res/LiberationSerif-Regular.ttf")
 	if err != nil {
 		t.Error(err)
@@ -281,15 +327,14 @@ func TestParseTTFFontByReader(t *testing.T) {
 	}
 	defer ttf.Close()
 
-	fontParser := GoPdf{}
-	parsedFontdata, err := fontParser.ParseTTFFontByReader(ttf)
+	fontdata, err := ioutil.ReadAll(ttf)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
 	pdf1 := &GoPdf{}
-	rst1, err := generatePDFBytesByParsedTTFFont(pdf1, parsedFontdata)
+	rst1, err := generatePDFBytesByAddTTFFontData(pdf1, fontdata)
 	if err != nil {
 		t.Error(err)
 		return
@@ -297,7 +342,7 @@ func TestParseTTFFontByReader(t *testing.T) {
 
 	// Reuse the parsed font data.
 	pdf2 := &GoPdf{}
-	rst2, err := generatePDFBytesByParsedTTFFont(pdf2, parsedFontdata)
+	rst2, err := generatePDFBytesByAddTTFFontData(pdf2, fontdata)
 	if err != nil {
 		t.Error(err)
 		return
@@ -318,13 +363,13 @@ func TestParseTTFFontByReader(t *testing.T) {
 	}
 }
 
-func generatePDFBytesByParsedTTFFont(pdf *GoPdf, fontdata []byte) ([]byte, error) {
+func generatePDFBytesByAddTTFFontData(pdf *GoPdf, fontdata []byte) ([]byte, error) {
 	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
 	if pdf.GetNumberOfPages() != 0 {
 		return nil, errors.New("Invalid starting number of pages, should be 0")
 	}
 
-	if err := pdf.AddParsedTTFFont("LiberationSerif-Regular", fontdata); err != nil {
+	if err := pdf.AddTTFFontData("LiberationSerif-Regular", fontdata); err != nil {
 		return nil, err
 	}
 

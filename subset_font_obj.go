@@ -95,11 +95,10 @@ func (s *SubsetFontObj) KernValueByLeft(left uint) (bool, *core.KernValue) {
 func (s *SubsetFontObj) SetTTFByPath(ttfpath string) error {
 	useKerning := s.ttfFontOption.UseKerning
 	s.ttfp.SetUseKerning(useKerning)
-	fontdata, err := s.ttfp.Parse(ttfpath)
+	err := s.ttfp.Parse(ttfpath)
 	if err != nil {
 		return err
 	}
-	s.ttfp.CacheFontData = fontdata
 	return nil
 }
 
@@ -107,28 +106,21 @@ func (s *SubsetFontObj) SetTTFByPath(ttfpath string) error {
 func (s *SubsetFontObj) SetTTFByReader(rd io.Reader) error {
 	useKerning := s.ttfFontOption.UseKerning
 	s.ttfp.SetUseKerning(useKerning)
-	fontdata, err := s.ttfp.ParseByReader(rd, nil)
+	err := s.ttfp.ParseByReader(rd)
 	if err != nil {
 		return err
 	}
-	s.ttfp.CacheFontData = fontdata
 	return nil
 }
 
-//ParseTTFByReader parses ttf
-func (s *SubsetFontObj) ParseTTFByReader(rd io.Reader) ([]byte, error) {
-	return s.ttfp.ParseByReader(rd, nil)
-}
-
-//SetParsedTTFByReader sets parsed ttf.
-func (s *SubsetFontObj) SetParsedTTFByReader(fontdata []byte) error {
+//SetTTFData set ttf
+func (s *SubsetFontObj) SetTTFData(data []byte) error {
 	useKerning := s.ttfFontOption.UseKerning
 	s.ttfp.SetUseKerning(useKerning)
-	fontdata, err := s.ttfp.ParseByReader(nil, fontdata)
+	err := s.ttfp.DoParse(data)
 	if err != nil {
 		return err
 	}
-	s.ttfp.CacheFontData = fontdata
 	return nil
 }
 

@@ -74,7 +74,7 @@ type TTFParser struct {
 	groupingTables []CmapFormat12GroupingTable
 
 	//data of font
-	CacheFontData []byte
+	cachedFontData []byte
 
 	//kerning
 	useKerning bool //user config for use or not use kerning
@@ -204,46 +204,45 @@ func (t *TTFParser) SetUseKerning(use bool) {
 }
 
 //Parse parse
-func (t *TTFParser) Parse(filepath string) ([]byte, error) {
+func (t *TTFParser) Parse(filepath string) error {
 	data, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	buff := bytes.NewBuffer(data)
-	return t.parse(buff, nil)
+	return t.parse(buff)
 }
 
 //ParseByReader parse by io.reader
-func (t *TTFParser) ParseByReader(rd io.Reader, fontdata []byte) ([]byte, error) {
-	return t.parse(rd, fontdata)
+func (t *TTFParser) ParseByReader(rd io.Reader) error {
+	return t.parse(rd)
 }
 
-func (t *TTFParser) parse(rd io.Reader, loadedFontdata []byte) ([]byte, error) {
+func (t *TTFParser) parse(rd io.Reader) error {
 
-	var fontdata []byte
-	if loadedFontdata == nil {
-		var err error
-		fontdata, err = ioutil.ReadAll(rd)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		fontdata = loadedFontdata
+	fontdata, err := ioutil.ReadAll(rd)
+	if err != nil {
+		return err
 	}
+
+	return t.DoParse(fontdata)
+}
+
+func (t *TTFParser) DoParse(fontdata []byte) error {
 	fd := bytes.NewReader(fontdata)
 
 	version, err := t.Read(fd, 4)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if !bytes.Equal(version, []byte{0x00, 0x01, 0x00, 0x00}) {
-		return nil, errors.New("Unrecognized file (font) format")
+		return errors.New("Unrecognized file (font) format")
 	}
 
 	i := uint(0)
 	numTables, err := t.ReadUShort(fd)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	t.Skip(fd, 3*2) //searchRange, entrySelector, rangeShift
 	t.tables = make(map[string]TableDirectoryEntry)
@@ -251,22 +250,22 @@ func (t *TTFParser) parse(rd io.Reader, loadedFontdata []byte) ([]byte, error) {
 
 		tag, err := t.Read(fd, 4)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		checksum, err := t.ReadULong(fd)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		offset, err := t.ReadULong(fd)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		length, err := t.ReadULong(fd)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		//fmt.Printf("\n\ntag=%s  \nOffset = %d\n", tag, offset)
 		var table TableDirectoryEntry
@@ -280,55 +279,57 @@ func (t *TTFParser) parse(rd io.Reader, loadedFontdata []byte) ([]byte, error) {
 
 	err = t.ParseHead(fd)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	err = t.ParseHhea(fd)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	err = t.ParseMaxp(fd)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	err = t.ParseHmtx(fd)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	err = t.ParseCmap(fd)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	err = t.ParseName(fd)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	err = t.ParseOS2(fd)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	err = t.ParsePost(fd)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	err = t.ParseLoca(fd)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if t.useKerning {
 		err = t.Parsekern(fd)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return fontdata, nil
+	t.cachedFontData = fontdata
+
+	return nil
 }
 
 func (t *TTFParser) FontData() []byte {
-	return t.CacheFontData
+	return t.cachedFontData
 }
 
 //ParseLoca parse loca table https://www.microsoft.com/typography/otspec/loca.htm

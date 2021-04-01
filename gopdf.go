@@ -823,12 +823,12 @@ func (gp *GoPdf) SetAnchor(name string) {
 	gp.anchors[name] = anchorOption{gp.curr.IndexOfPageObj, y}
 }
 
-// AddTTFFontByReader adds font file by reader.
+// AddTTFFontByReader adds font data by reader.
 func (gp *GoPdf) AddTTFFontData(family string, fontdata []byte) error {
 	return gp.AddTTFFontDataWithOption(family, fontdata, defaultTtfFontOption())
 }
 
-// AddTTFFontByReaderWithOption adds font file by reader with option.
+// AddTTFFontDataWithOption adds font data with option.
 func (gp *GoPdf) AddTTFFontDataWithOption(family string, fontdata []byte, option TtfOption) error {
 	subsetFont := new(SubsetFontObj)
 	subsetFont.init(func() *GoPdf {
@@ -866,6 +866,7 @@ func (gp *GoPdf) AddTTFFontByReaderWithOption(family string, rd io.Reader, optio
 }
 
 // addTTFFontByReaderWithOption adds font file by reader with option.
+// The given SubsetFontObj is expected to be configured in advance.
 func (gp *GoPdf) addTTFFontByReaderWithOption(subsetFont *SubsetFontObj, family string, option TtfOption) error {
 	unicodemap := new(UnicodeMap)
 	unicodemap.init(func() *GoPdf {

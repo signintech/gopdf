@@ -841,7 +841,7 @@ func (gp *GoPdf) AddTTFFontDataWithOption(family string, fontdata []byte, option
 		return err
 	}
 
-	return gp.addTTFFontByReaderWithOption(subsetFont, family, option)
+	return gp.setSubsetFontObject(subsetFont, family, option)
 }
 
 // AddTTFFontByReader adds font file by reader.
@@ -862,12 +862,12 @@ func (gp *GoPdf) AddTTFFontByReaderWithOption(family string, rd io.Reader, optio
 		return err
 	}
 
-	return gp.addTTFFontByReaderWithOption(subsetFont, family, option)
+	return gp.setSubsetFontObject(subsetFont, family, option)
 }
 
-// addTTFFontByReaderWithOption adds font file by reader with option.
+// setSubsetFontObject sets SubsetFontObj.
 // The given SubsetFontObj is expected to be configured in advance.
-func (gp *GoPdf) addTTFFontByReaderWithOption(subsetFont *SubsetFontObj, family string, option TtfOption) error {
+func (gp *GoPdf) setSubsetFontObject(subsetFont *SubsetFontObj, family string, option TtfOption) error {
 	unicodemap := new(UnicodeMap)
 	unicodemap.init(func() *GoPdf {
 		return gp

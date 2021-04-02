@@ -824,19 +824,19 @@ func (gp *GoPdf) SetAnchor(name string) {
 }
 
 // AddTTFFontByReader adds font data by reader.
-func (gp *GoPdf) AddTTFFontData(family string, fontdata []byte) error {
-	return gp.AddTTFFontDataWithOption(family, fontdata, defaultTtfFontOption())
+func (gp *GoPdf) AddTTFFontData(family string, fontData []byte) error {
+	return gp.AddTTFFontDataWithOption(family, fontData, defaultTtfFontOption())
 }
 
 // AddTTFFontDataWithOption adds font data with option.
-func (gp *GoPdf) AddTTFFontDataWithOption(family string, fontdata []byte, option TtfOption) error {
+func (gp *GoPdf) AddTTFFontDataWithOption(family string, fontData []byte, option TtfOption) error {
 	subsetFont := new(SubsetFontObj)
 	subsetFont.init(func() *GoPdf {
 		return gp
 	})
 	subsetFont.SetTtfFontOption(option)
 	subsetFont.SetFamily(family)
-	err := subsetFont.SetTTFData(fontdata)
+	err := subsetFont.SetTTFData(fontData)
 	if err != nil {
 		return err
 	}

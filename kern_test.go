@@ -7,7 +7,7 @@ import (
 )
 
 func TestKern01(t *testing.T) {
-	Wo, err := kern01("test/res/times.ttf", "times", 'W', 'o')
+	Wo, err := kern01("test/res/LiberationSerif-Regular.ttf", "LiberationSerif-Regular", 'W', 'o')
 	if err != nil {
 		t.Error(err)
 		return
@@ -18,7 +18,7 @@ func TestKern01(t *testing.T) {
 		//return
 	}
 
-	Wi, err := kern01("test/res/times.ttf", "times", 'W', 'i')
+	Wi, err := kern01("test/res/LiberationSerif-Regular.ttf", "LiberationSerif-Regular", 'W', 'i')
 	if err != nil {
 		t.Error(err)
 		return

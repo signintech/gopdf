@@ -823,12 +823,33 @@ func (gp *GoPdf) SetAnchor(name string) {
 	gp.anchors[name] = anchorOption{gp.curr.IndexOfPageObj, y}
 }
 
-//AddTTFFontByReader add font file
+// AddTTFFontByReader adds font data by reader.
+func (gp *GoPdf) AddTTFFontData(family string, fontData []byte) error {
+	return gp.AddTTFFontDataWithOption(family, fontData, defaultTtfFontOption())
+}
+
+// AddTTFFontDataWithOption adds font data with option.
+func (gp *GoPdf) AddTTFFontDataWithOption(family string, fontData []byte, option TtfOption) error {
+	subsetFont := new(SubsetFontObj)
+	subsetFont.init(func() *GoPdf {
+		return gp
+	})
+	subsetFont.SetTtfFontOption(option)
+	subsetFont.SetFamily(family)
+	err := subsetFont.SetTTFData(fontData)
+	if err != nil {
+		return err
+	}
+
+	return gp.setSubsetFontObject(subsetFont, family, option)
+}
+
+// AddTTFFontByReader adds font file by reader.
 func (gp *GoPdf) AddTTFFontByReader(family string, rd io.Reader) error {
 	return gp.AddTTFFontByReaderWithOption(family, rd, defaultTtfFontOption())
 }
 
-//AddTTFFontByReaderWithOption add font file
+// AddTTFFontByReaderWithOption adds font file by reader with option.
 func (gp *GoPdf) AddTTFFontByReaderWithOption(family string, rd io.Reader, option TtfOption) error {
 	subsetFont := new(SubsetFontObj)
 	subsetFont.init(func() *GoPdf {
@@ -841,6 +862,12 @@ func (gp *GoPdf) AddTTFFontByReaderWithOption(family string, rd io.Reader, optio
 		return err
 	}
 
+	return gp.setSubsetFontObject(subsetFont, family, option)
+}
+
+// setSubsetFontObject sets SubsetFontObj.
+// The given SubsetFontObj is expected to be configured in advance.
+func (gp *GoPdf) setSubsetFontObject(subsetFont *SubsetFontObj, family string, option TtfOption) error {
 	unicodemap := new(UnicodeMap)
 	unicodemap.init(func() *GoPdf {
 		return gp

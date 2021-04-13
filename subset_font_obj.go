@@ -113,6 +113,17 @@ func (s *SubsetFontObj) SetTTFByReader(rd io.Reader) error {
 	return nil
 }
 
+//SetTTFData set ttf
+func (s *SubsetFontObj) SetTTFData(data []byte) error {
+	useKerning := s.ttfFontOption.UseKerning
+	s.ttfp.SetUseKerning(useKerning)
+	err := s.ttfp.ParseFontData(data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 //AddChars add char to map CharacterToGlyphIndex
 func (s *SubsetFontObj) AddChars(txt string) error {
 	for _, runeValue := range txt {

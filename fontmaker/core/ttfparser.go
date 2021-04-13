@@ -74,7 +74,7 @@ type TTFParser struct {
 	groupingTables []CmapFormat12GroupingTable
 
 	//data of font
-	cacheFontData []byte
+	cachedFontData []byte
 
 	//kerning
 	useKerning bool //user config for use or not use kerning
@@ -209,23 +209,22 @@ func (t *TTFParser) Parse(filepath string) error {
 	if err != nil {
 		return err
 	}
-	buff := bytes.NewBuffer(data)
-	return t.parse(buff)
+	return t.ParseFontData(data)
 }
 
 //ParseByReader parse by io.reader
 func (t *TTFParser) ParseByReader(rd io.Reader) error {
-	return t.parse(rd)
-}
-
-func (t *TTFParser) parse(rd io.Reader) error {
-
-	fontdata, err := ioutil.ReadAll(rd)
+	fontData, err := ioutil.ReadAll(rd)
 	if err != nil {
 		return err
 	}
-	//t.cacheFontData = fontdata
-	fd := bytes.NewReader(fontdata)
+
+	return t.ParseFontData(fontData)
+}
+
+// ParseFontData parses font data.
+func (t *TTFParser) ParseFontData(fontData []byte) error {
+	fd := bytes.NewReader(fontData)
 
 	version, err := t.Read(fd, 4)
 	if err != nil {
@@ -254,7 +253,6 @@ func (t *TTFParser) parse(rd io.Reader) error {
 			return err
 		}
 
-		//fmt.Printf("offset\n")
 		offset, err := t.ReadULong(fd)
 		if err != nil {
 			return err
@@ -273,8 +271,6 @@ func (t *TTFParser) parse(rd io.Reader) error {
 		t.tables[t.BytesToString(tag)] = table
 		i++
 	}
-
-	//fmt.Printf("%+v\n", me.tables)
 
 	err = t.ParseHead(fd)
 	if err != nil {
@@ -322,14 +318,13 @@ func (t *TTFParser) parse(rd io.Reader) error {
 		}
 	}
 
-	//fmt.Printf("%#v\n", me.widths)
-	t.cacheFontData = fontdata //t.readFontData(fontpath)
+	t.cachedFontData = fontData
 
 	return nil
 }
 
 func (t *TTFParser) FontData() []byte {
-	return t.cacheFontData
+	return t.cachedFontData
 }
 
 //ParseLoca parse loca table https://www.microsoft.com/typography/otspec/loca.htm

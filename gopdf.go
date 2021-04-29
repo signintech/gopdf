@@ -249,17 +249,9 @@ func (gp *GoPdf) ImageByHolderWithOptions(img ImageHolder, opts ImageOptions) er
 	opts.Rect = opts.Rect.UnitsToPoints(gp.config.Unit)
 
 	if opts.Mask != nil {
-		opts.Mask.Rect = opts.Mask.Rect.UnitsToPoints(gp.config.Unit)
+		opts.Mask.ImageOptions.Rect = opts.Mask.ImageOptions.Rect.UnitsToPoints(gp.config.Unit)
 
-		maskOpts := ImageOptions{
-			X:              opts.Mask.X,
-			Y:              opts.Mask.Y,
-			Rect:           opts.Mask.Rect,
-			VerticalFlip:   opts.Mask.VerticalFlip,
-			HorizontalFlip: opts.Mask.HorizontalFlip,
-		}
-
-		if err := gp.maskHolder(opts.Mask.Holder, maskOpts); err != nil {
+		if err := gp.maskHolder(opts.Mask.Holder, opts.Mask.ImageOptions); err != nil {
 			return err
 		}
 	}
@@ -303,19 +295,34 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) error {
 		index := gp.addObj(maskImgobj)
 		if gp.indexOfProcSet != -1 {
 			procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
-			cacheImage := gp.getContent().AppendStreamImage(gp.curr.CountOfImg, opts)
+			cacheImage := gp.getContent().AppendStreamImage(index, opts)
 			procset.RelateXobjs = append(procset.RelateXobjs, RelateXobject{IndexOfObj: index})
 
 			imgcache := ImageCache{
 				Index: index,
 				Path:  img.ID(),
-				Rect:  opts.Mask.Rect,
+				Rect:  opts.Rect,
 			}
 			gp.curr.ImgCaches = append(gp.curr.ImgCaches, imgcache)
 			gp.curr.CountOfImg++
 
-			opts := ExtGStateOptions{MaskImages: []cacheContentImage{cacheImage}}
-			if _, err := NewExtGState(opts, gp); err != nil {
+			bm := string(NormalBlendMode)
+			extGStateOpts := ExtGStateOptions{
+				MaskOptions: &SMaskOptions{
+					X:       opts.X,
+					Y:       opts.Y,
+					Subtype: SMaskLuminositySubtype,
+					Images:  []cacheContentImage{cacheImage},
+				},
+			}
+
+			if opts.Transparency != nil {
+				extGStateOpts.BlendMode = &bm
+				extGStateOpts.StrokingCA = &opts.Transparency.Alpha
+				extGStateOpts.NonStrokingCa = &opts.Transparency.Alpha
+			}
+
+			if _, err := NewExtGState(extGStateOpts, gp); err != nil {
 				return err
 			}
 		}

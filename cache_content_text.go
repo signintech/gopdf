@@ -32,6 +32,7 @@ type cacheContentText struct {
 	//---result---
 	cellWidthPdfUnit, textWidthPdfUnit float64
 	cellHeightPdfUnit                  float64
+	transparency                       *Transparency
 }
 
 func (c *cacheContentText) isSame(cache cacheContentText) bool {

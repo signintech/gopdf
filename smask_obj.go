@@ -3,15 +3,13 @@ package gopdf
 import (
 	"fmt"
 	"io"
-
-	"github.com/pkg/errors"
 )
 
 type SMaskSubtypes string
 
 const (
-	SMaskAlphaSubtype      = "Alpha"
-	SMaskLuminositySubtype = "Luminosity"
+	SMaskAlphaSubtype      = "/Alpha"
+	SMaskLuminositySubtype = "/Luminosity"
 )
 
 //SMask smask
@@ -20,30 +18,35 @@ type SMask struct {
 	data []byte
 	//getRoot func() *GoPdf
 	pdfProtection *PDFProtection
-
 	Index                         int
 	TransparencyXObjectGroupIndex int
 	S                             string
 }
 
 type SMaskOptions struct {
-	TransparencyXObjectGroupIndex int
-	Subtype                       SMaskSubtypes
+	X       float64
+	Y       float64
+	Subtype SMaskSubtypes
+	Images  []cacheContentImage
 }
 
 func NewSMask(opts SMaskOptions, gp *GoPdf) (SMask, error) {
+	groupOpts := TransparencyXObjectGroupOptions{
+		X:        opts.X,
+		Y:        opts.Y,
+		XObjects: opts.Images,
+	}
+	transparencyXObjectGroup, err := NewTransparencyXObjectGroup(groupOpts, gp)
+	if err != nil {
+		return SMask{}, err
+	}
+
 	smask := SMask{
-		S: string(opts.Subtype),
+		S:                             string(opts.Subtype),
+		TransparencyXObjectGroupIndex: transparencyXObjectGroup.Index,
 	}
 
 	smask.Index = gp.addObj(smask)
-
-	pdfObj := gp.pdfObjs[gp.indexOfProcSet]
-	procset, ok := pdfObj.(*ProcSetObj)
-	if !ok {
-		return SMask{}, errors.New("can't convert pdfobject to procsetobj")
-	}
-	procset.ExtGStates = append(procset.ExtGStates, ExtGS{Index: smask.Index})
 
 	return smask, nil
 }
@@ -63,25 +66,37 @@ func (s SMask) getType() string {
 }
 
 func (s SMask) write(w io.Writer, objID int) error {
+	if s.TransparencyXObjectGroupIndex != 0 {
+		content := "<<\n"
+		content += "\t/Type /Mask\n"
+		content += fmt.Sprintf("\t/S %s\n", s.S)
+		content += fmt.Sprintf("\t/G %d 0 R\n", s.TransparencyXObjectGroupIndex)
+		content += ">>\n"
 
-	err := writeImgProp(w, s.imgInfo)
-	if err != nil {
-		return err
-	}
+		if _, err := io.WriteString(w, content); err != nil {
+			return err
+		}
 
-	fmt.Fprintf(w, "/Length %d\n>>\n", len(s.data)) // /Length 62303>>\n
-	io.WriteString(w, "stream\n")
-	if s.protection() != nil {
-		tmp, err := rc4Cip(s.protection().objectkey(objID), s.data)
+	} else {
+		err := writeImgProp(w, s.imgInfo)
 		if err != nil {
 			return err
 		}
-		w.Write(tmp)
-		io.WriteString(w, "\n")
-	} else {
-		w.Write(s.data)
+
+		fmt.Fprintf(w, "/Length %d\n>>\n", len(s.data)) // /Length 62303>>\n
+		io.WriteString(w, "stream\n")
+		if s.protection() != nil {
+			tmp, err := rc4Cip(s.protection().objectkey(objID), s.data)
+			if err != nil {
+				return err
+			}
+			w.Write(tmp)
+			io.WriteString(w, "\n")
+		} else {
+			w.Write(s.data)
+		}
+		io.WriteString(w, "\nendstream\n")
 	}
-	io.WriteString(w, "\nendstream\n")
 
 	return nil
 }

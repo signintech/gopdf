@@ -19,10 +19,10 @@ type ExtGState struct {
 }
 
 type ExtGStateOptions struct {
-	StrokingCA       *float64
-	NonStrokingCa    *float64
-	BlendMode        *string
-	MaskImages       []cacheContentImage
+	StrokingCA    *float64
+	NonStrokingCa *float64
+	BlendMode     *string
+	MaskOptions   *SMaskOptions
 }
 
 func (extOpt ExtGStateOptions) GetId() string {
@@ -37,11 +37,11 @@ func (extOpt ExtGStateOptions) GetId() string {
 		id += fmt.Sprintf("BM_%s;", *extOpt.BlendMode)
 	}
 
-	if extOpt.MaskImages != nil {
+	if extOpt.MaskOptions != nil {
 		id += "maskImgs_"
 
-		maskImgs := make([]string, len(extOpt.MaskImages))
-		for ind, maskImg := range  extOpt.MaskImages{
+		maskImgs := make([]string, len(extOpt.MaskOptions.Images))
+		for ind, maskImg := range extOpt.MaskOptions.Images {
 			maskImgs[ind] = fmt.Sprintf("%d", maskImg.index)
 		}
 
@@ -65,6 +65,15 @@ func NewExtGState(opts ExtGStateOptions, gp *GoPdf) (ExtGState, error) {
 
 	extGState, ok := gp.curr.extGStateMap.Find(opts)
 	if !ok {
+		if opts.MaskOptions != nil {
+			smask, err := NewSMask(*opts.MaskOptions, gp)
+			if err != nil {
+				return ExtGState{}, err
+			}
+
+			state.SMaskIndex = smask.Index
+		}
+
 		state.Index = gp.addObj(state)
 
 		pdfObj := gp.pdfObjs[gp.indexOfProcSet]
@@ -73,28 +82,6 @@ func NewExtGState(opts ExtGStateOptions, gp *GoPdf) (ExtGState, error) {
 			return ExtGState{}, errors.New("can't convert pdfobject to procsetobj")
 		}
 		procset.ExtGStates = append(procset.ExtGStates, ExtGS{Index: state.Index})
-
-		if opts.MaskImages != nil {
-			groupOpts := TransparencyXObjectGroupOptions{
-				BBox:     Rect{},
-				XObjects: opts.MaskImages,
-			}
-			transparencyXObjectGroup, err := NewTransparencyXObjectGroup(groupOpts, gp)
-			if err != nil {
-				return ExtGState{}, err
-			}
-
-			smaskOpts := SMaskOptions{
-				Subtype:                       SMaskLuminositySubtype,
-				TransparencyXObjectGroupIndex: transparencyXObjectGroup.Index,
-			}
-			smask, err := NewSMask(smaskOpts, gp)
-			if err != nil {
-				return ExtGState{}, err
-			}
-
-			state.SMaskIndex = smask.Index
-		}
 
 		gp.curr.extGStateMap.Save(opts.GetId(), state)
 
@@ -112,13 +99,13 @@ func (egs ExtGState) getType() string {
 
 func (egs ExtGState) write(w io.Writer, objID int) error {
 	content := "<<\n"
-	content += "/Type /ExtGState\n"
-	content += fmt.Sprintf("/ca %.3F\n", egs.ca)
-	content += fmt.Sprintf("/CA %.3F\n", egs.CA)
-	content += fmt.Sprintf("/BM %s\n", egs.BM)
+	content += "\t/Type /ExtGState\n"
+	content += fmt.Sprintf("\t/ca %.3F\n", egs.ca)
+	content += fmt.Sprintf("\t/CA %.3F\n", egs.CA)
+	content += fmt.Sprintf("\t/BM %s\n", egs.BM)
 
 	if egs.SMaskIndex != 0 {
-		content += fmt.Sprintf("/SMask %d 0 R\n", egs.SMaskIndex)
+		content += fmt.Sprintf("\t/SMask %d 0 R\n", egs.SMaskIndex)
 	}
 
 	content += ">>\n"

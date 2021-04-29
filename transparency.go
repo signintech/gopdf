@@ -32,9 +32,9 @@ const DefaultAplhaValue = 1
 
 // Transparency defines an object alpha.
 type Transparency struct {
-	indexOfExtGState int
-	Alpha            float64
-	BlendModeType    BlendModeType
+	extGStateIndex int
+	Alpha          float64
+	BlendModeType  BlendModeType
 }
 
 func NewTransparency(alpha float64, blendModeType string) (Transparency, error) {

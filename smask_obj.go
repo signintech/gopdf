@@ -3,6 +3,15 @@ package gopdf
 import (
 	"fmt"
 	"io"
+
+	"github.com/pkg/errors"
+)
+
+type SMaskSubtypes string
+
+const (
+	SMaskAlphaSubtype      = "Alpha"
+	SMaskLuminositySubtype = "Luminosity"
 )
 
 //SMask smask
@@ -11,25 +20,49 @@ type SMask struct {
 	data []byte
 	//getRoot func() *GoPdf
 	pdfProtection *PDFProtection
+
+	Index                         int
+	TransparencyXObjectGroupIndex int
+	S                             string
 }
 
-func (s *SMask) init(funcGetRoot func() *GoPdf) {
-	//s.getRoot = funcGetRoot
+type SMaskOptions struct {
+	TransparencyXObjectGroupIndex int
+	Subtype                       SMaskSubtypes
 }
+
+func NewSMask(opts SMaskOptions, gp *GoPdf) (SMask, error) {
+	smask := SMask{
+		S: string(opts.Subtype),
+	}
+
+	smask.Index = gp.addObj(smask)
+
+	pdfObj := gp.pdfObjs[gp.indexOfProcSet]
+	procset, ok := pdfObj.(*ProcSetObj)
+	if !ok {
+		return SMask{}, errors.New("can't convert pdfobject to procsetobj")
+	}
+	procset.ExtGStates = append(procset.ExtGStates, ExtGS{Index: smask.Index})
+
+	return smask, nil
+}
+
+func (s SMask) init(func() *GoPdf) {}
 
 func (s *SMask) setProtection(p *PDFProtection) {
 	s.pdfProtection = p
 }
 
-func (s *SMask) protection() *PDFProtection {
+func (s SMask) protection() *PDFProtection {
 	return s.pdfProtection
 }
 
-func (s *SMask) getType() string {
-	return "smask"
+func (s SMask) getType() string {
+	return "Mask"
 }
 
-func (s *SMask) write(w io.Writer, objID int) error {
+func (s SMask) write(w io.Writer, objID int) error {
 
 	err := writeImgProp(w, s.imgInfo)
 	if err != nil {

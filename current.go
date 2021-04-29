@@ -45,6 +45,7 @@ type Current struct {
 	//current trim box
 	trimBox *Box
 
+	extGStateMap    ExtGStateMap
 	transparency    *Transparency
 	transparencyMap TransparencyMap
 }

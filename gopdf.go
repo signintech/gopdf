@@ -3,7 +3,6 @@ package gopdf
 import (
 	"bytes"
 	"compress/zlib" // for constants
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -13,6 +12,7 @@ import (
 	"time"
 
 	"github.com/phpdave11/gofpdi"
+	"github.com/pkg/errors"
 )
 
 const subsetFont = "SubsetFont"
@@ -90,8 +90,14 @@ type ImageOptions struct {
 	X              float64
 	Y              float64
 	Rect           *Rect
-	Transparency   *Transparency
+	Mask           *MaskOptions
 	Crop           *CropOptions
+	Transparency   *Transparency
+}
+
+type MaskOptions struct {
+	ImageOptions
+	Holder ImageHolder
 }
 
 //SetLineWidth : set line width
@@ -242,11 +248,91 @@ func (gp *GoPdf) ImageByHolderWithOptions(img ImageHolder, opts ImageOptions) er
 
 	opts.Rect = opts.Rect.UnitsToPoints(gp.config.Unit)
 
+	if opts.Mask != nil {
+		opts.Mask.Rect = opts.Mask.Rect.UnitsToPoints(gp.config.Unit)
+
+		maskOpts := ImageOptions{
+			X:              opts.Mask.X,
+			Y:              opts.Mask.Y,
+			Rect:           opts.Mask.Rect,
+			VerticalFlip:   opts.Mask.VerticalFlip,
+			HorizontalFlip: opts.Mask.HorizontalFlip,
+		}
+
+		if err := gp.maskHolder(opts.Mask.Holder, maskOpts); err != nil {
+			return err
+		}
+	}
+
 	return gp.imageByHolder(img, opts)
+}
+
+func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) error {
+	cacheImageIndex := -1
+
+	for _, imgcache := range gp.curr.ImgCaches {
+		if img.ID() == imgcache.Path {
+			cacheImageIndex = imgcache.Index
+			break
+		}
+	}
+
+	if cacheImageIndex == - 1 {
+		maskImgobj := new(ImageObj)
+		maskImgobj.init(func() *GoPdf {
+			return gp
+		})
+		maskImgobj.setProtection(gp.protection())
+
+		err := maskImgobj.SetImage(img)
+		if err != nil {
+			return err
+		}
+
+		if opts.Rect == nil {
+			if opts.Rect, err = maskImgobj.getRect(); err != nil {
+				return err
+			}
+		}
+
+		err = maskImgobj.parse()
+		if err != nil {
+			return err
+		}
+
+		index := gp.addObj(maskImgobj)
+		if gp.indexOfProcSet != -1 {
+			procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
+			cacheImage := gp.getContent().AppendStreamImage(gp.curr.CountOfImg, opts)
+			procset.RelateXobjs = append(procset.RelateXobjs, RelateXobject{IndexOfObj: index})
+
+			imgcache := ImageCache{
+				Index: index,
+				Path:  img.ID(),
+				Rect:  opts.Mask.Rect,
+			}
+			gp.curr.ImgCaches = append(gp.curr.ImgCaches, imgcache)
+			gp.curr.CountOfImg++
+
+			opts := ExtGStateOptions{MaskImages: []cacheContentImage{cacheImage}}
+			if _, err := NewExtGState(opts, gp); err != nil {
+				return err
+			}
+		}
+	} else if cacheImageIndex != - 1 {
+		if opts.Mask.Rect == nil {
+			opts.Mask.Rect = gp.curr.ImgCaches[cacheImageIndex].Rect
+		}
+
+		gp.getContent().AppendStreamImage(cacheImageIndex, opts)
+	}
+
+	return nil
 }
 
 func (gp *GoPdf) imageByHolder(img ImageHolder, opts ImageOptions) error {
 	cacheImageIndex := -1
+
 	for _, imgcache := range gp.curr.ImgCaches {
 		if img.ID() == imgcache.Path {
 			cacheImageIndex = imgcache.Index
@@ -1069,6 +1155,7 @@ func (gp *GoPdf) init() {
 	gp.curr.CountOfL = 0
 	gp.curr.CountOfImg = 0 //img
 	gp.curr.ImgCaches = *new([]ImageCache)
+	gp.curr.extGStateMap = NewExtGStateMap()
 	gp.curr.transparencyMap = NewTransparencyMap()
 	gp.anchors = make(map[string]anchorOption)
 	gp.curr.txtColorMode = "gray"
@@ -1318,17 +1405,19 @@ func (gp *GoPdf) saveTransparency(transparency *Transparency) (*Transparency, er
 	if ok {
 		return &cached, nil
 	} else if transparency.Alpha != DefaultAplhaValue {
-		index, err := gp.addExtGStateObj(&ExtGStateObj{
-			ca: transparency.Alpha,
-			CA: transparency.Alpha,
-			BM: string(transparency.BlendModeType),
-		})
+		bm := string(transparency.BlendModeType)
+		opts := ExtGStateOptions{
+			BlendMode:     &bm,
+			StrokingCA:    &transparency.Alpha,
+			NonStrokingCa: &transparency.Alpha,
+		}
 
+		extGState, err := NewExtGState(opts, gp)
 		if err != nil {
 			return nil, err
 		}
 
-		transparency.indexOfExtGState = index + 1
+		transparency.extGStateIndex = extGState.Index + 1
 
 		gp.curr.transparencyMap.Save(*transparency)
 
@@ -1336,25 +1425,6 @@ func (gp *GoPdf) saveTransparency(transparency *Transparency) (*Transparency, er
 	}
 
 	return nil, nil
-}
-
-func (gp *GoPdf) addExtGStateObj(extGStateObj *ExtGStateObj) (index int, err error) {
-	extGStateObj.init(func() *GoPdf {
-		return gp
-	})
-	index = gp.addObj(extGStateObj)
-
-	var pdfObj interface{}
-	pdfObj = gp.pdfObjs[gp.indexOfProcSet]
-
-	procset, ok := pdfObj.(*ProcSetObj)
-	if !ok {
-		err = errors.Unwrap(fmt.Errorf("can't convert pdfobject to procsetobj"))
-		return index, err
-	}
-	procset.ExtGStates = append(procset.ExtGStates, ExtGS{Index: index})
-
-	return index, nil
 }
 
 // IsCurrFontContainGlyph defines is current font contains to a glyph

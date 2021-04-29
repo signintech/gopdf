@@ -125,7 +125,7 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	}
 
 	if c.cellOpt.Transparency != nil && c.cellOpt.Transparency.Alpha != 1 {
-		linkToGSObj := fmt.Sprintf("/GS%d gs\n", c.cellOpt.Transparency.indexOfExtGState)
+		linkToGSObj := fmt.Sprintf("/GS%d gs\n", c.cellOpt.Transparency.extGStateIndex)
 		if _, err := io.WriteString(w, linkToGSObj); err != nil {
 			return err
 		}

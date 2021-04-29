@@ -2,3 +2,5 @@ github.com/phpdave11/gofpdi v1.0.8 h1:9HRg0Z0qDfWeMU7ska+YNQ13RHxTxqP5KTg/dBl4o7
 github.com/phpdave11/gofpdi v1.0.8/go.mod h1:vBmVV0Do6hSBHC8uKUQ71JGW+ZGQq74llk/7bXwjDoI=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+github.com/signintech/gopdf v0.9.16 h1:QmOLj9mk1AWE8BXgTyRzWjJFVNjH95iW2o6WwvIPbdM=
+github.com/signintech/gopdf v0.9.16/go.mod h1:YSAgnGaC2bLUlciG/pbzpnzFg9qfhqdITEA9lKEHiI0=

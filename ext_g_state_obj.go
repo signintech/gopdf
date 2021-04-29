@@ -9,14 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-//type SMask struct {
-//	// S
-//	DerivingAlgorithm string
-//	// G
-//	TransparencyXObjectGroupId string
-//}
-
-// ExtGState is the graphics state parameter dictionary.
 // TODO: add all fields https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/PDF32000_2008.pdf 8.4.5 page 128
 type ExtGState struct {
 	Index      int

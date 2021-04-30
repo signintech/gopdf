@@ -13,44 +13,71 @@ import (
 	"strings"
 )
 
-func writeImgProp(w io.Writer, imginfo imgInfo) error {
+func writeMaskImgProps(w io.Writer, imginfo imgInfo) error {
+	return writeBaseImgProps(w, imginfo)
+}
 
-	io.WriteString(w, "<</Type /XObject\n")
-	io.WriteString(w, "/Subtype /Image\n")
-	fmt.Fprintf(w, "/Width %d\n", imginfo.w)  // /Width 675\n"
-	fmt.Fprintf(w, "/Height %d\n", imginfo.h) //  /Height 942\n"
-	if isColspaceIndexed(imginfo) {
-		size := len(imginfo.pal)/3 - 1
-		fmt.Fprintf(w, "/ColorSpace [/Indexed /DeviceRGB %d %d 0 R]\n", size, imginfo.deviceRGBObjID+1)
-	} else {
-		fmt.Fprintf(w, "/ColorSpace /%s\n", imginfo.colspace)
-		if imginfo.colspace == "DeviceCMYK" {
-			io.WriteString(w, "/Decode [1 0 1 0 1 0 1 0]\n")
-		}
-	}
-	fmt.Fprintf(w, "/BitsPerComponent %s\n", imginfo.bitsPerComponent)
-	if strings.TrimSpace(imginfo.filter) != "" {
-		fmt.Fprintf(w, "/Filter /%s\n", imginfo.filter)
-	}
-
-	if strings.TrimSpace(imginfo.decodeParms) != "" {
-		fmt.Fprintf(w, "/DecodeParms <<%s>>\n", imginfo.decodeParms)
+func writeImgProps(w io.Writer, imginfo imgInfo) error {
+	if err := writeBaseImgProps(w, imginfo); err != nil {
+		return err
 	}
 
 	if imginfo.trns != nil && len(imginfo.trns) > 0 {
 		j := 0
+		content := "/Mask ["
 		max := len(imginfo.trns)
-		io.WriteString(w, "/Mask [")
+
 		for j < max {
-			fmt.Fprintf(w, "%d ", imginfo.trns[j])
-			fmt.Fprintf(w, "%d ", imginfo.trns[j])
+			content += fmt.Sprintf("%d ", imginfo.trns[j])
+			content += fmt.Sprintf("%d ", imginfo.trns[j])
 			j++
 		}
-		io.WriteString(w, "]\n")
+
+		content += "]\n"
+
+		if _, err := io.WriteString(w, content); err != nil {
+			return err
+		}
 	}
 
 	if haveSMask(imginfo) {
-		fmt.Fprintf(w, "/SMask %d 0 R\n", imginfo.smarkObjID+1)
+		if _, err := fmt.Fprintf(w, "/SMask %d 0 R\n", imginfo.smarkObjID+1); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func writeBaseImgProps(w io.Writer, imginfo imgInfo) error {
+	content := "<<\n"
+	content += "\t/Type /XObject\n"
+	content += "\t/Subtype /Image\n"
+	content += fmt.Sprintf("\t/Width %d\n", imginfo.w)
+	content += fmt.Sprintf("\t/Height %d\n", imginfo.h)
+
+	if isColspaceIndexed(imginfo) {
+		size := len(imginfo.pal)/3 - 1
+		content += fmt.Sprintf("\t/ColorSpace [/Indexed /DeviceRGB %d %d 0 R]\n", size, imginfo.deviceRGBObjID+1)
+	} else {
+		content += fmt.Sprintf("\t/ColorSpace /%s\n", imginfo.colspace)
+		if imginfo.colspace == "DeviceCMYK" {
+			content += "\t/Decode [1 0 1 0 1 0 1 0]\n"
+		}
+	}
+
+	content += fmt.Sprintf("\t/BitsPerComponent %s\n", imginfo.bitsPerComponent)
+
+	if strings.TrimSpace(imginfo.filter) != "" {
+		content += fmt.Sprintf("\t/Filter /%s\n", imginfo.filter)
+	}
+
+	if strings.TrimSpace(imginfo.decodeParms) != "" {
+		content += fmt.Sprintf("\t/DecodeParms <<%s>>\n", imginfo.decodeParms)
+	}
+
+	if _, err := io.WriteString(w, content); err != nil {
+		return err
 	}
 
 	return nil

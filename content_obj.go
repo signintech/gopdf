@@ -312,15 +312,16 @@ func (c *ContentObj) AppendStreamImage(index int, opts ImageOptions) cacheConten
 	h := c.getRoot().curr.pageSize.H
 
 	cache := cacheContentImage{
-		h:              h,
-		index:          index,
-		x:              opts.X,
-		y:              opts.Y,
-		rect:           *opts.Rect,
-		crop:           opts.Crop,
-		transparency:   opts.Transparency,
-		verticalFlip:   opts.VerticalFlip,
-		horizontalFlip: opts.HorizontalFlip,
+		h:                h,
+		index:            index,
+		x:                opts.X,
+		y:                opts.Y,
+		rect:             *opts.Rect,
+		crop:             opts.Crop,
+		transparency:     opts.Transparency,
+		verticalFlip:     opts.VerticalFlip,
+		horizontalFlip:   opts.HorizontalFlip,
+		extGStateIndexes: opts.extGStateIndexes,
 	}
 
 	c.listCache.append(&cache)

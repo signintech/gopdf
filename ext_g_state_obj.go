@@ -38,17 +38,26 @@ func (extOpt ExtGStateOptions) GetId() string {
 	}
 
 	if extOpt.SMaskOptions != nil {
-		id += "maskImgs_"
-
 		maskImgs := make([]string, len(extOpt.SMaskOptions.Images))
 		for ind, maskImg := range extOpt.SMaskOptions.Images {
 			maskImgs[ind] = fmt.Sprintf("%d", maskImg.index)
 		}
 
-		id += strings.Join(maskImgs, ",") + ";"
-	}
+		if len(maskImgs) > 0 {
+			maskKey := "maskImgs_" + strings.Join(maskImgs, ",") + ";"
+			id += maskKey
+		}
 
-	//here
+		exgStateIndexes := make([]string, len(extOpt.SMaskOptions.ExtGStateIndexes))
+		for ind, exgStateIndex := range extOpt.SMaskOptions.ExtGStateIndexes {
+			exgStateIndexes[ind] = fmt.Sprintf("%d", exgStateIndex)
+		}
+
+		if len(exgStateIndexes) > 0 {
+			exgStateKey := "exgState_" + strings.Join(exgStateIndexes, ",") + ";"
+			id += exgStateKey
+		}
+	}
 
 	return id
 }

@@ -6,15 +6,16 @@ import (
 )
 
 type cacheContentImage struct {
-	verticalFlip   bool
-	horizontalFlip bool
-	index          int
-	x              float64
-	y              float64
-	h              float64
-	rect           Rect
-	transparency   *Transparency
-	crop           *CropOptions
+	verticalFlip     bool
+	horizontalFlip   bool
+	index            int
+	x                float64
+	y                float64
+	h                float64
+	rect             Rect
+	transparency     *Transparency
+	crop             *CropOptions
+	extGStateIndexes []int
 }
 
 func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error {
@@ -25,6 +26,10 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 
 	if c.transparency != nil && c.transparency.Alpha != 1 {
 		contentStream += fmt.Sprintf("/GS%d gs\n", c.transparency.extGStateIndex)
+	}
+
+	for _, extGStateIndex := range c.extGStateIndexes {
+		contentStream += fmt.Sprintf("/GS%d gs\n", extGStateIndex+1)
 	}
 
 	if c.horizontalFlip || c.verticalFlip {

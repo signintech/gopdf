@@ -22,7 +22,7 @@ type ExtGStateOptions struct {
 	StrokingCA    *float64
 	NonStrokingCa *float64
 	BlendMode     *string
-	MaskOptions   *SMaskOptions
+	SMaskOptions  *SMaskOptions
 }
 
 func (extOpt ExtGStateOptions) GetId() string {
@@ -37,16 +37,18 @@ func (extOpt ExtGStateOptions) GetId() string {
 		id += fmt.Sprintf("BM_%s;", *extOpt.BlendMode)
 	}
 
-	if extOpt.MaskOptions != nil {
+	if extOpt.SMaskOptions != nil {
 		id += "maskImgs_"
 
-		maskImgs := make([]string, len(extOpt.MaskOptions.Images))
-		for ind, maskImg := range extOpt.MaskOptions.Images {
+		maskImgs := make([]string, len(extOpt.SMaskOptions.Images))
+		for ind, maskImg := range extOpt.SMaskOptions.Images {
 			maskImgs[ind] = fmt.Sprintf("%d", maskImg.index)
 		}
 
 		id += strings.Join(maskImgs, ",") + ";"
 	}
+
+	//here
 
 	return id
 }
@@ -65,8 +67,8 @@ func NewExtGState(opts ExtGStateOptions, gp *GoPdf) (ExtGState, error) {
 
 	extGState, ok := gp.curr.extGStateMap.Find(opts)
 	if !ok {
-		if opts.MaskOptions != nil {
-			smask, err := NewSMask(*opts.MaskOptions, gp)
+		if opts.SMaskOptions != nil {
+			smask, err := NewSMask(*opts.SMaskOptions, gp)
 			if err != nil {
 				return ExtGState{}, err
 			}
@@ -105,7 +107,7 @@ func (egs ExtGState) write(w io.Writer, objID int) error {
 	content += fmt.Sprintf("\t/BM %s\n", egs.BM)
 
 	if egs.SMaskIndex != 0 {
-		content += fmt.Sprintf("\t/SMask %d 0 R\n", egs.SMaskIndex)
+		content += fmt.Sprintf("\t/SMask %d 0 R\n", egs.SMaskIndex+1)
 	}
 
 	content += ">>\n"

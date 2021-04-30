@@ -17,24 +17,26 @@ type SMask struct {
 	imgInfo
 	data []byte
 	//getRoot func() *GoPdf
-	pdfProtection *PDFProtection
+	pdfProtection                 *PDFProtection
 	Index                         int
 	TransparencyXObjectGroupIndex int
 	S                             string
 }
 
 type SMaskOptions struct {
-	X       float64
-	Y       float64
-	Subtype SMaskSubtypes
-	Images  []cacheContentImage
+	X                float64
+	Y                float64
+	Subtype          SMaskSubtypes
+	ExtGStateIndexes []int
+	Images           []cacheContentImage
 }
 
 func NewSMask(opts SMaskOptions, gp *GoPdf) (SMask, error) {
 	groupOpts := TransparencyXObjectGroupOptions{
-		X:        opts.X,
-		Y:        opts.Y,
-		XObjects: opts.Images,
+		X:                opts.X,
+		Y:                opts.Y,
+		XObjects:         opts.Images,
+		ExtGStateIndexes: opts.ExtGStateIndexes,
 	}
 	transparencyXObjectGroup, err := NewTransparencyXObjectGroup(groupOpts, gp)
 	if err != nil {
@@ -70,7 +72,7 @@ func (s SMask) write(w io.Writer, objID int) error {
 		content := "<<\n"
 		content += "\t/Type /Mask\n"
 		content += fmt.Sprintf("\t/S %s\n", s.S)
-		content += fmt.Sprintf("\t/G %d 0 R\n", s.TransparencyXObjectGroupIndex)
+		content += fmt.Sprintf("\t/G %d 0 R\n", s.TransparencyXObjectGroupIndex+1)
 		content += ">>\n"
 
 		if _, err := io.WriteString(w, content); err != nil {
@@ -78,7 +80,7 @@ func (s SMask) write(w io.Writer, objID int) error {
 		}
 
 	} else {
-		err := writeImgProp(w, s.imgInfo)
+		err := writeImgProps(w, s.imgInfo)
 		if err != nil {
 			return err
 		}

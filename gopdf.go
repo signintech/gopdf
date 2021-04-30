@@ -93,6 +93,8 @@ type ImageOptions struct {
 	Mask           *MaskOptions
 	Crop           *CropOptions
 	Transparency   *Transparency
+
+	extGStateIndexes []int
 }
 
 type MaskOptions struct {
@@ -251,15 +253,18 @@ func (gp *GoPdf) ImageByHolderWithOptions(img ImageHolder, opts ImageOptions) er
 	if opts.Mask != nil {
 		opts.Mask.ImageOptions.Rect = opts.Mask.ImageOptions.Rect.UnitsToPoints(gp.config.Unit)
 
-		if err := gp.maskHolder(opts.Mask.Holder, opts.Mask.ImageOptions); err != nil {
+		extGStateIndex, err := gp.maskHolder(opts.Mask.Holder, opts.Mask.ImageOptions)
+		if err != nil {
 			return err
 		}
+
+		opts.extGStateIndexes = append(opts.extGStateIndexes, extGStateIndex)
 	}
 
 	return gp.imageByHolder(img, opts)
 }
 
-func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) error {
+func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
 	cacheImageIndex := -1
 
 	for _, imgcache := range gp.curr.ImgCaches {
@@ -274,7 +279,7 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) error {
 	} else {
 		cached, err := gp.saveTransparency(opts.Transparency)
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		opts.Transparency = cached
@@ -289,25 +294,22 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) error {
 
 		err := maskImgobj.SetImage(img)
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		if opts.Rect == nil {
 			if opts.Rect, err = maskImgobj.getRect(); err != nil {
-				return err
+				return 0, err
 			}
 		}
 
-		err = maskImgobj.parse()
-		if err != nil {
-			return err
+		if err := maskImgobj.parse(); err != nil {
+			return 0, err
 		}
 
 		index := gp.addObj(maskImgobj)
 		if gp.indexOfProcSet != -1 {
-			procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
 			cacheImage := gp.getContent().AppendStreamImage(index, opts)
-			procset.RelateXobjs = append(procset.RelateXobjs, RelateXobject{IndexOfObj: index})
 
 			imgcache := ImageCache{
 				Index: index,
@@ -334,9 +336,12 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) error {
 				extGStateOpts.NonStrokingCa = &opts.Transparency.Alpha
 			}
 
-			if _, err := NewExtGState(extGStateOpts, gp); err != nil {
-				return err
+			extGState, err := NewExtGState(extGStateOpts, gp)
+			if err != nil {
+				return 0, err
 			}
+
+			return extGState.Index, nil
 		}
 	} else if cacheImageIndex != - 1 {
 		if opts.Mask.Rect == nil {
@@ -346,7 +351,7 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) error {
 		gp.getContent().AppendStreamImage(cacheImageIndex, opts)
 	}
 
-	return nil
+	return 0, nil
 }
 
 func (gp *GoPdf) imageByHolder(img ImageHolder, opts ImageOptions) error {
@@ -374,6 +379,10 @@ func (gp *GoPdf) imageByHolder(img ImageHolder, opts ImageOptions) error {
 
 		//create img object
 		imgobj := new(ImageObj)
+		if opts.Mask != nil {
+			imgobj = &ImageObj{SplittedMask: true}
+		}
+
 		imgobj.init(func() *GoPdf {
 			return gp
 		})
@@ -398,7 +407,7 @@ func (gp *GoPdf) imageByHolder(img ImageHolder, opts ImageOptions) error {
 		if gp.indexOfProcSet != -1 {
 			//ยัดรูป
 			procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
-			gp.getContent().AppendStreamImage(gp.curr.CountOfImg, opts)
+			gp.getContent().AppendStreamImage(index, opts)
 			procset.RelateXobjs = append(procset.RelateXobjs, RelateXobject{IndexOfObj: index})
 			//เก็บข้อมูลรูปเอาไว้
 			var imgcache ImageCache

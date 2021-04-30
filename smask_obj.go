@@ -78,9 +78,8 @@ func (s SMask) write(w io.Writer, objID int) error {
 		if _, err := io.WriteString(w, content); err != nil {
 			return err
 		}
-
 	} else {
-		err := writeImgProps(w, s.imgInfo)
+		err := writeImgProps(w, s.imgInfo, false)
 		if err != nil {
 			return err
 		}

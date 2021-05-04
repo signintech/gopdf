@@ -1,10 +1,13 @@
 package gopdf
 
 import (
+	"bufio"
 	"bytes"
 	"compress/zlib" // for constants
 	"errors"
 	"fmt"
+	"image"
+	"image/jpeg"
 	"io"
 	"io/ioutil"
 	"log"
@@ -338,6 +341,30 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 	gp.UnitsToPointsVar(&x, &y)
 	rect = rect.UnitsToPoints(gp.config.Unit)
 	imgh, err := ImageHolderByPath(picPath)
+	if err != nil {
+		return err
+	}
+
+	imageOptions := ImageOptions{
+		X:    x,
+		Y:    y,
+		Rect: rect,
+	}
+
+	return gp.imageByHolder(imgh, imageOptions)
+}
+
+func (gp *GoPdf) ImageFrom(img image.Image, x float64, y float64, rect *Rect) error {
+	gp.UnitsToPointsVar(&x, &y)
+	rect = rect.UnitsToPoints(gp.config.Unit)
+	r, w := io.Pipe()
+	go func() {
+		bw := bufio.NewWriter(w)
+		jpeg.Encode(bw, img, nil)
+		bw.Flush()
+	}()
+
+	imgh, err := ImageHolderByReader(bufio.NewReader(r))
 	if err != nil {
 		return err
 	}

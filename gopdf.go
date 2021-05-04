@@ -360,8 +360,13 @@ func (gp *GoPdf) ImageFrom(img image.Image, x float64, y float64, rect *Rect) er
 	r, w := io.Pipe()
 	go func() {
 		bw := bufio.NewWriter(w)
-		jpeg.Encode(bw, img, nil)
+		err := jpeg.Encode(bw, img, nil)
 		bw.Flush()
+		if err != nil {
+			w.CloseWithError(err)
+		} else {
+			w.Close()
+		}
 	}()
 
 	imgh, err := ImageHolderByReader(bufio.NewReader(r))

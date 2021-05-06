@@ -41,7 +41,6 @@ func (i *ImageObj) protection() *PDFProtection {
 func (i *ImageObj) write(w io.Writer, objID int) error {
 	data := i.imginfo.data
 
-
 	if i.IsMask {
 		data = i.imginfo.smask
 		if err := writeMaskImgProps(w, i.imginfo); err != nil {

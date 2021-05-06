@@ -47,7 +47,7 @@ func (pr *ProcSetObj) write(w io.Writer, objID int) error {
 
 	extGStates := "\t/ExtGState <<\n"
 	for _, extGState := range pr.ExtGStates {
-		extGStates += fmt.Sprintf("\t\t/GS%d %d 0 R\n", extGState.Index + 1, extGState.Index + 1)
+		extGStates += fmt.Sprintf("\t\t/GS%d %d 0 R\n", extGState.Index+1, extGState.Index+1)
 	}
 	extGStates += "\t>>\n"
 

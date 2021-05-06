@@ -14,6 +14,7 @@ import (
 )
 
 type ColorSpaces string
+
 const (
 	DeviceGray = "DeviceGray"
 )

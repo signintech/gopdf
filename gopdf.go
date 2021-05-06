@@ -332,9 +332,10 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
 				XObjects:         []cacheContentImage{cacheImage},
 				BBox: [4]float64{
 					opts.X,
-					opts.Y,
+					gp.curr.pageSize.H - opts.Y,
 					opts.X + opts.Rect.W,
-					opts.Y + opts.Rect.H,
+					//opts.Y + opts.Rect.H,
+					gp.curr.pageSize.H - opts.Y - opts.Rect.H,
 				},
 			}
 

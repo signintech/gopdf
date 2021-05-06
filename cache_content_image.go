@@ -11,7 +11,7 @@ type cacheContentImage struct {
 	index            int
 	x                float64
 	y                float64
-	h                float64
+	pageHeight       float64
 	rect             Rect
 	crop             *CropOptions
 	extGStateIndexes []int
@@ -47,7 +47,7 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 			clippingX = -clippingX - c.crop.Width
 		}
 
-		clippingY := c.h - (c.y + c.crop.Height)
+		clippingY := c.pageHeight - (c.y + c.crop.Height)
 		if c.verticalFlip {
 			clippingY = -clippingY - c.crop.Height
 		}
@@ -57,7 +57,7 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 			startX = -startX - width
 		}
 
-		startY := c.h - (c.y - c.crop.Y + c.rect.H)
+		startY := c.pageHeight - (c.y - c.crop.Y + c.rect.H)
 		if c.verticalFlip {
 			startY = -startY - height
 		}
@@ -66,7 +66,7 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 		contentStream += fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", width, height, startX, startY, c.index+1)
 	} else {
 		x := c.x
-		y := c.h - (c.y + height)
+		y := c.pageHeight - (c.y + height)
 
 		if c.horizontalFlip {
 			x = -x - width

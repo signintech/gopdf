@@ -62,8 +62,8 @@ func main() {
 	maskOpts := gopdf.MaskOptions{
 		Holder: maskHolder,
 		ImageOptions: gopdf.ImageOptions{
-			X: 100,
-			Y: 450,
+			X: 0,
+			Y: 0,
 			Rect: &gopdf.Rect{
 				W: 300,
 				H: 300,
@@ -73,8 +73,8 @@ func main() {
 	}
 
 	imOpts := gopdf.ImageOptions{
-		X:    100,
-		Y:    450,
+		X:    0,
+		Y:    0,
 		Mask: &maskOpts,
 		Rect: &gopdf.Rect{W: 400, H: 400},
 	}

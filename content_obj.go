@@ -310,7 +310,7 @@ func (c *ContentObj) GetCacheContentImage(index int, opts ImageOptions) cacheCon
 	h := c.getRoot().curr.pageSize.H
 
 	return cacheContentImage{
-		h:                h,
+		pageHeight:       h,
 		index:            index,
 		x:                opts.X,
 		y:                opts.Y,

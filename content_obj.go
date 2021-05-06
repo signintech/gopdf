@@ -310,15 +310,15 @@ func (c *ContentObj) GetCacheContentImage(index int, opts ImageOptions) cacheCon
 	h := c.getRoot().curr.pageSize.H
 
 	return cacheContentImage{
-		h:              h,
-		index:          index,
-		x:              opts.X,
-		y:              opts.Y,
-		rect:           *opts.Rect,
-		crop:           opts.Crop,
-		transparency:   opts.Transparency,
-		verticalFlip:   opts.VerticalFlip,
-		horizontalFlip: opts.HorizontalFlip,
+		h:                h,
+		index:            index,
+		x:                opts.X,
+		y:                opts.Y,
+		rect:             *opts.Rect,
+		crop:             opts.Crop,
+		verticalFlip:     opts.VerticalFlip,
+		horizontalFlip:   opts.HorizontalFlip,
+		extGStateIndexes: opts.extGStateIndexes,
 	}
 }
 

@@ -356,7 +356,7 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
 				return 0, err
 			}
 
-			return extGState.Index, nil
+			return extGState.Index+1, nil
 		}
 	} else {
 		if opts.Mask.Rect == nil {

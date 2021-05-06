@@ -49,11 +49,6 @@ func main() {
 		log.Panic(err.Error())
 	}
 
-	transparency, err := gopdf.NewTransparency(0.5, "")
-	if err != nil {
-		log.Panic(err.Error())
-	}
-
 	maskHolder, err := gopdf.ImageHolderByPath(resourcesPath + "/mask.png")
 	if err != nil {
 		log.Panic(err.Error())
@@ -68,15 +63,20 @@ func main() {
 				W: 300,
 				H: 300,
 			},
-			Transparency: &transparency,
 		},
 	}
 
+	transparency, err := gopdf.NewTransparency(0.5, "")
+	if err != nil {
+		log.Panic(err.Error())
+	}
+
 	imOpts := gopdf.ImageOptions{
-		X:    0,
-		Y:    0,
-		Mask: &maskOpts,
-		Rect: &gopdf.Rect{W: 400, H: 400},
+		X:            0,
+		Y:            0,
+		Mask:         &maskOpts,
+		Transparency: &transparency,
+		Rect:         &gopdf.Rect{W: 400, H: 400},
 	}
 	if err := pdf.ImageByHolderWithOptions(imgH2, imOpts); err != nil {
 		log.Panic(err.Error())

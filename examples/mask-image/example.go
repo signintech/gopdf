@@ -8,9 +8,7 @@ import (
 	"github.com/crello/gopdf"
 )
 
-//const resourcesPath = "../../test/res"
-
-const resourcesPath = "/Users/akhll/sources/crello-gopdf/test/res"
+const resourcesPath = "../../test/res"
 
 func main() {
 	pdf := gopdf.GoPdf{}

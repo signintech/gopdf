@@ -4,6 +4,6 @@ import (
 	"io"
 )
 
-type ICacheContent interface {
+type iCacheContent interface {
 	write(w io.Writer, protection *PDFProtection) error
 }

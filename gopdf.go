@@ -319,24 +319,34 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
 			gp.curr.ImgCaches = append(gp.curr.ImgCaches, imgcache)
 			gp.curr.CountOfImg++
 
-			bm := string(NormalBlendMode)
-			extGStateOpts := ExtGStateOptions{
-				SMaskOptions: &SMaskOptions{
-					X:                opts.X,
-					Y:                opts.Y,
-					Subtype:          SMaskLuminositySubtype,
-					Images:           []cacheContentImage{cacheImage},
-					ExtGStateIndexes: []int{opts.Transparency.extGStateIndex},
-				},
+			groupOpts := TransparencyXObjectGroupOptions{
+				XObjects: []cacheContentImage{cacheImage},
+				BBox: [4]float64{opts.X, opts.Y, opts.X + opts.Rect.W, opts.Y + opts.Rect.H},
+			}
+			if opts.Transparency != nil {
+				groupOpts.ExtGStateIndexes = []int{opts.Transparency.extGStateIndex}
 			}
 
+			transparencyXObjectGroup, err := GetCachedTransparencyXObjectGroup(groupOpts, gp)
+			if err != nil {
+				return 0, err
+			}
+
+			sMaskOptions := SMaskOptions{
+				Subtype:                       SMaskLuminositySubtype,
+				TransparencyXObjectGroupIndex: transparencyXObjectGroup.Index,
+			}
+			sMask := GetCachedMask(sMaskOptions, gp)
+
+			bm := NormalBlendMode
+			extGStateOpts := ExtGStateOptions{SMaskIndex: &sMask.Index}
 			if opts.Transparency != nil {
 				extGStateOpts.BlendMode = &bm
 				extGStateOpts.StrokingCA = &opts.Transparency.Alpha
 				extGStateOpts.NonStrokingCa = &opts.Transparency.Alpha
 			}
 
-			extGState, err := NewExtGState(extGStateOpts, gp)
+			extGState, err := GetCachedExtGState(extGStateOpts, gp)
 			if err != nil {
 				return 0, err
 			}
@@ -380,7 +390,7 @@ func (gp *GoPdf) imageByHolder(img ImageHolder, opts ImageOptions) error {
 		//create img object
 		imgobj := new(ImageObj)
 		if opts.Mask != nil {
-			imgobj = &ImageObj{SplittedMask: true}
+			imgobj.SplittedMask = true
 		}
 
 		imgobj.init(func() *GoPdf {
@@ -1183,7 +1193,9 @@ func (gp *GoPdf) init() {
 	gp.curr.CountOfL = 0
 	gp.curr.CountOfImg = 0 //img
 	gp.curr.ImgCaches = *new([]ImageCache)
-	gp.curr.extGStateMap = NewExtGStateMap()
+	gp.curr.sMasksMap = NewSMaskMap()
+	gp.curr.extGStatesMap = NewExtGStatesMap()
+	gp.curr.transparencyXObjectGroupsMap = NewTransparencyXObjectGroupsMap()
 	gp.curr.transparencyMap = NewTransparencyMap()
 	gp.anchors = make(map[string]anchorOption)
 	gp.curr.txtColorMode = "gray"
@@ -1433,14 +1445,14 @@ func (gp *GoPdf) saveTransparency(transparency *Transparency) (*Transparency, er
 	if ok {
 		return &cached, nil
 	} else if transparency.Alpha != DefaultAplhaValue {
-		bm := string(transparency.BlendModeType)
+		bm := transparency.BlendModeType
 		opts := ExtGStateOptions{
 			BlendMode:     &bm,
 			StrokingCA:    &transparency.Alpha,
 			NonStrokingCa: &transparency.Alpha,
 		}
 
-		extGState, err := NewExtGState(opts, gp)
+		extGState, err := GetCachedExtGState(opts, gp)
 		if err != nil {
 			return nil, err
 		}

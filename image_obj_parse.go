@@ -13,8 +13,13 @@ import (
 	"strings"
 )
 
+type ColorSpaces string
+const (
+	DeviceGray = "DeviceGray"
+)
+
 func writeMaskImgProps(w io.Writer, imginfo imgInfo) error {
-	if err := writeBaseImgProps(w, imginfo); err != nil {
+	if err := writeBaseImgProps(w, imginfo, DeviceGray); err != nil {
 		return err
 	}
 
@@ -33,7 +38,7 @@ func writeMaskImgProps(w io.Writer, imginfo imgInfo) error {
 }
 
 func writeImgProps(w io.Writer, imginfo imgInfo, splittedMask bool) error {
-	if err := writeBaseImgProps(w, imginfo); err != nil {
+	if err := writeBaseImgProps(w, imginfo, imginfo.colspace); err != nil {
 		return err
 	}
 
@@ -74,7 +79,7 @@ func writeImgProps(w io.Writer, imginfo imgInfo, splittedMask bool) error {
 	return nil
 }
 
-func writeBaseImgProps(w io.Writer, imginfo imgInfo) error {
+func writeBaseImgProps(w io.Writer, imginfo imgInfo, colorSpace string) error {
 	content := "<<\n"
 	content += "\t/Type /XObject\n"
 	content += "\t/Subtype /Image\n"
@@ -85,7 +90,7 @@ func writeBaseImgProps(w io.Writer, imginfo imgInfo) error {
 		size := len(imginfo.pal)/3 - 1
 		content += fmt.Sprintf("\t/ColorSpace [/Indexed /DeviceRGB %d %d 0 R]\n", size, imginfo.deviceRGBObjID+1)
 	} else {
-		content += fmt.Sprintf("\t/ColorSpace /%s\n", imginfo.colspace)
+		content += fmt.Sprintf("\t/ColorSpace /%s\n", colorSpace)
 		if imginfo.colspace == "DeviceCMYK" {
 			content += "\t/Decode [1 0 1 0 1 0 1 0]\n"
 		}

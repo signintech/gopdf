@@ -45,9 +45,11 @@ type Current struct {
 	//current trim box
 	trimBox *Box
 
-	extGStateMap    ExtGStateMap
-	transparency    *Transparency
-	transparencyMap TransparencyMap
+	sMasksMap                    SMaskMap
+	extGStatesMap                ExtGStatesMap
+	transparencyXObjectGroupsMap TransparencyXObjectGroupsMap
+	transparency                 *Transparency
+	transparencyMap              TransparencyMap
 }
 
 func (c *Current) setTextColor(rgb Rgb) {

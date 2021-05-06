@@ -319,7 +319,6 @@ func (c *ContentObj) GetCacheContentImage(index int, opts ImageOptions) cacheCon
 		transparency:     opts.Transparency,
 		verticalFlip:     opts.VerticalFlip,
 		horizontalFlip:   opts.HorizontalFlip,
-		extGStateIndexes: opts.extGStateIndexes,
 	}
 }
 

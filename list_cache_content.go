@@ -3,10 +3,10 @@ package gopdf
 import "io"
 
 type listCacheContent struct {
-	caches []ICacheContent
+	caches []iCacheContent
 }
 
-func (l *listCacheContent) last() ICacheContent {
+func (l *listCacheContent) last() iCacheContent {
 	max := len(l.caches)
 	if max > 0 {
 		return l.caches[max-1]
@@ -14,7 +14,7 @@ func (l *listCacheContent) last() ICacheContent {
 	return nil
 }
 
-func (l *listCacheContent) append(cache ICacheContent) {
+func (l *listCacheContent) append(cache iCacheContent) {
 	l.caches = append(l.caches, cache)
 }
 

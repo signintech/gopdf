@@ -54,8 +54,6 @@ func GetCachedTransparencyXObjectGroup(opts TransparencyXObjectGroupOptions, gp 
 		gp.curr.transparencyXObjectGroupsMap.Save(opts.GetId(), group)
 	}
 
-	group.Index = gp.addObj(group)
-
 	return group, nil
 }
 

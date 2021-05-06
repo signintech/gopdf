@@ -306,12 +306,10 @@ func (c *ContentObj) AppendStreamSetColorFill(r uint8, g uint8, b uint8) {
 	c.listCache.append(&cache)
 }
 
-//AppendStreamImage append image
-func (c *ContentObj) AppendStreamImage(index int, opts ImageOptions) cacheContentImage {
-	//fmt.Printf("index = %d",index)
+func (c *ContentObj) GetCacheContentImage(index int, opts ImageOptions) cacheContentImage {
 	h := c.getRoot().curr.pageSize.H
 
-	cache := cacheContentImage{
+	return cacheContentImage{
 		h:                h,
 		index:            index,
 		x:                opts.X,
@@ -323,11 +321,12 @@ func (c *ContentObj) AppendStreamImage(index int, opts ImageOptions) cacheConten
 		horizontalFlip:   opts.HorizontalFlip,
 		extGStateIndexes: opts.extGStateIndexes,
 	}
+}
 
+//AppendStreamImage append image
+func (c *ContentObj) AppendStreamImage(index int, opts ImageOptions) {
+	cache := c.GetCacheContentImage(index, opts)
 	c.listCache.append(&cache)
-	//c.stream.WriteString(fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", rect.W, rect.H, x, h-(y+rect.H), index+1))
-
-	return cache
 }
 
 //AppendStreamPolygon append polygon

@@ -415,7 +415,7 @@ func (gp *GoPdf) imageByHolder(img ImageHolder, opts ImageOptions) error {
 			procset.RelateXobjs = append(procset.RelateXobjs, RelateXobject{IndexOfObj: index})
 			//เก็บข้อมูลรูปเอาไว้
 			var imgcache ImageCache
-			imgcache.Index = gp.curr.CountOfImg
+			imgcache.Index = index
 			imgcache.Path = img.ID()
 			imgcache.Rect = opts.Rect
 			gp.curr.ImgCaches = append(gp.curr.ImgCaches, imgcache)

@@ -96,7 +96,7 @@ func (s TransparencyXObjectGroup) write(w io.Writer, objId int) error {
 
 	extGStates := "\t\t/ExtGState<<\n"
 	for _, extGStateIndex := range s.ExtGStateIndexes {
-		extGStates += fmt.Sprintf("\t\t\t/I%d %d 0 R\n", extGStateIndex, extGStateIndex)
+		extGStates += fmt.Sprintf("\t\t\t/GS%d %d 0 R\n", extGStateIndex+1, extGStateIndex)
 	}
 	extGStates += "\t\t>>\n"
 

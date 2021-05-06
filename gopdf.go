@@ -286,7 +286,7 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
 		opts.Transparency = cached
 	}
 
-	if cacheImageIndex == - 1 {
+	if cacheImageIndex == -1 {
 		maskImgobj := &ImageObj{IsMask: true}
 		maskImgobj.init(func() *GoPdf {
 			return gp

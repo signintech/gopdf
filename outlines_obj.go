@@ -75,7 +75,7 @@ func (o *OutlineObj) getType() string {
 
 func (o *OutlineObj) write(w io.Writer, objID int) error {
 	io.WriteString(w, "<<\n")
-	fmt.Fprintf(w, "  /Parent %d 0 R\n", o.parent + 1)
+	fmt.Fprintf(w, "  /Parent %d 0 R\n", o.parent+1)
 	if o.prev >= 0 {
 		fmt.Fprintf(w, "  /Prev %d 0 R\n", o.prev)
 	}

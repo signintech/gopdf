@@ -11,7 +11,7 @@ type CatalogObj struct { //impl IObj
 }
 
 func (c *CatalogObj) init(funcGetRoot func() *GoPdf) {
-        c.outlinesObjID = -1
+	c.outlinesObjID = -1
 
 }
 

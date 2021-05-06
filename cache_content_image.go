@@ -6,15 +6,15 @@ import (
 )
 
 type cacheContentImage struct {
-	verticalFlip     bool
-	horizontalFlip   bool
-	index            int
-	x                float64
-	y                float64
-	h                float64
-	rect             Rect
-	transparency     *Transparency
-	crop             *CropOptions
+	verticalFlip   bool
+	horizontalFlip bool
+	index          int
+	x              float64
+	y              float64
+	h              float64
+	rect           Rect
+	transparency   *Transparency
+	crop           *CropOptions
 }
 
 func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error {

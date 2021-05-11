@@ -32,7 +32,6 @@ type cacheContentText struct {
 	//---result---
 	cellWidthPdfUnit, textWidthPdfUnit float64
 	cellHeightPdfUnit                  float64
-	transparency                       *Transparency
 }
 
 func (c *cacheContentText) isSame(cache cacheContentText) bool {
@@ -124,8 +123,8 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 		return err
 	}
 
-	if c.cellOpt.Transparency != nil && c.cellOpt.Transparency.Alpha != 1 {
-		linkToGSObj := fmt.Sprintf("/GS%d gs\n", c.cellOpt.Transparency.extGStateIndex)
+	for _, extGStateIndex := range c.cellOpt.extGStateIndexes {
+		linkToGSObj := fmt.Sprintf("/GS%d gs\n", extGStateIndex)
 		if _, err := io.WriteString(w, linkToGSObj); err != nil {
 			return err
 		}

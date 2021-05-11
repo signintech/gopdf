@@ -21,4 +21,6 @@ type CellOption struct {
 	Border       int //Indicates if borders must be drawn around the cell. Possible values are: Left, Top, Right, Bottom, ALL
 	Float        int //Indicates where the current position should go after the call. Possible values are: Right, Bottom
 	Transparency *Transparency
+
+	extGStateIndexes []int
 }

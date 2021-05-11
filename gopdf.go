@@ -359,8 +359,8 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
 			return extGState.Index+1, nil
 		}
 	} else {
-		if opts.Mask.Rect == nil {
-			opts.Mask.Rect = gp.curr.ImgCaches[cacheImageIndex].Rect
+		if opts.Rect == nil {
+			opts.Rect = gp.curr.ImgCaches[cacheImageIndex].Rect
 		}
 
 		gp.getContent().AppendStreamImage(cacheImageIndex, opts)
@@ -693,26 +693,23 @@ func (gp *GoPdf) Text(text string) error {
 
 //CellWithOption create cell of text ( use current x,y is upper-left corner of cell)
 func (gp *GoPdf) CellWithOption(rectangle *Rect, text string, opt CellOption) error {
-	if opt.Transparency == nil {
-		opt.Transparency = gp.curr.transparency
-	} else {
-		cached, err := gp.saveTransparency(opt.Transparency)
-		if err != nil {
-			return err
-		}
+	transparency, err := gp.getCachedTransparency(opt.Transparency)
+	if err != nil {
+		return err
+	}
 
-		opt.Transparency = cached
+	if transparency != nil {
+		opt.extGStateIndexes = append(opt.extGStateIndexes, transparency.extGStateIndex)
 	}
 
 	rectangle = rectangle.UnitsToPoints(gp.config.Unit)
-	err := gp.curr.FontISubset.AddChars(text)
-	if err != nil {
+	if err := gp.curr.FontISubset.AddChars(text); err != nil {
 		return err
 	}
-	err = gp.getContent().AppendStreamSubsetFont(rectangle, text, opt)
-	if err != nil {
+	if err := gp.getContent().AppendStreamSubsetFont(rectangle, text, opt); err != nil {
 		return err
 	}
+
 	return nil
 }
 

@@ -1,7 +1,6 @@
 package gopdf
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"sync"
@@ -14,6 +13,7 @@ type TransparencyXObjectGroup struct {
 	ExtGStateIndexes []int
 	XObjects         []cacheContentImage
 
+	getRoot func() *GoPdf
 	pdfProtection *PDFProtection
 }
 
@@ -50,6 +50,9 @@ func GetCachedTransparencyXObjectGroup(opts TransparencyXObjectGroupOptions, gp 
 			ExtGStateIndexes: opts.ExtGStateIndexes,
 		}
 		group.Index = gp.addObj(group)
+		group.init(func() *GoPdf {
+			return gp
+		})
 
 		gp.curr.transparencyXObjectGroupsMap.Save(opts.GetId(), group)
 	}
@@ -57,7 +60,9 @@ func GetCachedTransparencyXObjectGroup(opts TransparencyXObjectGroupOptions, gp 
 	return group, nil
 }
 
-func (s TransparencyXObjectGroup) init(func() *GoPdf) {}
+func (s TransparencyXObjectGroup) init(funcGetRoot func() *GoPdf) {
+	s.getRoot = funcGetRoot
+}
 
 func (s *TransparencyXObjectGroup) setProtection(p *PDFProtection) {
 	s.pdfProtection = p
@@ -72,7 +77,9 @@ func (s TransparencyXObjectGroup) getType() string {
 }
 
 func (s TransparencyXObjectGroup) write(w io.Writer, objId int) error {
-	streamBuff := new(bytes.Buffer)
+	streamBuff := GetBuffer()
+	defer PutBuffer(streamBuff)
+
 	for _, XObject := range s.XObjects {
 		if err := XObject.write(streamBuff, nil); err != nil {
 			return err
@@ -87,6 +94,7 @@ func (s TransparencyXObjectGroup) write(w io.Writer, objId int) error {
 	content += fmt.Sprintf("\t/BBox [%.3F %.3F %.3F %.3F]\n", s.BBox[0], s.BBox[1], s.BBox[2], s.BBox[3])
 	content += "\t/Group<</CS /DeviceGray /S /Transparency>>\n"
 	content += "\t/Resources<<\n"
+	content += "\t\t/ProcSet [/PDF]\n"
 
 	xObjects := "\t\t/XObject<<\n"
 	for _, XObject := range s.XObjects {

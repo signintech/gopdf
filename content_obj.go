@@ -45,8 +45,6 @@ func (c *ContentObj) write(w io.Writer, objID int) error {
 		}
 	}
 
-	streamlen := buff.Len()
-
 	if _, err := io.WriteString(w, "<<\n"); err != nil {
 		return err
 	}
@@ -56,7 +54,7 @@ func (c *ContentObj) write(w io.Writer, objID int) error {
 			return err
 		}
 	}
-	if _, err := fmt.Fprintf(w, "/Length %d\n", streamlen); err != nil {
+	if _, err := fmt.Fprintf(w, "/Length %d\n", buff.Len()); err != nil {
 		return err
 	}
 	if _, err := io.WriteString(w, ">>\n"); err != nil {

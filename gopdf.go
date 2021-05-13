@@ -331,10 +331,13 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
 				ExtGStateIndexes: opts.extGStateIndexes,
 				XObjects:         []cacheContentImage{cacheImage},
 				BBox: [4]float64{
-					opts.X,
-					gp.curr.pageSize.H - opts.Y - opts.Rect.H,
+					// correct BBox values is [opts.X, gp.curr.pageSize.H - opts.Y - opts.Rect.H, opts.X + opts.Rect.W, gp.curr.pageSize.H - opts.Y]
+					// but if compress pdf through ghostscript result file can't open correctly in mac viewer, because mac viewer can't parse BBox value correctly
+					// all other viewers parse BBox correctly (like Adobe Acrobat Reader, Chrome, even Internet Explorer)
+					// that's why we need to set [0, 0, opts.X + opts.Rect.W, gp.curr.pageSize.H - opts.Y]
+					0,
+					0,
 					opts.X + opts.Rect.W,
-					//opts.Y + opts.Rect.H,
 					gp.curr.pageSize.H - opts.Y,
 				},
 			}

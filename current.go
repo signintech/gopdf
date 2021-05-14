@@ -47,7 +47,6 @@ type Current struct {
 
 	sMasksMap                    SMaskMap
 	extGStatesMap                ExtGStatesMap
-	transparencyXObjectGroupsMap TransparencyXObjectGroupsMap
 	transparency                 *Transparency
 	transparencyMap              TransparencyMap
 }

@@ -284,16 +284,17 @@ func (gp *GoPdf) ImageByHolderWithOptions(img ImageHolder, opts ImageOptions) er
 }
 
 func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
-	cacheImageIndex := -1
+	var cacheImage *ImageCache
+	var cacheContentImage *cacheContentImage
 
 	for _, imgcache := range gp.curr.ImgCaches {
 		if img.ID() == imgcache.Path {
-			cacheImageIndex = imgcache.Index
+			cacheImage = &imgcache
 			break
 		}
 	}
 
-	if cacheImageIndex == -1 {
+	if cacheImage == nil {
 		maskImgobj := &ImageObj{IsMask: true}
 		maskImgobj.init(func() *GoPdf {
 			return gp
@@ -317,7 +318,7 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
 
 		if gp.indexOfProcSet != -1 {
 			index := gp.addObj(maskImgobj)
-			cacheImage := gp.getContent().GetCacheContentImage(index, opts)
+			cacheContentImage = gp.getContent().GetCacheContentImage(index, opts)
 
 			imgcache := ImageCache{
 				Index: index,
@@ -326,50 +327,61 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
 			}
 			gp.curr.ImgCaches = append(gp.curr.ImgCaches, imgcache)
 			gp.curr.CountOfImg++
-
-			groupOpts := TransparencyXObjectGroupOptions{
-				ExtGStateIndexes: opts.extGStateIndexes,
-				XObjects:         []cacheContentImage{cacheImage},
-				BBox: [4]float64{
-					// correct BBox values is [opts.X, gp.curr.pageSize.H - opts.Y - opts.Rect.H, opts.X + opts.Rect.W, gp.curr.pageSize.H - opts.Y]
-					// but if compress pdf through ghostscript result file can't open correctly in mac viewer, because mac viewer can't parse BBox value correctly
-					// all other viewers parse BBox correctly (like Adobe Acrobat Reader, Chrome, even Internet Explorer)
-					// that's why we need to set [0, 0, opts.X + opts.Rect.W, gp.curr.pageSize.H - opts.Y]
-					0,
-					0,
-					opts.X + opts.Rect.W,
-					gp.curr.pageSize.H - opts.Y,
-				},
-			}
-
-			transparencyXObjectGroup, err := GetCachedTransparencyXObjectGroup(groupOpts, gp)
-			if err != nil {
-				return 0, err
-			}
-
-			sMaskOptions := SMaskOptions{
-				Subtype:                       SMaskLuminositySubtype,
-				TransparencyXObjectGroupIndex: transparencyXObjectGroup.Index,
-			}
-			sMask := GetCachedMask(sMaskOptions, gp)
-
-			extGStateOpts := ExtGStateOptions{SMaskIndex: &sMask.Index}
-			extGState, err := GetCachedExtGState(extGStateOpts, gp)
-			if err != nil {
-				return 0, err
-			}
-
-			return extGState.Index+1, nil
 		}
-	} else {
+ 	} else {
 		if opts.Rect == nil {
-			opts.Rect = gp.curr.ImgCaches[cacheImageIndex].Rect
+			opts.Rect = gp.curr.ImgCaches[cacheImage.Index].Rect
 		}
 
-		gp.getContent().AppendStreamImage(cacheImageIndex, opts)
+		cacheContentImage = gp.getContent().GetCacheContentImage(cacheImage.Index, opts)
 	}
 
-	return 0, nil
+	if cacheContentImage != nil {
+		extGStateInd, err := gp.createTransparencyXObjectGroup(cacheContentImage, opts)
+		if err != nil {
+			return 0, err
+		}
+
+		return extGStateInd, nil
+	}
+
+	return 0, errors.New("cacheContentImage is undefined")
+}
+
+func (gp *GoPdf) createTransparencyXObjectGroup(image *cacheContentImage, opts ImageOptions) (int, error) {
+	groupOpts := TransparencyXObjectGroupOptions{
+		ExtGStateIndexes: opts.extGStateIndexes,
+		XObjects:         []cacheContentImage{*image},
+		BBox: [4]float64{
+			// correct BBox values is [opts.X, gp.curr.pageSize.H - opts.Y - opts.Rect.H, opts.X + opts.Rect.W, gp.curr.pageSize.H - opts.Y]
+			// but if compress pdf through ghostscript result file can't open correctly in mac viewer, because mac viewer can't parse BBox value correctly
+			// all other viewers parse BBox correctly (like Adobe Acrobat Reader, Chrome, even Internet Explorer)
+			// that's why we need to set [0, 0, opts.X + opts.Rect.W, gp.curr.pageSize.H - opts.Y]
+			0,
+			0,
+			opts.X + opts.Rect.W,
+			gp.curr.pageSize.H - opts.Y,
+		},
+	}
+
+	transparencyXObjectGroup, err := GetCachedTransparencyXObjectGroup(groupOpts, gp)
+	if err != nil {
+		return 0, err
+	}
+
+	sMaskOptions := SMaskOptions{
+		Subtype:                       SMaskLuminositySubtype,
+		TransparencyXObjectGroupIndex: transparencyXObjectGroup.Index,
+	}
+	sMask := GetCachedMask(sMaskOptions, gp)
+
+	extGStateOpts := ExtGStateOptions{SMaskIndex: &sMask.Index}
+	extGState, err := GetCachedExtGState(extGStateOpts, gp)
+	if err != nil {
+		return 0, err
+	}
+
+	return extGState.Index+1, nil
 }
 
 func (gp *GoPdf) imageByHolder(img ImageHolder, opts ImageOptions) error {
@@ -1189,7 +1201,6 @@ func (gp *GoPdf) init() {
 	gp.curr.ImgCaches = *new([]ImageCache)
 	gp.curr.sMasksMap = NewSMaskMap()
 	gp.curr.extGStatesMap = NewExtGStatesMap()
-	gp.curr.transparencyXObjectGroupsMap = NewTransparencyXObjectGroupsMap()
 	gp.curr.transparencyMap = NewTransparencyMap()
 	gp.anchors = make(map[string]anchorOption)
 	gp.curr.txtColorMode = "gray"

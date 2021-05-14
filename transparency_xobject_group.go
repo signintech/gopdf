@@ -3,7 +3,6 @@ package gopdf
 import (
 	"fmt"
 	"io"
-	"sync"
 )
 
 type TransparencyXObjectGroup struct {
@@ -24,38 +23,17 @@ type TransparencyXObjectGroupOptions struct {
 	XObjects         []cacheContentImage
 }
 
-func (groupOpts TransparencyXObjectGroupOptions) GetId() string {
-	extGStateId := "ExtGState"
-	for _, extGStateInd := range groupOpts.ExtGStateIndexes {
-		extGStateId += fmt.Sprintf("_%d", extGStateInd)
-	}
-
-	xObjectId := "XObject"
-	for _, xObject := range groupOpts.XObjects {
-		xObjectId += fmt.Sprintf("_%d", xObject.index)
-	}
-
-	id := fmt.Sprintf("%s;%s", extGStateId, xObjectId)
-
-	return id
-}
-
 func GetCachedTransparencyXObjectGroup(opts TransparencyXObjectGroupOptions, gp *GoPdf) (TransparencyXObjectGroup, error) {
-	group, ok := gp.curr.transparencyXObjectGroupsMap.Find(opts)
-	if !ok {
-		group = TransparencyXObjectGroup{
-			BBox:             opts.BBox,
-			XObjects:         opts.XObjects,
-			pdfProtection:    opts.Protection,
-			ExtGStateIndexes: opts.ExtGStateIndexes,
-		}
-		group.Index = gp.addObj(group)
-		group.init(func() *GoPdf {
-			return gp
-		})
-
-		gp.curr.transparencyXObjectGroupsMap.Save(opts.GetId(), group)
+	group := TransparencyXObjectGroup{
+		BBox:             opts.BBox,
+		XObjects:         opts.XObjects,
+		pdfProtection:    opts.Protection,
+		ExtGStateIndexes: opts.ExtGStateIndexes,
 	}
+	group.Index = gp.addObj(group)
+	group.init(func() *GoPdf {
+		return gp
+	})
 
 	return group, nil
 }
@@ -130,40 +108,4 @@ func (s TransparencyXObjectGroup) write(w io.Writer, objId int) error {
 	}
 
 	return nil
-}
-
-type TransparencyXObjectGroupsMap struct {
-	syncer sync.Mutex
-	table  map[string]TransparencyXObjectGroup
-}
-
-func NewTransparencyXObjectGroupsMap() TransparencyXObjectGroupsMap {
-	return TransparencyXObjectGroupsMap{
-		syncer: sync.Mutex{},
-		table:  make(map[string]TransparencyXObjectGroup),
-	}
-}
-
-func (tgm *TransparencyXObjectGroupsMap) Find(tgmOpts TransparencyXObjectGroupOptions) (TransparencyXObjectGroup, bool) {
-	key := tgmOpts.GetId()
-
-	tgm.syncer.Lock()
-	defer tgm.syncer.Unlock()
-
-	t, ok := tgm.table[key]
-	if !ok {
-		return TransparencyXObjectGroup{}, false
-	}
-
-	return t, ok
-
-}
-
-func (tgm *TransparencyXObjectGroupsMap) Save(id string, group TransparencyXObjectGroup) TransparencyXObjectGroup {
-	tgm.syncer.Lock()
-	defer tgm.syncer.Unlock()
-
-	tgm.table[id] = group
-
-	return group
 }

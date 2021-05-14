@@ -304,10 +304,10 @@ func (c *ContentObj) AppendStreamSetColorFill(r uint8, g uint8, b uint8) {
 	c.listCache.append(&cache)
 }
 
-func (c *ContentObj) GetCacheContentImage(index int, opts ImageOptions) cacheContentImage {
+func (c *ContentObj) GetCacheContentImage(index int, opts ImageOptions) *cacheContentImage {
 	h := c.getRoot().curr.pageSize.H
 
-	return cacheContentImage{
+	return &cacheContentImage{
 		pageHeight:       h,
 		index:            index,
 		x:                opts.X,
@@ -323,7 +323,7 @@ func (c *ContentObj) GetCacheContentImage(index int, opts ImageOptions) cacheCon
 //AppendStreamImage append image
 func (c *ContentObj) AppendStreamImage(index int, opts ImageOptions) {
 	cache := c.GetCacheContentImage(index, opts)
-	c.listCache.append(&cache)
+	c.listCache.append(cache)
 }
 
 //AppendStreamPolygon append polygon

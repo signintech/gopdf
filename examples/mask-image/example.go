@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/crello/gopdf"
+	"github.com/signintech/gopdf"
 )
 
 const resourcesPath = "../../test/res"

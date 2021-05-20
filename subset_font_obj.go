@@ -3,10 +3,9 @@ package gopdf
 import (
 	"errors"
 	"fmt"
-
 	"io"
 
-	"github.com/signintech/gopdf/fontmaker/core"
+	"github.com/crello/gopdf/fontmaker/core"
 )
 
 //ErrCharNotFound char not found

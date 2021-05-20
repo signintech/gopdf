@@ -319,6 +319,8 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
 		if gp.indexOfProcSet != -1 {
 			index := gp.addObj(maskImgobj)
 			cacheContentImage = gp.getContent().GetCacheContentImage(index, opts)
+			procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
+			procset.RelateXobjs = append(procset.RelateXobjs, RelateXobject{IndexOfObj: index})
 
 			imgcache := ImageCache{
 				Index: index,
@@ -349,6 +351,25 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
 }
 
 func (gp *GoPdf) createTransparencyXObjectGroup(image *cacheContentImage, opts ImageOptions) (int, error) {
+	x1 := opts.X
+	if x1 < 0 {
+		x1 = 0
+	}
+	x2 := x1 + opts.Rect.W
+	if x1 < 0 {
+		x2 = 0
+	}
+
+	y1 := gp.curr.pageSize.H - opts.Y - opts.Rect.H
+	if y1 < 0 {
+		y1 = 0
+	}
+
+	y2 := gp.curr.pageSize.H - opts.Y
+	if y2 < 0 {
+		y2 = 0
+	}
+
 	groupOpts := TransparencyXObjectGroupOptions{
 		ExtGStateIndexes: opts.extGStateIndexes,
 		XObjects:         []cacheContentImage{*image},
@@ -357,10 +378,11 @@ func (gp *GoPdf) createTransparencyXObjectGroup(image *cacheContentImage, opts I
 			// but if compress pdf through ghostscript result file can't open correctly in mac viewer, because mac viewer can't parse BBox value correctly
 			// all other viewers parse BBox correctly (like Adobe Acrobat Reader, Chrome, even Internet Explorer)
 			// that's why we need to set [0, 0, opts.X + opts.Rect.W, gp.curr.pageSize.H - opts.Y]
-			0,
-			0,
-			opts.X + opts.Rect.W,
-			gp.curr.pageSize.H - opts.Y,
+			//0,
+			//0,
+			//opts.X + opts.Rect.W,
+			//gp.curr.pageSize.H - opts.Y,
+			x1, y1, x2, y2,
 		},
 	}
 

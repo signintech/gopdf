@@ -361,8 +361,8 @@ func (gp *GoPdf) createTransparencyXObjectGroup(image *cacheContentImage, opts I
 			// that's why we need to set [0, 0, opts.X + opts.Rect.W, gp.curr.pageSize.H - opts.Y]
 			0,
 			0,
-			opts.X + opts.Rect.W,
-			gp.curr.pageSize.H - opts.Y,
+			gp.curr.pageSize.W,
+			gp.curr.pageSize.H,
 		},
 	}
 

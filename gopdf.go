@@ -358,7 +358,7 @@ func (gp *GoPdf) createTransparencyXObjectGroup(image *cacheContentImage, opts I
 			// correct BBox values is [opts.X, gp.curr.pageSize.H - opts.Y - opts.Rect.H, opts.X + opts.Rect.W, gp.curr.pageSize.H - opts.Y]
 			// but if compress pdf through ghostscript result file can't open correctly in mac viewer, because mac viewer can't parse BBox value correctly
 			// all other viewers parse BBox correctly (like Adobe Acrobat Reader, Chrome, even Internet Explorer)
-			// that's why we need to set [0, 0, opts.X + opts.Rect.W, gp.curr.pageSize.H - opts.Y]
+			// that's why we need to set [0, 0, gp.curr.pageSize.W, gp.curr.pageSize.H]
 			0,
 			0,
 			gp.curr.pageSize.W,

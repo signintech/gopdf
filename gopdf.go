@@ -327,10 +327,10 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
 				Path:  img.ID(),
 				Rect:  opts.Rect,
 			}
-			gp.curr.ImgCaches = append(gp.curr.ImgCaches, imgcache)
+			gp.curr.ImgCaches[index] = imgcache
 			gp.curr.CountOfImg++
 		}
- 	} else {
+	} else {
 		if opts.Rect == nil {
 			opts.Rect = gp.curr.ImgCaches[cacheImage.Index].Rect
 		}
@@ -383,7 +383,7 @@ func (gp *GoPdf) createTransparencyXObjectGroup(image *cacheContentImage, opts I
 		return 0, err
 	}
 
-	return extGState.Index+1, nil
+	return extGState.Index + 1, nil
 }
 
 func (gp *GoPdf) imageByHolder(img ImageHolder, opts ImageOptions) error {
@@ -435,7 +435,7 @@ func (gp *GoPdf) imageByHolder(img ImageHolder, opts ImageOptions) error {
 			imgcache.Index = index
 			imgcache.Path = img.ID()
 			imgcache.Rect = opts.Rect
-			gp.curr.ImgCaches = append(gp.curr.ImgCaches, imgcache)
+			gp.curr.ImgCaches[index] = imgcache
 			gp.curr.CountOfImg++
 		}
 
@@ -1199,8 +1199,8 @@ func (gp *GoPdf) init() {
 	gp.curr.IndexOfPageObj = -1
 	gp.curr.CountOfFont = 0
 	gp.curr.CountOfL = 0
-	gp.curr.CountOfImg = 0 //img
-	gp.curr.ImgCaches = *new([]ImageCache)
+	gp.curr.CountOfImg = 0                       //img
+	gp.curr.ImgCaches = make(map[int]ImageCache) //= *new([]ImageCache)
 	gp.curr.sMasksMap = NewSMaskMap()
 	gp.curr.extGStatesMap = NewExtGStatesMap()
 	gp.curr.transparencyMap = NewTransparencyMap()

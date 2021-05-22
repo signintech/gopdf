@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/crello/gopdf/fontmaker/core"
+	"github.com/signintech/gopdf/fontmaker/core"
 	//"runtime/debug"
 )
 

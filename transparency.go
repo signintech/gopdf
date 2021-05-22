@@ -10,31 +10,31 @@ import (
 type BlendModeType string
 
 const (
-	Hue        BlendModeType = "/Hue"
-	Color      BlendModeType = "/Color"
-	Normal     BlendModeType = "/Normal"
-	Darken     BlendModeType = "/Darken"
-	Screen     BlendModeType = "/Screen"
-	Overlay    BlendModeType = "/Overlay"
-	Lighten    BlendModeType = "/Lighten"
-	Multiply   BlendModeType = "/Multiply"
-	Exclusion  BlendModeType = "/Exclusion"
-	ColorBurn  BlendModeType = "/ColorBurn"
-	HardLight  BlendModeType = "/HardLight"
-	SoftLight  BlendModeType = "/SoftLight"
-	Difference BlendModeType = "/Difference"
-	Saturation BlendModeType = "/Saturation"
-	Luminosity BlendModeType = "/Luminosity"
-	ColorDodge BlendModeType = "/ColorDodge"
+	Hue             BlendModeType = "/Hue"
+	Color           BlendModeType = "/Color"
+	NormalBlendMode BlendModeType = "/Normal"
+	Darken          BlendModeType = "/Darken"
+	Screen          BlendModeType = "/Screen"
+	Overlay         BlendModeType = "/Overlay"
+	Lighten         BlendModeType = "/Lighten"
+	Multiply        BlendModeType = "/Multiply"
+	Exclusion       BlendModeType = "/Exclusion"
+	ColorBurn       BlendModeType = "/ColorBurn"
+	HardLight       BlendModeType = "/HardLight"
+	SoftLight       BlendModeType = "/SoftLight"
+	Difference      BlendModeType = "/Difference"
+	Saturation      BlendModeType = "/Saturation"
+	Luminosity      BlendModeType = "/Luminosity"
+	ColorDodge      BlendModeType = "/ColorDodge"
 )
 
 const DefaultAplhaValue = 1
 
 // Transparency defines an object alpha.
 type Transparency struct {
-	indexOfExtGState int
-	Alpha            float64
-	BlendModeType    BlendModeType
+	extGStateIndex int
+	Alpha          float64
+	BlendModeType  BlendModeType
 }
 
 func NewTransparency(alpha float64, blendModeType string) (Transparency, error) {
@@ -102,8 +102,8 @@ func defineBlendModeType(bmType string) (BlendModeType, error) {
 		return Hue, nil
 	case string(Color):
 		return Color, nil
-	case "", string(Normal):
-		return Normal, nil
+	case "", string(NormalBlendMode):
+		return NormalBlendMode, nil
 	case string(Darken):
 		return Darken, nil
 	case string(Screen):

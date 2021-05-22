@@ -3,15 +3,12 @@ package gopdf
 import (
 	"bytes"
 	"fmt"
-
 	"image"
-
 	// Packages image/jpeg and image/png are not used explicitly in the code below,
 	// but are imported for their initialization side-effect, which allows
 	// image.Decode to understand JPEG formatted images.
 	_ "image/jpeg"
 	_ "image/png"
-
 	"io"
 	"io/ioutil"
 	"log"
@@ -21,7 +18,8 @@ import (
 //ImageObj image object
 type ImageObj struct {
 	//imagepath string
-
+	IsMask        bool
+	SplittedMask  bool
 	rawImgReader  *bytes.Reader
 	imginfo       imgInfo
 	pdfProtection *PDFProtection
@@ -41,14 +39,20 @@ func (i *ImageObj) protection() *PDFProtection {
 }
 
 func (i *ImageObj) write(w io.Writer, objID int) error {
+	data := i.imginfo.data
 
-	err := writeImgProp(w, i.imginfo)
-	if err != nil {
-		return err
+	if i.IsMask {
+		data = i.imginfo.smask
+		if err := writeMaskImgProps(w, i.imginfo); err != nil {
+			return err
+		}
+	} else {
+		if err := writeImgProps(w, i.imginfo, i.SplittedMask); err != nil {
+			return err
+		}
 	}
 
-
-	if _, err := fmt.Fprintf(w, "/Length %d\n>>\n", len(i.imginfo.data)); err != nil {
+	if _, err := fmt.Fprintf(w, "\t/Length %d\n>>\n", len(data)); err != nil {
 		return err
 	}
 
@@ -57,7 +61,7 @@ func (i *ImageObj) write(w io.Writer, objID int) error {
 	}
 
 	if i.protection() != nil {
-		tmp, err := rc4Cip(i.protection().objectkey(objID), i.imginfo.data)
+		tmp, err := rc4Cip(i.protection().objectkey(objID), data)
 		if err != nil {
 			return err
 		}
@@ -69,7 +73,7 @@ func (i *ImageObj) write(w io.Writer, objID int) error {
 			return err
 		}
 	} else {
-		if _, err := w.Write(i.imginfo.data); err != nil {
+		if _, err := w.Write(data); err != nil {
 			return err
 		}
 	}

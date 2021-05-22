@@ -24,7 +24,7 @@ type Current struct {
 	//img
 	CountOfImg int
 	//cache of image in pdf file
-	ImgCaches []ImageCache
+	ImgCaches map[int]ImageCache
 
 	//text color mode
 	txtColorMode string //color, gray
@@ -45,6 +45,8 @@ type Current struct {
 	//current trim box
 	trimBox *Box
 
+	sMasksMap       SMaskMap
+	extGStatesMap   ExtGStatesMap
 	transparency    *Transparency
 	transparencyMap TransparencyMap
 }

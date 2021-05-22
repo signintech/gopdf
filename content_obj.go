@@ -45,8 +45,6 @@ func (c *ContentObj) write(w io.Writer, objID int) error {
 		}
 	}
 
-	streamlen := buff.Len()
-
 	if _, err := io.WriteString(w, "<<\n"); err != nil {
 		return err
 	}
@@ -56,7 +54,7 @@ func (c *ContentObj) write(w io.Writer, objID int) error {
 			return err
 		}
 	}
-	if _, err := fmt.Fprintf(w, "/Length %d\n", streamlen); err != nil {
+	if _, err := fmt.Fprintf(w, "/Length %d\n", buff.Len()); err != nil {
 		return err
 	}
 	if _, err := io.WriteString(w, ">>\n"); err != nil {
@@ -306,25 +304,26 @@ func (c *ContentObj) AppendStreamSetColorFill(r uint8, g uint8, b uint8) {
 	c.listCache.append(&cache)
 }
 
-//AppendStreamImage append image
-func (c *ContentObj) AppendStreamImage(index int, opts ImageOptions) {
-	//fmt.Printf("index = %d",index)
+func (c *ContentObj) GetCacheContentImage(index int, opts ImageOptions) *cacheContentImage {
 	h := c.getRoot().curr.pageSize.H
 
-	cache := cacheContentImage{
-		h:              h,
-		index:          index,
-		x:              opts.X,
-		y:              opts.Y,
-		rect:           *opts.Rect,
-		crop:           opts.Crop,
-		transparency:   opts.Transparency,
-		verticalFlip:   opts.VerticalFlip,
-		horizontalFlip: opts.HorizontalFlip,
+	return &cacheContentImage{
+		pageHeight:       h,
+		index:            index,
+		x:                opts.X,
+		y:                opts.Y,
+		rect:             *opts.Rect,
+		crop:             opts.Crop,
+		verticalFlip:     opts.VerticalFlip,
+		horizontalFlip:   opts.HorizontalFlip,
+		extGStateIndexes: opts.extGStateIndexes,
 	}
+}
 
-	c.listCache.append(&cache)
-	//c.stream.WriteString(fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", rect.W, rect.H, x, h-(y+rect.H), index+1))
+//AppendStreamImage append image
+func (c *ContentObj) AppendStreamImage(index int, opts ImageOptions) {
+	cache := c.GetCacheContentImage(index, opts)
+	c.listCache.append(cache)
 }
 
 //AppendStreamPolygon append polygon

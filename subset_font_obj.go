@@ -3,7 +3,6 @@ package gopdf
 import (
 	"errors"
 	"fmt"
-
 	"io"
 
 	"github.com/signintech/gopdf/fontmaker/core"

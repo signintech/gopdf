@@ -27,12 +27,24 @@ func (o *OutlinesObj) getType() string {
 }
 
 func (o *OutlinesObj) write(w io.Writer, objID int) error {
-	io.WriteString(w, "<<\n")
-	fmt.Fprintf(w, "  /Type /%s\n", o.getType())
-	fmt.Fprintf(w, "  /Count %d\n", o.count)
-	fmt.Fprintf(w, "  /First %d 0 R\n", o.first)
-	fmt.Fprintf(w, "  /Last %d 0 R\n", o.last)
-	io.WriteString(w, ">>\n")
+	content := "<<\n"
+	content += fmt.Sprintf("\t/Type /%s\n", o.getType())
+	content += fmt.Sprintf("\t/Count %d\n", o.count)
+
+	if o.first >= 0 {
+		content += fmt.Sprintf("\t/First %d 0 R\n", o.first)
+	}
+
+	if o.last >= 0 {
+		content += fmt.Sprintf("\t/Last %d 0 R\n", o.last)
+	}
+
+	content += ">>\n"
+
+	if _, err := io.WriteString(w, content); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -75,7 +87,7 @@ func (o *OutlineObj) getType() string {
 
 func (o *OutlineObj) write(w io.Writer, objID int) error {
 	io.WriteString(w, "<<\n")
-	fmt.Fprintf(w, "  /Parent %d 0 R\n", o.parent + 1)
+	fmt.Fprintf(w, "  /Parent %d 0 R\n", o.parent+1)
 	if o.prev >= 0 {
 		fmt.Fprintf(w, "  /Prev %d 0 R\n", o.prev)
 	}

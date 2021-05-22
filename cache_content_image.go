@@ -6,15 +6,15 @@ import (
 )
 
 type cacheContentImage struct {
-	verticalFlip   bool
-	horizontalFlip bool
-	index          int
-	x              float64
-	y              float64
-	h              float64
-	rect           Rect
-	transparency   *Transparency
-	crop           *CropOptions
+	verticalFlip     bool
+	horizontalFlip   bool
+	index            int
+	x                float64
+	y                float64
+	pageHeight       float64
+	rect             Rect
+	crop             *CropOptions
+	extGStateIndexes []int
 }
 
 func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error {
@@ -23,8 +23,8 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 
 	contentStream := "q\n"
 
-	if c.transparency != nil && c.transparency.Alpha != 1 {
-		contentStream += fmt.Sprintf("/GS%d gs\n", c.transparency.indexOfExtGState)
+	for _, extGStateIndex := range c.extGStateIndexes {
+		contentStream += fmt.Sprintf("/GS%d gs\n", extGStateIndex)
 	}
 
 	if c.horizontalFlip || c.verticalFlip {
@@ -47,7 +47,7 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 			clippingX = -clippingX - c.crop.Width
 		}
 
-		clippingY := c.h - (c.y + c.crop.Height)
+		clippingY := c.pageHeight - (c.y + c.crop.Height)
 		if c.verticalFlip {
 			clippingY = -clippingY - c.crop.Height
 		}
@@ -57,7 +57,7 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 			startX = -startX - width
 		}
 
-		startY := c.h - (c.y - c.crop.Y + c.rect.H)
+		startY := c.pageHeight - (c.y - c.crop.Y + c.rect.H)
 		if c.verticalFlip {
 			startY = -startY - height
 		}
@@ -66,7 +66,7 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 		contentStream += fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", width, height, startX, startY, c.index+1)
 	} else {
 		x := c.x
-		y := c.h - (c.y + height)
+		y := c.pageHeight - (c.y + height)
 
 		if c.horizontalFlip {
 			x = -x - width

@@ -22,47 +22,43 @@ func (pr *ProcSetObj) init(funcGetRoot func() *GoPdf) {
 }
 
 func (pr *ProcSetObj) write(w io.Writer, objID int) error {
+	content := "<<\n"
+	content += "\t/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]\n"
 
-	io.WriteString(w, "<<\n")
-	io.WriteString(w, "/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]\n")
-	io.WriteString(w, "/Font <<\n")
-	//me.buffer.WriteString("/F1 9 0 R
-	//me.buffer.WriteString("/F2 12 0 R
-	//me.buffer.WriteString("/F3 15 0 R
-	i := 0
-	max := len(pr.Relates)
-	for i < max {
-		realte := pr.Relates[i]
-		fmt.Fprintf(w, "      /F%d %d 0 R\n", realte.CountOfFont+1, realte.IndexOfObj+1)
-		i++
+	fonts := "\t/Font <<\n"
+	for _, relate := range pr.Relates {
+		fonts += fmt.Sprintf("\t\t/F%d %d 0 R\n", relate.CountOfFont+1, relate.IndexOfObj+1)
 	}
-	io.WriteString(w, ">>\n")
-	io.WriteString(w, "/XObject <<\n")
-	i = 0
-	max = len(pr.RelateXobjs)
-	for i < max {
-		fmt.Fprintf(w, "/I%d %d 0 R\n", pr.getRoot().curr.CountOfL+1, pr.RelateXobjs[i].IndexOfObj+1)
-		pr.getRoot().curr.CountOfL++
-		i++
-	}
+	fonts += "\t>>\n"
 
+	content += fonts
+
+	xobjects := "\t/XObject <<\n"
+	for _, XObject := range pr.RelateXobjs {
+		xobjects += fmt.Sprintf("\t\t/I%d %d 0 R\n", XObject.IndexOfObj+1, XObject.IndexOfObj+1)
+	}
 	// Write imported template name and their ids
 	for tplName, objID := range pr.ImportedTemplateIds {
-		io.WriteString(w, fmt.Sprintf("%s %d 0 R\n", tplName, objID))
+		xobjects += fmt.Sprintf("\t\t%s %d 0 R\n", tplName, objID)
 	}
+	xobjects += "\t>>\n"
 
-	io.WriteString(w, ">>\n")
+	content += xobjects
 
-	io.WriteString(w, "/ExtGState <<\n")
-
+	extGStates := "\t/ExtGState <<\n"
 	for _, extGState := range pr.ExtGStates {
-		gsIndex := extGState.Index + 1
-		fmt.Fprintf(w, "/GS%d %d 0 R\n", gsIndex, gsIndex)
-		pr.getRoot().curr.CountOfL++
+		extGStates += fmt.Sprintf("\t\t/GS%d %d 0 R\n", extGState.Index+1, extGState.Index+1)
 	}
-	io.WriteString(w, ">>\n")
+	extGStates += "\t>>\n"
 
-	io.WriteString(w, ">>\n")
+	content += extGStates
+
+	content += ">>\n"
+
+	if _, err := io.WriteString(w, content); err != nil {
+		return err
+	}
+
 	return nil
 }
 

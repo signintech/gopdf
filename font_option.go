@@ -14,15 +14,15 @@ const Bold = 2 //000010
 const Underline = 4 //000100
 
 func getConvertedStyle(fontStyle string) (style int) {
-	fontStyle  = strings.ToUpper(fontStyle)
+	fontStyle = strings.ToUpper(fontStyle)
 	if strings.Contains(fontStyle, "B") {
-		style=style|Bold
+		style = style | Bold
 	}
 	if strings.Contains(fontStyle, "I") {
-		style=style|Italic
+		style = style | Italic
 	}
-	if strings.Contains(fontStyle, "U"){
-		style=style|Underline
+	if strings.Contains(fontStyle, "U") {
+		style = style | Underline
 	}
 	return
 }

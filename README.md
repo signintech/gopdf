@@ -9,6 +9,7 @@ gopdf is a simple library for generating PDF document written in Go lang.
 - Unicode subfont embedding. (Chinese, Japanese, Korean, etc.)
 - Draw line, oval, rect, curve
 - Draw image ( jpg, png )
+  - Set image mask
 - Password protection
 - Font [kerning](https://en.wikipedia.org/wiki/Kerning)
 
@@ -85,8 +86,7 @@ func main() {
 
 	pdf.WritePdf("image.pdf")
 }
-  
-```
+``` 
 
 ### Links
 

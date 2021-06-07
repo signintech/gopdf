@@ -334,7 +334,7 @@ type CacheContent struct {
 	cacheContentText
 }
 
-//Setup setup all infomation for cacheContent
+//Setup setup all information for cacheContent
 func (c *CacheContent) Setup(rectangle *Rect,
 	textColor Rgb,
 	grayFill float64,

@@ -6,23 +6,29 @@ import (
 )
 
 type cacheContentRectangle struct {
-	pageHeight float64
-	x          float64
-	y          float64
-	width      float64
-	height     float64
-	style      string
+	pageHeight       float64
+	x                float64
+	y                float64
+	width            float64
+	height           float64
+	style            PaintStyle
+	extGStateIndexes []int
 }
 
 func (c *cacheContentRectangle) write(w io.Writer, protection *PDFProtection) error {
+	stream := "q\n"
 
-	h := c.pageHeight
-	x := c.x
-	y := c.y
-	width := c.width
-	height := c.height
+	for _, extGStateIndex := range c.extGStateIndexes {
+		stream += fmt.Sprintf("/GS%d gs\n", extGStateIndex)
+	}
 
-	op := parseStyle(c.style)
-	fmt.Fprintf(w, "%0.2f %0.2f %0.2f %0.2f re %s\n", x, h-y, width, height, op)
+	stream += fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re %s\n", c.x, c.pageHeight-c.y, c.width, c.height, c.style)
+
+	stream += "Q\n"
+
+	if _, err := io.WriteString(w, stream); err != nil {
+		return err
+	}
+
 	return nil
 }

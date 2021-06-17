@@ -80,6 +80,16 @@ type GoPdf struct {
 	fpdi *gofpdi.Importer
 }
 
+type DrawableRectOptions struct {
+	Rect
+	X            float64
+	Y            float64
+	PaintStyle   PaintStyle
+	Transparency *Transparency
+
+	extGStateIndexes []int
+}
+
 type CropOptions struct {
 	X      float64
 	Y      float64
@@ -155,13 +165,29 @@ func (gp *GoPdf) Line(x1 float64, y1 float64, x2 float64, y2 float64) {
 //RectFromLowerLeft : draw rectangle from lower-left corner (x, y)
 func (gp *GoPdf) RectFromLowerLeft(x float64, y float64, wdth float64, hght float64) {
 	gp.UnitsToPointsVar(&x, &y, &wdth, &hght)
-	gp.getContent().AppendStreamRectangle(x, y, wdth, hght, "")
+
+	opts := DrawableRectOptions{
+		X:          x,
+		Y:          y,
+		PaintStyle: DrawPaintStyle,
+		Rect:       Rect{W: wdth, H: hght},
+	}
+
+	gp.getContent().AppendStreamRectangle(opts)
 }
 
 //RectFromUpperLeft : draw rectangle from upper-left corner (x, y)
 func (gp *GoPdf) RectFromUpperLeft(x float64, y float64, wdth float64, hght float64) {
 	gp.UnitsToPointsVar(&x, &y, &wdth, &hght)
-	gp.getContent().AppendStreamRectangle(x, y+hght, wdth, hght, "")
+
+	opts := DrawableRectOptions{
+		X:          x,
+		Y:          y + hght,
+		PaintStyle: DrawPaintStyle,
+		Rect:       Rect{W: wdth, H: hght},
+	}
+
+	gp.getContent().AppendStreamRectangle(opts)
 }
 
 //RectFromLowerLeftWithStyle : draw rectangle from lower-left corner (x, y)
@@ -169,19 +195,19 @@ func (gp *GoPdf) RectFromUpperLeft(x float64, y float64, wdth float64, hght floa
 //		D or empty string: draw. This is the default value.
 //		F: fill
 //		DF or FD: draw and fill
-func (gp *GoPdf) RectFromLowerLeftWithStyle(x float64, y float64, wdth float64, hght float64, style string) {
-	gp.UnitsToPointsVar(&x, &y, &wdth, &hght)
-	gp.getContent().AppendStreamRectangle(x, y, wdth, hght, style)
+func (gp *GoPdf) RectFromLowerLeftWithStyle(opts DrawableRectOptions) {
+	gp.UnitsToPointsVar(&opts.X, &opts.Y, &opts.W, &opts.H)
+	gp.getContent().AppendStreamRectangle(opts)
 }
 
 //RectFromUpperLeftWithStyle : draw rectangle from upper-left corner (x, y)
-// - style: Style of rectangule (draw and/or fill: D, F, DF, FD)
+// - style: Style of rectangle (draw and/or fill: D, F, DF, FD)
 //		D or empty string: draw. This is the default value.
 //		F: fill
 //		DF or FD: draw and fill
-func (gp *GoPdf) RectFromUpperLeftWithStyle(x float64, y float64, wdth float64, hght float64, style string) {
-	gp.UnitsToPointsVar(&x, &y, &wdth, &hght)
-	gp.getContent().AppendStreamRectangle(x, y+hght, wdth, hght, style)
+func (gp *GoPdf) RectFromUpperLeftWithStyle(opts DrawableRectOptions) {
+	gp.UnitsToPointsVar(&opts.X, &opts.Y, &opts.W, &opts.H)
+	gp.getContent().AppendStreamRectangle(opts)
 }
 
 //Oval : draw oval

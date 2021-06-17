@@ -190,22 +190,24 @@ func (gp *GoPdf) RectFromUpperLeft(x float64, y float64, wdth float64, hght floa
 	gp.getContent().AppendStreamRectangle(opts)
 }
 
-//RectFromLowerLeftWithStyle : draw rectangle from lower-left corner (x, y)
-// - style: Style of rectangule (draw and/or fill: D, F, DF, FD)
-//		D or empty string: draw. This is the default value.
-//		F: fill
-//		DF or FD: draw and fill
-func (gp *GoPdf) RectFromLowerLeftWithStyle(opts DrawableRectOptions) {
+func (gp *GoPdf) RectFromLowerLeftWithOpts(opts DrawableRectOptions) error {
 	gp.UnitsToPointsVar(&opts.X, &opts.Y, &opts.W, &opts.H)
+
+	imageTransparency, err := gp.getCachedTransparency(opts.Transparency)
+	if err != nil {
+		return err
+	}
+
+	if imageTransparency != nil {
+		opts.extGStateIndexes = append(opts.extGStateIndexes, imageTransparency.extGStateIndex)
+	}
+
 	gp.getContent().AppendStreamRectangle(opts)
+
+	return nil
 }
 
-//RectFromUpperLeftWithStyle : draw rectangle from upper-left corner (x, y)
-// - style: Style of rectangle (draw and/or fill: D, F, DF, FD)
-//		D or empty string: draw. This is the default value.
-//		F: fill
-//		DF or FD: draw and fill
-func (gp *GoPdf) RectFromUpperLeftWithStyle(opts DrawableRectOptions) error {
+func (gp *GoPdf) RectFromUpperLeftWithOpts(opts DrawableRectOptions) error {
 	gp.UnitsToPointsVar(&opts.X, &opts.Y, &opts.W, &opts.H)
 
 	opts.Y += opts.H

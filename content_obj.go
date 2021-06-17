@@ -205,20 +205,8 @@ func (c *ContentObj) AppendStreamImportedTemplate(tplName string, scaleX float64
 }
 
 func (c *ContentObj) AppendStreamRectangle(opts DrawableRectOptions) {
-	if opts.PaintStyle == "" {
-		opts.PaintStyle = DrawPaintStyle
-	}
-
-	cache := cacheContentRectangle{
-		x: opts.X,
-		y: opts.Y,
-		width: opts.W,
-		height: opts.H,
-		style: opts.PaintStyle,
-		pageHeight: c.getRoot().curr.pageSize.H,
-	}
-
-	c.listCache.append(&cache)
+	cache := NewCacheContentRectangle(c.getRoot().curr.pageSize.H, opts)
+	c.listCache.append(cache)
 }
 
 //AppendStreamOval append oval

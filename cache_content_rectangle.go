@@ -15,7 +15,22 @@ type cacheContentRectangle struct {
 	extGStateIndexes []int
 }
 
-func (c *cacheContentRectangle) write(w io.Writer, protection *PDFProtection) error {
+func NewCacheContentRectangle(pageHeight float64, rectOpts DrawableRectOptions) ICacheContent {
+	if rectOpts.PaintStyle == "" {
+		rectOpts.PaintStyle = DrawPaintStyle
+	}
+
+	return cacheContentRectangle{
+		x:          rectOpts.X,
+		y:          rectOpts.Y,
+		width:      rectOpts.W,
+		height:     rectOpts.H,
+		pageHeight: pageHeight,
+		style:      rectOpts.PaintStyle,
+	}
+}
+
+func (c cacheContentRectangle) write(w io.Writer, protection *PDFProtection) error {
 	stream := "q\n"
 
 	for _, extGStateIndex := range c.extGStateIndexes {

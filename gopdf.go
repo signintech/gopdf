@@ -205,9 +205,23 @@ func (gp *GoPdf) RectFromLowerLeftWithStyle(opts DrawableRectOptions) {
 //		D or empty string: draw. This is the default value.
 //		F: fill
 //		DF or FD: draw and fill
-func (gp *GoPdf) RectFromUpperLeftWithStyle(opts DrawableRectOptions) {
+func (gp *GoPdf) RectFromUpperLeftWithStyle(opts DrawableRectOptions) error {
 	gp.UnitsToPointsVar(&opts.X, &opts.Y, &opts.W, &opts.H)
+
+	opts.Y += opts.H
+
+	imageTransparency, err := gp.getCachedTransparency(opts.Transparency)
+	if err != nil {
+		return err
+	}
+
+	if imageTransparency != nil {
+		opts.extGStateIndexes = append(opts.extGStateIndexes, imageTransparency.extGStateIndex)
+	}
+
 	gp.getContent().AppendStreamRectangle(opts)
+
+	return nil
 }
 
 //Oval : draw oval

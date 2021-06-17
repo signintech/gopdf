@@ -21,12 +21,13 @@ func NewCacheContentRectangle(pageHeight float64, rectOpts DrawableRectOptions) 
 	}
 
 	return cacheContentRectangle{
-		x:          rectOpts.X,
-		y:          rectOpts.Y,
-		width:      rectOpts.W,
-		height:     rectOpts.H,
-		pageHeight: pageHeight,
-		style:      rectOpts.PaintStyle,
+		x:                rectOpts.X,
+		y:                rectOpts.Y,
+		width:            rectOpts.W,
+		height:           rectOpts.H,
+		pageHeight:       pageHeight,
+		style:            rectOpts.PaintStyle,
+		extGStateIndexes: rectOpts.extGStateIndexes,
 	}
 }
 

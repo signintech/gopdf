@@ -80,6 +80,16 @@ type GoPdf struct {
 	fpdi *gofpdi.Importer
 }
 
+type DrawableRectOptions struct {
+	Rect
+	X            float64
+	Y            float64
+	PaintStyle   PaintStyle
+	Transparency *Transparency
+
+	extGStateIndexes []int
+}
+
 type CropOptions struct {
 	X      float64
 	Y      float64
@@ -155,13 +165,29 @@ func (gp *GoPdf) Line(x1 float64, y1 float64, x2 float64, y2 float64) {
 //RectFromLowerLeft : draw rectangle from lower-left corner (x, y)
 func (gp *GoPdf) RectFromLowerLeft(x float64, y float64, wdth float64, hght float64) {
 	gp.UnitsToPointsVar(&x, &y, &wdth, &hght)
-	gp.getContent().AppendStreamRectangle(x, y, wdth, hght, "")
+
+	opts := DrawableRectOptions{
+		X:          x,
+		Y:          y,
+		PaintStyle: DrawPaintStyle,
+		Rect:       Rect{W: wdth, H: hght},
+	}
+
+	gp.getContent().AppendStreamRectangle(opts)
 }
 
 //RectFromUpperLeft : draw rectangle from upper-left corner (x, y)
 func (gp *GoPdf) RectFromUpperLeft(x float64, y float64, wdth float64, hght float64) {
 	gp.UnitsToPointsVar(&x, &y, &wdth, &hght)
-	gp.getContent().AppendStreamRectangle(x, y+hght, wdth, hght, "")
+
+	opts := DrawableRectOptions{
+		X:          x,
+		Y:          y + hght,
+		PaintStyle: DrawPaintStyle,
+		Rect:       Rect{W: wdth, H: hght},
+	}
+
+	gp.getContent().AppendStreamRectangle(opts)
 }
 
 //RectFromLowerLeftWithStyle : draw rectangle from lower-left corner (x, y)
@@ -170,8 +196,33 @@ func (gp *GoPdf) RectFromUpperLeft(x float64, y float64, wdth float64, hght floa
 //		F: fill
 //		DF or FD: draw and fill
 func (gp *GoPdf) RectFromLowerLeftWithStyle(x float64, y float64, wdth float64, hght float64, style string) {
-	gp.UnitsToPointsVar(&x, &y, &wdth, &hght)
-	gp.getContent().AppendStreamRectangle(x, y, wdth, hght, style)
+	opts := DrawableRectOptions{
+		X: x,
+		Y: y,
+		Rect: Rect{
+			H: hght,
+			W: wdth,
+		},
+		PaintStyle: parseStyle(style),
+	}
+	gp.RectFromLowerLeftWithOpts(opts)
+}
+
+func (gp *GoPdf) RectFromLowerLeftWithOpts(opts DrawableRectOptions) error {
+	gp.UnitsToPointsVar(&opts.X, &opts.Y, &opts.W, &opts.H)
+
+	imageTransparency, err := gp.getCachedTransparency(opts.Transparency)
+	if err != nil {
+		return err
+	}
+
+	if imageTransparency != nil {
+		opts.extGStateIndexes = append(opts.extGStateIndexes, imageTransparency.extGStateIndex)
+	}
+
+	gp.getContent().AppendStreamRectangle(opts)
+
+	return nil
 }
 
 //RectFromUpperLeftWithStyle : draw rectangle from upper-left corner (x, y)
@@ -180,8 +231,35 @@ func (gp *GoPdf) RectFromLowerLeftWithStyle(x float64, y float64, wdth float64, 
 //		F: fill
 //		DF or FD: draw and fill
 func (gp *GoPdf) RectFromUpperLeftWithStyle(x float64, y float64, wdth float64, hght float64, style string) {
-	gp.UnitsToPointsVar(&x, &y, &wdth, &hght)
-	gp.getContent().AppendStreamRectangle(x, y+hght, wdth, hght, style)
+	opts := DrawableRectOptions{
+		X: x,
+		Y: y,
+		Rect: Rect{
+			H: hght,
+			W: wdth,
+		},
+		PaintStyle: parseStyle(style),
+	}
+	gp.RectFromUpperLeftWithOpts(opts)
+}
+
+func (gp *GoPdf) RectFromUpperLeftWithOpts(opts DrawableRectOptions) error {
+	gp.UnitsToPointsVar(&opts.X, &opts.Y, &opts.W, &opts.H)
+
+	opts.Y += opts.H
+
+	imageTransparency, err := gp.getCachedTransparency(opts.Transparency)
+	if err != nil {
+		return err
+	}
+
+	if imageTransparency != nil {
+		opts.extGStateIndexes = append(opts.extGStateIndexes, imageTransparency.extGStateIndex)
+	}
+
+	gp.getContent().AppendStreamRectangle(opts)
+
+	return nil
 }
 
 //Oval : draw oval

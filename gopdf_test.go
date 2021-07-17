@@ -398,9 +398,9 @@ func TestWhiteTransparent(t *testing.T) {
 
 	var glyphNotFoundOfLiberationSerif []rune
 	err = pdf.AddTTFFontWithOption("LiberationSerif-Regular", "test/res/LiberationSerif-Regular.ttf", TtfOption{
-		OnGlyphNotFound: func(r rune) {
-			//log.Printf("glyph not found %c", r)
+		OnGlyphNotFound: func(r rune) { //call when can not find glyph inside ttf file.
 			glyphNotFoundOfLiberationSerif = append(glyphNotFoundOfLiberationSerif, r)
+			//log.Printf("glyph not found %c", r)
 		},
 	})
 	if err != nil {

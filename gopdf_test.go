@@ -395,7 +395,14 @@ func TestWhiteTransparent(t *testing.T) {
 	pdf := GoPdf{}
 	pdf.Start(Config{PageSize: *PageSizeA4})
 	pdf.AddPage()
-	err = pdf.AddTTFFont("LiberationSerif-Regular", "test/res/LiberationSerif-Regular.ttf")
+
+	var glyphNotFoundOfLiberationSerif []rune
+	err = pdf.AddTTFFontWithOption("LiberationSerif-Regular", "test/res/LiberationSerif-Regular.ttf", TtfOption{
+		OnGlyphNotFound: func(r rune) {
+			//log.Printf("glyph not found %c", r)
+			glyphNotFoundOfLiberationSerif = append(glyphNotFoundOfLiberationSerif, r)
+		},
+	})
 	if err != nil {
 		t.Error(err)
 		return
@@ -410,8 +417,9 @@ func TestWhiteTransparent(t *testing.T) {
 	rect := Rect{W: 20, H: 30}
 	pdf.SetX(350)
 	pdf.SetY(50)
+	err = pdf.Cell(&rect, "あい")
 	//err = pdf.CellWithOption(&rect, "あい", op)
-	err = pdf.CellWithOption(&rect, "あ", op)
+	//err = pdf.CellWithOption(&rect, "あ", op)
 	//err = pdf.CellWithOption(&rect, "a", op)
 	if err != nil {
 		t.Error(err)
@@ -424,10 +432,17 @@ func TestWhiteTransparent(t *testing.T) {
 		return
 	}
 
-	pdf.SetNoCompression()
+	//coz あ and い  not contain in "test/res/LiberationSerif-Regular.ttf"
+	if len(glyphNotFoundOfLiberationSerif) != 2 {
+		t.Error(err)
+		return
+	}
+
+	//pdf.SetNoCompression()
 	err = pdf.WritePdf("./test/out/white_transparent.pdf")
 	if err != nil {
 		t.Error(err)
 		return
 	}
+
 }

@@ -6,7 +6,7 @@ gopdf is a simple library for generating PDF document written in Go lang.
 
 #### Features
 
-- Unicode subfont embedding. (Chinese, Japanese, Korean, etc.)
+- Unicode subfont embedding. (Korean, Chinese, Japanese, etc.)
 - Draw line, oval, rect, curve
 - Draw image ( jpg, png )
   - Set image mask

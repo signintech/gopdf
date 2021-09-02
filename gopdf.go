@@ -1616,7 +1616,9 @@ func (gp *GoPdf) IsCurrFontContainGlyph(r rune) (bool, error) {
 	}
 
 	glyphIndex, err := fontISubset.CharCodeToGlyphIndex(r)
-	if err != nil {
+	if err == ErrGlyphNotFound {
+		return false, nil
+	} else if err != nil {
 		return false, err
 	}
 

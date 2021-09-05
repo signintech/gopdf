@@ -116,6 +116,16 @@ type MaskOptions struct {
 	Holder ImageHolder
 }
 
+type LineOptions struct {
+	Transparency     *Transparency
+	extGStateIndexes []int
+}
+
+type PolygonOptions struct {
+	Transparency     *Transparency
+	extGStateIndexes []int
+}
+
 //SetLineWidth : set line width
 func (gp *GoPdf) SetLineWidth(width float64) {
 	gp.curr.lineWidth = gp.UnitsToPoints(width)
@@ -160,7 +170,22 @@ func (gp *GoPdf) SetLineType(linetype string) {
 //Line : draw line
 func (gp *GoPdf) Line(x1 float64, y1 float64, x2 float64, y2 float64) {
 	gp.UnitsToPointsVar(&x1, &y1, &x2, &y2)
-	gp.getContent().AppendStreamLine(x1, y1, x2, y2)
+	gp.getContent().AppendStreamLine(x1, y1, x2, y2, LineOptions{})
+}
+
+//Line : draw line
+func (gp *GoPdf) LineWithOption(x1 float64, y1 float64, x2 float64, y2 float64, opts LineOptions) {
+
+	transparency, err := gp.getCachedTransparency(opts.Transparency)
+	if err != nil {
+		transparency = nil
+	}
+
+	if transparency != nil {
+		opts.extGStateIndexes = append(opts.extGStateIndexes, transparency.extGStateIndex)
+	}
+	gp.UnitsToPointsVar(&x1, &y1, &x2, &y2)
+	gp.getContent().AppendStreamLine(x1, y1, x2, y2, opts)
 }
 
 //RectFromLowerLeft : draw rectangle from lower-left corner (x, y)
@@ -1296,7 +1321,28 @@ func (gp *GoPdf) Polygon(points []Point, style string) {
 		gp.UnitsToPointsVar(&x, &y)
 		pointReals = append(pointReals, Point{X: x, Y: y})
 	}
-	gp.getContent().AppendStreamPolygon(pointReals, style)
+	gp.getContent().AppendStreamPolygon(pointReals, style, PolygonOptions{})
+}
+
+func (gp *GoPdf) PolygonWithOption(points []Point, style string, opts PolygonOptions) {
+
+	transparency, err := gp.getCachedTransparency(opts.Transparency)
+	if err != nil {
+		transparency = nil
+	}
+
+	if transparency != nil {
+		opts.extGStateIndexes = append(opts.extGStateIndexes, transparency.extGStateIndex)
+	}
+
+	var pointReals []Point
+	for _, p := range points {
+		x := p.X
+		y := p.Y
+		gp.UnitsToPointsVar(&x, &y)
+		pointReals = append(pointReals, Point{X: x, Y: y})
+	}
+	gp.getContent().AppendStreamPolygon(pointReals, style, opts)
 }
 
 /*---private---*/
@@ -1563,6 +1609,10 @@ func (gp *GoPdf) SetTransparency(transparency Transparency) error {
 	gp.curr.transparency = t
 
 	return nil
+}
+
+func (gp *GoPdf) ClearTransparency() {
+	gp.curr.transparency = nil
 }
 
 func (gp *GoPdf) getCachedTransparency(transparency *Transparency) (*Transparency, error) {

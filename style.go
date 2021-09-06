@@ -1,11 +1,20 @@
 package gopdf
 
-func parseStyle(style string) string {
-	op := "S"
+type PaintStyle string
+
+const (
+	DrawPaintStyle     PaintStyle = "S"
+	FillPaintStyle     PaintStyle = "f"
+	DrawFillPaintStyle PaintStyle = "B"
+)
+
+func parseStyle(style string) PaintStyle {
+	op := DrawPaintStyle
 	if style == "F" {
-		op = "f"
+		op = FillPaintStyle
 	} else if style == "FD" || style == "DF" {
-		op = "B"
+		op = DrawFillPaintStyle
 	}
+
 	return op
 }

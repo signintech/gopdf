@@ -11,6 +11,9 @@ import (
 //ErrCharNotFound char not found
 var ErrCharNotFound = errors.New("char not found")
 
+//ErrGlyphNotFound font file not contain glyph
+var ErrGlyphNotFound = errors.New("glyph not found")
+
 //SubsetFontObj pdf subsetFont object
 type SubsetFontObj struct {
 	ttfp                  core.TTFParser
@@ -130,7 +133,12 @@ func (s *SubsetFontObj) AddChars(txt string) error {
 			continue
 		}
 		glyphIndex, err := s.CharCodeToGlyphIndex(runeValue)
-		if err != nil {
+		if err == ErrGlyphNotFound {
+			//never return error on this, just call function OnGlyphNotFound
+			if s.ttfFontOption.OnGlyphNotFound != nil {
+				s.ttfFontOption.OnGlyphNotFound(runeValue)
+			}
+		} else if err != nil {
 			return err
 		}
 		s.CharacterToGlyphIndex.Set(runeValue, glyphIndex) // [runeValue] = glyphIndex
@@ -140,12 +148,6 @@ func (s *SubsetFontObj) AddChars(txt string) error {
 
 //CharIndex index of char in glyph table
 func (s *SubsetFontObj) CharIndex(r rune) (uint, error) {
-	/*
-		if index, ok := s.CharacterToGlyphIndex[r]; ok {
-			return index, nil
-		}
-		return 0, ErrCharNotFound
-	*/
 	glyIndex, ok := s.CharacterToGlyphIndex.Val(r)
 	if ok {
 		return glyIndex, nil
@@ -155,11 +157,6 @@ func (s *SubsetFontObj) CharIndex(r rune) (uint, error) {
 
 //CharWidth with of char
 func (s *SubsetFontObj) CharWidth(r rune) (uint, error) {
-	/*glyphIndex := s.CharacterToGlyphIndex
-	if index, ok := glyphIndex[r]; ok {
-		return s.GlyphIndexToPdfWidth(index), nil
-	}
-	return 0, ErrCharNotFound*/
 	glyIndex, ok := s.CharacterToGlyphIndex.Val(r)
 	if ok {
 		return s.GlyphIndexToPdfWidth(glyIndex), nil
@@ -182,7 +179,7 @@ func (s *SubsetFontObj) charCodeToGlyphIndexFormat12(r rune) (uint, error) {
 		}
 	}
 
-	return uint(0), errors.New("not found glyph")
+	return uint(0), ErrGlyphNotFound
 }
 
 func (s *SubsetFontObj) charCodeToGlyphIndexFormat4(r rune) (uint, error) {
@@ -197,7 +194,7 @@ func (s *SubsetFontObj) charCodeToGlyphIndexFormat4(r rune) (uint, error) {
 	}
 	//fmt.Printf("\ncccc--->%#v\n", me.ttfp.Chars())
 	if value < s.ttfp.StartCount[seg] {
-		return 0, nil
+		return 0, ErrGlyphNotFound
 	}
 
 	if s.ttfp.IdRangeOffset[seg] == 0 {

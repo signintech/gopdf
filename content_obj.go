@@ -204,16 +204,9 @@ func (c *ContentObj) AppendStreamImportedTemplate(tplName string, scaleX float64
 	c.listCache.append(&cache)
 }
 
-//AppendStreamRectangle : draw rectangle from lower-left corner (x, y) with specif width/height
-func (c *ContentObj) AppendStreamRectangle(x float64, y float64, wdth float64, hght float64, style string) {
-	var cache cacheContentRectangle
-	cache.pageHeight = c.getRoot().curr.pageSize.H
-	cache.x = x
-	cache.y = y
-	cache.width = wdth
-	cache.height = hght
-	cache.style = style
-	c.listCache.append(&cache)
+func (c *ContentObj) AppendStreamRectangle(opts DrawableRectOptions) {
+	cache := NewCacheContentRectangle(c.getRoot().curr.pageSize.H, opts)
+	c.listCache.append(cache)
 }
 
 //AppendStreamOval append oval

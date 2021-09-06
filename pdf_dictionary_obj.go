@@ -95,8 +95,8 @@ func (p *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 	numGlyphs := int(ttfp.NumGlyphs())
 
 	glyphArray := p.completeGlyphClosure(p.PtrToSubsetFontObj.CharacterToGlyphIndex)
-	glyphCount := len(glyphArray)
 	sort.Ints(glyphArray)
+	glyphCount := len(glyphArray)
 
 	size := 0
 	for idx := 0; idx < glyphCount; idx++ {
@@ -109,17 +109,32 @@ func (p *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 
 	glyphOffset := 0
 	glyphIndex := 0
+	oldglyph := -1
 	for idx := 0; idx < numGlyphs; idx++ {
 		locaTable[idx] = glyphOffset
-		if glyphIndex < glyphCount && glyphArray[glyphIndex] == idx {
-			glyphIndex++
-			bytes := p.getGlyphData(idx)
-			length := len(bytes)
-			if length > 0 {
-				for i := 0; i < length; i++ {
-					glyphTable[glyphOffset+i] = bytes[i]
+
+		if glyphIndex < glyphCount {
+			if glyphArray[glyphIndex] == idx {
+				oldglyph = glyphArray[glyphIndex]
+				glyphIndex++
+				bytes := p.getGlyphData(idx)
+				length := len(bytes)
+				if length > 0 {
+					for i := 0; i < length; i++ {
+						glyphTable[glyphOffset+i] = bytes[i]
+					}
+					glyphOffset += length
 				}
-				glyphOffset += length
+			} else if oldglyph == glyphArray[glyphIndex] {
+				glyphIndex++
+				bytes := p.getGlyphData(idx)
+				length := len(bytes)
+				if length > 0 {
+					for i := 0; i < length; i++ {
+						glyphTable[glyphOffset+i] = bytes[i]
+					}
+					glyphOffset += length
+				}
 			}
 		}
 	} //end for

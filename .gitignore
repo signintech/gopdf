@@ -67,3 +67,4 @@ test/debug.test
 *.out
 .DS_Store
 .idea
+.scannerwork

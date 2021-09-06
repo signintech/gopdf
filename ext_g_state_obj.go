@@ -64,7 +64,7 @@ func GetCachedExtGState(opts ExtGStateOptions, gp *GoPdf) (ExtGState, error) {
 
 		gp.curr.extGStatesMap.Save(opts.GetId(), extGState)
 
-		extGState = extGState
+		//extGState = extGState
 	}
 
 	return extGState, nil

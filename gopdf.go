@@ -80,6 +80,16 @@ type GoPdf struct {
 	fpdi *gofpdi.Importer
 }
 
+type DrawableRectOptions struct {
+	Rect
+	X            float64
+	Y            float64
+	PaintStyle   PaintStyle
+	Transparency *Transparency
+
+	extGStateIndexes []int
+}
+
 type CropOptions struct {
 	X      float64
 	Y      float64
@@ -102,6 +112,7 @@ type ImageOptions struct {
 
 type MaskOptions struct {
 	ImageOptions
+	BBox   *[4]float64
 	Holder ImageHolder
 }
 
@@ -155,13 +166,29 @@ func (gp *GoPdf) Line(x1 float64, y1 float64, x2 float64, y2 float64) {
 //RectFromLowerLeft : draw rectangle from lower-left corner (x, y)
 func (gp *GoPdf) RectFromLowerLeft(x float64, y float64, wdth float64, hght float64) {
 	gp.UnitsToPointsVar(&x, &y, &wdth, &hght)
-	gp.getContent().AppendStreamRectangle(x, y, wdth, hght, "")
+
+	opts := DrawableRectOptions{
+		X:          x,
+		Y:          y,
+		PaintStyle: DrawPaintStyle,
+		Rect:       Rect{W: wdth, H: hght},
+	}
+
+	gp.getContent().AppendStreamRectangle(opts)
 }
 
 //RectFromUpperLeft : draw rectangle from upper-left corner (x, y)
 func (gp *GoPdf) RectFromUpperLeft(x float64, y float64, wdth float64, hght float64) {
 	gp.UnitsToPointsVar(&x, &y, &wdth, &hght)
-	gp.getContent().AppendStreamRectangle(x, y+hght, wdth, hght, "")
+
+	opts := DrawableRectOptions{
+		X:          x,
+		Y:          y + hght,
+		PaintStyle: DrawPaintStyle,
+		Rect:       Rect{W: wdth, H: hght},
+	}
+
+	gp.getContent().AppendStreamRectangle(opts)
 }
 
 //RectFromLowerLeftWithStyle : draw rectangle from lower-left corner (x, y)
@@ -170,8 +197,33 @@ func (gp *GoPdf) RectFromUpperLeft(x float64, y float64, wdth float64, hght floa
 //		F: fill
 //		DF or FD: draw and fill
 func (gp *GoPdf) RectFromLowerLeftWithStyle(x float64, y float64, wdth float64, hght float64, style string) {
-	gp.UnitsToPointsVar(&x, &y, &wdth, &hght)
-	gp.getContent().AppendStreamRectangle(x, y, wdth, hght, style)
+	opts := DrawableRectOptions{
+		X: x,
+		Y: y,
+		Rect: Rect{
+			H: hght,
+			W: wdth,
+		},
+		PaintStyle: parseStyle(style),
+	}
+	gp.RectFromLowerLeftWithOpts(opts)
+}
+
+func (gp *GoPdf) RectFromLowerLeftWithOpts(opts DrawableRectOptions) error {
+	gp.UnitsToPointsVar(&opts.X, &opts.Y, &opts.W, &opts.H)
+
+	imageTransparency, err := gp.getCachedTransparency(opts.Transparency)
+	if err != nil {
+		return err
+	}
+
+	if imageTransparency != nil {
+		opts.extGStateIndexes = append(opts.extGStateIndexes, imageTransparency.extGStateIndex)
+	}
+
+	gp.getContent().AppendStreamRectangle(opts)
+
+	return nil
 }
 
 //RectFromUpperLeftWithStyle : draw rectangle from upper-left corner (x, y)
@@ -180,8 +232,35 @@ func (gp *GoPdf) RectFromLowerLeftWithStyle(x float64, y float64, wdth float64, 
 //		F: fill
 //		DF or FD: draw and fill
 func (gp *GoPdf) RectFromUpperLeftWithStyle(x float64, y float64, wdth float64, hght float64, style string) {
-	gp.UnitsToPointsVar(&x, &y, &wdth, &hght)
-	gp.getContent().AppendStreamRectangle(x, y+hght, wdth, hght, style)
+	opts := DrawableRectOptions{
+		X: x,
+		Y: y,
+		Rect: Rect{
+			H: hght,
+			W: wdth,
+		},
+		PaintStyle: parseStyle(style),
+	}
+	gp.RectFromUpperLeftWithOpts(opts)
+}
+
+func (gp *GoPdf) RectFromUpperLeftWithOpts(opts DrawableRectOptions) error {
+	gp.UnitsToPointsVar(&opts.X, &opts.Y, &opts.W, &opts.H)
+
+	opts.Y += opts.H
+
+	imageTransparency, err := gp.getCachedTransparency(opts.Transparency)
+	if err != nil {
+		return err
+	}
+
+	if imageTransparency != nil {
+		opts.extGStateIndexes = append(opts.extGStateIndexes, imageTransparency.extGStateIndex)
+	}
+
+	gp.getContent().AppendStreamRectangle(opts)
+
+	return nil
 }
 
 //Oval : draw oval
@@ -275,7 +354,7 @@ func (gp *GoPdf) ImageByHolderWithOptions(img ImageHolder, opts ImageOptions) er
 		gp.UnitsToPointsVar(&opts.Mask.ImageOptions.X, &opts.Mask.ImageOptions.Y)
 		opts.Mask.ImageOptions.Rect = opts.Mask.ImageOptions.Rect.UnitsToPoints(gp.config.Unit)
 
-		extGStateIndex, err := gp.maskHolder(opts.Mask.Holder, opts.Mask.ImageOptions)
+		extGStateIndex, err := gp.maskHolder(opts.Mask.Holder, *opts.Mask)
 		if err != nil {
 			return err
 		}
@@ -286,7 +365,7 @@ func (gp *GoPdf) ImageByHolderWithOptions(img ImageHolder, opts ImageOptions) er
 	return gp.imageByHolder(img, opts)
 }
 
-func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
+func (gp *GoPdf) maskHolder(img ImageHolder, opts MaskOptions) (int, error) {
 	var cacheImage *ImageCache
 	var cacheContentImage *cacheContentImage
 
@@ -321,7 +400,7 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
 
 		if gp.indexOfProcSet != -1 {
 			index := gp.addObj(maskImgobj)
-			cacheContentImage = gp.getContent().GetCacheContentImage(index, opts)
+			cacheContentImage = gp.getContent().GetCacheContentImage(index, opts.ImageOptions)
 			procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
 			procset.RelateXobjs = append(procset.RelateXobjs, RelateXobject{IndexOfObj: index})
 
@@ -338,7 +417,7 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
 			opts.Rect = gp.curr.ImgCaches[cacheImage.Index].Rect
 		}
 
-		cacheContentImage = gp.getContent().GetCacheContentImage(cacheImage.Index, opts)
+		cacheContentImage = gp.getContent().GetCacheContentImage(cacheImage.Index, opts.ImageOptions)
 	}
 
 	if cacheContentImage != nil {
@@ -353,20 +432,27 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts ImageOptions) (int, error) {
 	return 0, errors.New("cacheContentImage is undefined")
 }
 
-func (gp *GoPdf) createTransparencyXObjectGroup(image *cacheContentImage, opts ImageOptions) (int, error) {
-	groupOpts := TransparencyXObjectGroupOptions{
-		ExtGStateIndexes: opts.extGStateIndexes,
-		XObjects:         []cacheContentImage{*image},
-		BBox: [4]float64{
+func (gp *GoPdf) createTransparencyXObjectGroup(image *cacheContentImage, opts MaskOptions) (int, error) {
+	bbox := opts.BBox
+	if bbox == nil {
+		bbox = &[4]float64{
 			// correct BBox values is [opts.X, gp.curr.pageSize.H - opts.Y - opts.Rect.H, opts.X + opts.Rect.W, gp.curr.pageSize.H - opts.Y]
 			// but if compress pdf through ghostscript result file can't open correctly in mac viewer, because mac viewer can't parse BBox value correctly
 			// all other viewers parse BBox correctly (like Adobe Acrobat Reader, Chrome, even Internet Explorer)
 			// that's why we need to set [0, 0, gp.curr.pageSize.W, gp.curr.pageSize.H]
-			0,
-			0,
-			gp.curr.pageSize.W,
-			gp.curr.pageSize.H,
-		},
+			-gp.curr.pageSize.W * 2,
+			-gp.curr.pageSize.H * 2,
+			gp.curr.pageSize.W * 2,
+			gp.curr.pageSize.H * 2,
+			// Also, Chrome pdf viewer incorrectly recognize BBox value, that's why we need to set twice as much value
+			// for every mask element will be displayed
+		}
+	}
+
+	groupOpts := TransparencyXObjectGroupOptions{
+		BBox:             *bbox,
+		ExtGStateIndexes: opts.extGStateIndexes,
+		XObjects:         []cacheContentImage{*image},
 	}
 
 	transparencyXObjectGroup, err := GetCachedTransparencyXObjectGroup(groupOpts, gp)
@@ -1530,7 +1616,9 @@ func (gp *GoPdf) IsCurrFontContainGlyph(r rune) (bool, error) {
 	}
 
 	glyphIndex, err := fontISubset.CharCodeToGlyphIndex(r)
-	if err != nil {
+	if err == ErrGlyphNotFound {
+		return false, nil
+	} else if err != nil {
 		return false, err
 	}
 

@@ -116,13 +116,11 @@ type MaskOptions struct {
 	Holder ImageHolder
 }
 
-type LineOptions struct {
-	Transparency     *Transparency
+type lineOptions struct {
 	extGStateIndexes []int
 }
 
-type PolygonOptions struct {
-	Transparency     *Transparency
+type polygonOptions struct {
 	extGStateIndexes []int
 }
 
@@ -170,21 +168,14 @@ func (gp *GoPdf) SetLineType(linetype string) {
 //Line : draw line
 func (gp *GoPdf) Line(x1 float64, y1 float64, x2 float64, y2 float64) {
 	gp.UnitsToPointsVar(&x1, &y1, &x2, &y2)
-	gp.getContent().AppendStreamLine(x1, y1, x2, y2, LineOptions{})
-}
-
-//Line : draw line
-func (gp *GoPdf) LineWithOption(x1 float64, y1 float64, x2 float64, y2 float64, opts LineOptions) {
-
-	transparency, err := gp.getCachedTransparency(opts.Transparency)
+	transparency, err := gp.getCachedTransparency(nil)
 	if err != nil {
 		transparency = nil
 	}
-
+	var opts = lineOptions{}
 	if transparency != nil {
 		opts.extGStateIndexes = append(opts.extGStateIndexes, transparency.extGStateIndex)
 	}
-	gp.UnitsToPointsVar(&x1, &y1, &x2, &y2)
 	gp.getContent().AppendStreamLine(x1, y1, x2, y2, opts)
 }
 
@@ -1314,23 +1305,13 @@ func (gp *GoPdf) RotateReset() {
 //	pdf.SetFillColor(0, 255, 0)
 //	pdf.Polygon([]gopdf.Point{{X: 10, Y: 30}, {X: 585, Y: 200}, {X: 585, Y: 250}}, "DF")
 func (gp *GoPdf) Polygon(points []Point, style string) {
-	var pointReals []Point
-	for _, p := range points {
-		x := p.X
-		y := p.Y
-		gp.UnitsToPointsVar(&x, &y)
-		pointReals = append(pointReals, Point{X: x, Y: y})
-	}
-	gp.getContent().AppendStreamPolygon(pointReals, style, PolygonOptions{})
-}
 
-func (gp *GoPdf) PolygonWithOption(points []Point, style string, opts PolygonOptions) {
-
-	transparency, err := gp.getCachedTransparency(opts.Transparency)
+	transparency, err := gp.getCachedTransparency(nil)
 	if err != nil {
 		transparency = nil
 	}
 
+	var opts = polygonOptions{}
 	if transparency != nil {
 		opts.extGStateIndexes = append(opts.extGStateIndexes, transparency.extGStateIndex)
 	}

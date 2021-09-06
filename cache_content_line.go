@@ -11,7 +11,7 @@ type cacheContentLine struct {
 	y1         float64
 	x2         float64
 	y2         float64
-	opts       LineOptions
+	opts       lineOptions
 }
 
 func (c *cacheContentLine) write(w io.Writer, protection *PDFProtection) error {

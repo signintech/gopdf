@@ -180,7 +180,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOp
 }
 
 //AppendStreamLine append line
-func (c *ContentObj) AppendStreamLine(x1 float64, y1 float64, x2 float64, y2 float64, lineOpts LineOptions) {
+func (c *ContentObj) AppendStreamLine(x1 float64, y1 float64, x2 float64, y2 float64, lineOpts lineOptions) {
 	//h := c.getRoot().config.PageSize.H
 	//c.stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", x1, h-y1, x2, h-y2))
 	var cache cacheContentLine
@@ -321,7 +321,7 @@ func (c *ContentObj) AppendStreamImage(index int, opts ImageOptions) {
 }
 
 //AppendStreamPolygon append polygon
-func (c *ContentObj) AppendStreamPolygon(points []Point, style string, opts PolygonOptions) {
+func (c *ContentObj) AppendStreamPolygon(points []Point, style string, opts polygonOptions) {
 	var cache cacheContentPolygon
 	cache.points = points
 	cache.style = style

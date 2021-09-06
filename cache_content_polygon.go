@@ -9,7 +9,7 @@ type cacheContentPolygon struct {
 	pageHeight float64
 	style      string
 	points     []Point
-	opts       PolygonOptions
+	opts       polygonOptions
 }
 
 func (c *cacheContentPolygon) write(w io.Writer, protection *PDFProtection) error {

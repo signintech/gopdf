@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 )
 
 //ContentTypeCell cell
@@ -19,7 +20,7 @@ type cacheContentText struct {
 	grayFill       float64
 	txtColorMode   string
 	fontCountIndex int //Curr.FontFontCount+1
-	fontSize       int
+	fontSize       float64
 	fontStyle      int
 	setXCount      int //จำนวนครั้งที่ใช้ setX
 	x, y           float64
@@ -135,7 +136,9 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	}
 
 	fmt.Fprintf(w, "%0.2f %0.2f TD\n", x, y)
-	fmt.Fprintf(w, "/F%d %d Tf\n", c.fontCountIndex, c.fontSize)
+	fmt.Fprintf(w, "/F%d %s Tf\n", c.fontCountIndex,
+		// remove trailing zeroes and comma. "12.000" => "12"
+		strings.TrimRight(fmt.Sprintf("%.3f", c.fontSize), "0."))
 	if c.txtColorMode == "color" {
 		fmt.Fprintf(w, "%0.3f %0.3f %0.3f rg\n", float64(r)/255, float64(g)/255, float64(b)/255)
 	}
@@ -242,7 +245,7 @@ func (c *cacheContentText) underline(w io.Writer, startX float64, startY float64
 	h := c.pageHeight()
 	ut := float64(c.fontSubset.GetUt())
 	up := float64(c.fontSubset.GetUp())
-	textH := ContentObjCalTextHeight(c.fontSize)
+	textH := ContentObjCalTextHeightPrecise(c.fontSize)
 	arg3 := float64(h) - (float64(startY) - ((up / unitsPerEm) * float64(c.fontSize))) - textH
 	arg4 := (ut / unitsPerEm) * float64(c.fontSize)
 	fmt.Fprintf(w, "%0.2f %0.2f %0.2f -%0.2f re f\n", startX, arg3, endX-startX, arg4)
@@ -263,7 +266,7 @@ func (c *cacheContentText) createContent() (float64, float64, error) {
 	return cellWidthPdfUnit, cellHeightPdfUnit, nil
 }
 
-func createContent(f *SubsetFontObj, text string, fontSize int, rectangle *Rect) (float64, float64, float64, error) {
+func createContent(f *SubsetFontObj, text string, fontSize float64, rectangle *Rect) (float64, float64, float64, error) {
 
 	unitsPerEm := int(f.ttfp.UnitsPerEm())
 	var leftRune rune
@@ -339,7 +342,7 @@ func (c *CacheContent) Setup(rectangle *Rect,
 	textColor Rgb,
 	grayFill float64,
 	fontCountIndex int, //Curr.FontFontCount+1
-	fontSize int,
+	fontSize float64,
 	fontStyle int,
 	setXCount int, //จำนวนครั้งที่ใช้ setX
 	x, y float64,

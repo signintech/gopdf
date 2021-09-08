@@ -344,8 +344,14 @@ func (c *ContentObj) appendRotateReset() {
 	c.listCache.append(&cache)
 }
 
-//ContentObjCalTextHeight calculates height of text.
+//ContentObjCalTextHeight : calculates height of text.
 func ContentObjCalTextHeight(fontsize int) float64 {
+	return ContentObjCalTextHeightPrecise(float64(fontsize))
+}
+
+//ContentObjCalTextHeightPrecise : like ContentObjCalTextHeight,
+// but fontsize float64
+func ContentObjCalTextHeightPrecise(fontsize float64) float64 {
 	return (float64(fontsize) * 0.7)
 }
 

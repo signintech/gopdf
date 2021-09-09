@@ -1,6 +1,7 @@
 package gopdf
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -106,5 +107,29 @@ func TestSetFontWithString(t *testing.T) {
 	if err == nil {
 		t.Errorf("SetFont(string) + AddText: Should have gotten an error!\n")
 	}
+}
 
+func ExampleFormatFloatTrim() {
+	fmt.Printf("/F1 %s Tf\n", FormatFloatTrim(10))
+	fmt.Printf("/F1 %s Tf\n", FormatFloatTrim(10.0))
+	fmt.Printf("/F1 %s Tf\n", FormatFloatTrim(10.01))
+	fmt.Printf("/F1 %s Tf\n", FormatFloatTrim(10.001))
+	fmt.Printf("/F1 %s Tf\n", FormatFloatTrim(10.0001))
+	fmt.Printf("/F1 %s Tf\n", FormatFloatTrim(10.00001))
+	fmt.Printf("/F1 %s Tf\n", FormatFloatTrim(9.99999))
+	fmt.Printf("/F1 %s Tf\n", FormatFloatTrim(9.9999))
+	fmt.Printf("/F1 %s Tf\n", FormatFloatTrim(9.999))
+	fmt.Printf("/F1 %s Tf\n", FormatFloatTrim(9.99))
+	fmt.Printf("/F1 %s Tf\n", FormatFloatTrim(9.9))
+	// Output: /F1 10 Tf
+	// /F1 10 Tf
+	// /F1 10.01 Tf
+	// /F1 10.001 Tf
+	// /F1 10 Tf
+	// /F1 10 Tf
+	// /F1 10 Tf
+	// /F1 10 Tf
+	// /F1 9.999 Tf
+	// /F1 9.99 Tf
+	// /F1 9.9 Tf
 }

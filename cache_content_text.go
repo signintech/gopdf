@@ -4,7 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
+	"math"
+	"strconv"
 )
 
 //ContentTypeCell cell
@@ -111,6 +112,14 @@ func (c *cacheContentText) calX() (float64, error) {
 	return 0.0, errors.New("contentType not found")
 }
 
+// FormatFloatTrim converts a float64 into a string, like Sprintf("%.3f")
+// but with trailing zeroes (and possibly ".") removed
+func FormatFloatTrim(floatval float64) (formatted string) {
+	const precisionFactor = 1000.0
+	roundedFontSize := math.Round(precisionFactor*floatval) / precisionFactor
+	return strconv.FormatFloat(roundedFontSize, 'f', -1, 64)
+}
+
 func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	r := c.textColor.r
 	g := c.textColor.g
@@ -137,8 +146,8 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 
 	fmt.Fprintf(w, "%0.2f %0.2f TD\n", x, y)
 	fmt.Fprintf(w, "/F%d %s Tf\n", c.fontCountIndex,
-		// remove trailing zeroes and comma. "12.000" => "12"
-		strings.TrimRight(fmt.Sprintf("%.3f", c.fontSize), "0."))
+		FormatFloatTrim(c.fontSize))
+
 	if c.txtColorMode == "color" {
 		fmt.Fprintf(w, "%0.3f %0.3f %0.3f rg\n", float64(r)/255, float64(g)/255, float64(b)/255)
 	}

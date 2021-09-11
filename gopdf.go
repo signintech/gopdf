@@ -166,6 +166,13 @@ func (gp *GoPdf) SetLineType(linetype string) {
 }
 
 //Line : draw line
+// 	Usage:
+//	pdf.SetTransparency(gopdf.Transparency{Alpha: 0.5,BlendModeType: gopdf.ColorBurn})
+//	pdf.SetLineType("dotted")
+//	pdf.SetStrokeColor(255, 0, 0)
+//	pdf.SetLineWidth(2)
+//	pdf.Line(10, 30, 585, 30)
+//	pdf.ClearTransparency()
 func (gp *GoPdf) Line(x1 float64, y1 float64, x2 float64, y2 float64) {
 	gp.UnitsToPointsVar(&x1, &y1, &x2, &y2)
 	transparency, err := gp.getCachedTransparency(nil)

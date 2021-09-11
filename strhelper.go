@@ -7,6 +7,12 @@ import (
 
 //StrHelperGetStringWidth get string width
 func StrHelperGetStringWidth(str string, fontSize int, ifont IFont) float64 {
+	return StrHelperGetStringWidthPrecise(str, float64(fontSize), ifont)
+}
+
+//StrHelperGetStringWidthPrecise get string width with real number fontSize
+func StrHelperGetStringWidthPrecise(str string, fontSize float64, ifont IFont) float64 {
+
 	w := 0
 	bs := []byte(str)
 	i := 0

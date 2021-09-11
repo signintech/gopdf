@@ -702,10 +702,46 @@ func (gp *GoPdf) Start(config Config) {
 
 }
 
+// convertNumericToFloat64 : accept numeric types, return float64-value
+func convertNumericToFloat64(size interface{}) (fontSize float64, err error) {
+	switch size := size.(type) {
+	case float32:
+		return float64(size), nil
+	case float64:
+		return float64(size), nil
+	case int:
+		return float64(size), nil
+	case int16:
+		return float64(size), nil
+	case int32:
+		return float64(size), nil
+	case int64:
+		return float64(size), nil
+	case int8:
+		return float64(size), nil
+	case uint:
+		return float64(size), nil
+	case uint16:
+		return float64(size), nil
+	case uint32:
+		return float64(size), nil
+	case uint64:
+		return float64(size), nil
+	case uint8:
+		return float64(size), nil
+	default:
+		return 0.0, errors.Errorf("fontSize must be of type (u)int* or float*, not %T", size)
+	}
+}
+
 // SetFontWithStyle : set font style support Regular or Underline
 // for Bold|Italic should be loaded apropriate fonts with same styles defined
-func (gp *GoPdf) SetFontWithStyle(family string, style int, size int) error {
-
+// size MUST be uint*, int* or float64*
+func (gp *GoPdf) SetFontWithStyle(family string, style int, size interface{}) error {
+	fontSize, err := convertNumericToFloat64(size)
+	if err != nil {
+		return err
+	}
 	found := false
 	i := 0
 	max := len(gp.pdfObjs)
@@ -715,7 +751,7 @@ func (gp *GoPdf) SetFontWithStyle(family string, style int, size int) error {
 			sub, ok := obj.(*SubsetFontObj)
 			if ok {
 				if sub.GetFamily() == family && sub.GetTtfFontOption().Style == style&^Underline {
-					gp.curr.FontSize = size
+					gp.curr.FontSize = fontSize
 					gp.curr.FontStyle = style
 					gp.curr.FontFontCount = sub.CountOfFont
 					gp.curr.FontISubset = sub
@@ -736,8 +772,16 @@ func (gp *GoPdf) SetFontWithStyle(family string, style int, size int) error {
 
 //SetFont : set font style support "" or "U"
 // for "B" and "I" should be loaded apropriate fonts with same styles defined
-func (gp *GoPdf) SetFont(family string, style string, size int) error {
+// size MUST be uint*, int* or float64*
+func (gp *GoPdf) SetFont(family string, style string, size interface{}) error {
 	return gp.SetFontWithStyle(family, getConvertedStyle(style), size)
+}
+
+//SetFontSize : set the font size (and only the font size) of the currently
+// active font
+func (gp *GoPdf) SetFontSize(fontSize float64) error {
+	gp.curr.FontSize = fontSize
+	return nil
 }
 
 //WritePdf : wirte pdf file

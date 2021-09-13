@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"time"
@@ -1375,6 +1376,94 @@ func (gp *GoPdf) Polygon(points []Point, style string) {
 		pointReals = append(pointReals, Point{X: x, Y: y})
 	}
 	gp.getContent().AppendStreamPolygon(pointReals, style, opts)
+}
+
+//Rectangle : draw rectangle, and add radius input to make a round corner, it helps to calculate the round corner coordinates and use Polygon functions to draw rectangle
+// - style: Style of Rectangle (draw and/or fill: D, F, DF, FD)
+//		D or empty string: draw. This is the default value.
+//		F: fill
+//		DF or FD: draw and fill
+// Usage:
+//  pdf.SetStrokeColor(255, 0, 0)
+//	pdf.SetLineWidth(2)
+//	pdf.SetFillColor(0, 255, 0)
+//	pdf.Rectangle(196.6, 336.8, 398.3, 379.3, "DF", 3, 10)
+func (gp *GoPdf) Rectangle(x0 float64, y0 float64, x1 float64, y1 float64, style string, radius float64, radiusPointNum int) error {
+	if radiusPointNum <= 0 {
+		radiusPointNum = 4 //default to draw 4 points
+	}
+	if radiusPointNum <= 0 {
+		return errors.New("No. of coordinates at the corner cannot <= 0")
+	}
+	if x1 <= x0 || y1 <= y0 {
+		return errors.New("Invalid coordinates for the rectangle")
+	}
+	if radius > (x1-x0) || radius > (y1-y0) {
+		return errors.New("Radius length cannot exceed rectangle height or width")
+	}
+
+	degrees := []float64{}
+	angle := float64(90) / float64(radiusPointNum+1)
+	accAngle := angle
+	for accAngle < float64(90) {
+		fmt.Println(accAngle)
+		degrees = append(degrees, accAngle)
+		accAngle += angle
+	}
+
+	radians := []float64{}
+	for _, v := range degrees {
+		fmt.Println(v * math.Pi / 180)
+		radians = append(radians, v*math.Pi/180)
+	}
+
+	points := []Point{}
+	points = append(points, Point{X: x0, Y: (y0 + radius)})
+	for _, v := range radians {
+		offsetX := radius * math.Cos(v)
+		offsetY := radius * math.Sin(v)
+		x := x0 + radius - offsetX
+		y := y0 + radius - offsetY
+		points = append(points, Point{X: x, Y: y})
+	}
+	points = append(points, Point{X: (x0 + radius), Y: y0})
+
+	points = append(points, Point{X: (x1 - radius), Y: y0})
+	for i := range radians {
+		v := radians[len(radians)-1-i]
+		offsetX := radius * math.Cos(v)
+		offsetY := radius * math.Sin(v)
+		x := x1 - radius + offsetX
+		y := y0 + radius - offsetY
+		points = append(points, Point{X: x, Y: y})
+	}
+	points = append(points, Point{X: x1, Y: (y0 + radius)})
+
+	points = append(points, Point{X: x1, Y: (y1 - radius)})
+	for _, v := range radians {
+		offsetX := radius * math.Cos(v)
+		offsetY := radius * math.Sin(v)
+		x := x1 - radius + offsetX
+		y := y1 - radius + offsetY
+		//fmt.Println(x, y)
+		points = append(points, Point{X: x, Y: y})
+	}
+	points = append(points, Point{X: (x1 - radius), Y: y1})
+
+	points = append(points, Point{X: (x0 + radius), Y: y1})
+	for i := range radians {
+		v := radians[len(radians)-1-i]
+		offsetX := radius * math.Cos(v)
+		offsetY := radius * math.Sin(v)
+		x := x0 + radius - offsetX
+		y := y1 - radius + offsetY
+		//fmt.Println(x, y)
+		points = append(points, Point{X: x, Y: y})
+	}
+	points = append(points, Point{X: x0, Y: y1 - radius})
+
+	gp.Polygon(points, style)
+	return nil
 }
 
 /*---private---*/

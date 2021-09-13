@@ -446,3 +446,30 @@ func TestWhiteTransparent(t *testing.T) {
 	}
 
 }
+
+func TestRectangle(t *testing.T) {
+	err := initTesting()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	// create pdf.
+	pdf := GoPdf{}
+	pdf.Start(Config{PageSize: *PageSizeA4})
+	pdf.AddPage()
+
+	pdf.SetStrokeColor(240, 98, 146)
+	pdf.SetLineWidth(1)
+	pdf.SetFillColor(255, 255, 255)
+	err = pdf.Rectangle(100.6, 150.8, 398.3, 379.3, "DF", 20, 10)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = pdf.WritePdf("./test/out/rectangle_with_round_corner.pdf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+}

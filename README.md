@@ -157,6 +157,17 @@ pdf.SetFillColor(0, 255, 0)
 pdf.Polygon([]gopdf.Point{{X: 10, Y: 30}, {X: 585, Y: 200}, {X: 585, Y: 250}}, "DF")
 ```
 
+### Draw rectangle with round corner
+```go
+pdf.SetStrokeColor(255, 0, 0)
+pdf.SetLineWidth(2)
+pdf.SetFillColor(0, 255, 0)
+err := pdf.Rectangle(196.6, 336.8, 398.3, 379.3, "DF", 3, 10)
+if err != nil {
+	return err
+}
+```
+
 ### Rotation text or image
 ```go
 pdf.SetX(100)

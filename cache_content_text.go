@@ -159,7 +159,10 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	for i, r := range c.text {
 
 		glyphindex, err := c.fontSubset.CharIndex(r)
-		if err != nil {
+		if err == ErrCharNotFound {
+			glyphindex = c.fontSubset.notfoundCharGlyphIndex
+			r = c.fontSubset.notfoundCharRune
+		} else if err != nil {
 			return err
 		}
 
@@ -285,7 +288,10 @@ func createContent(f *SubsetFontObj, text string, fontSize float64, rectangle *R
 	for i, r := range text {
 
 		glyphindex, err := f.CharIndex(r)
-		if err != nil {
+		if err == ErrCharNotFound {
+			glyphindex = f.notfoundCharGlyphIndex
+			r = f.notfoundCharRune
+		} else if err != nil {
 			return 0, 0, 0, err
 		}
 

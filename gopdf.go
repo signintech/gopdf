@@ -1803,3 +1803,14 @@ func (gp *GoPdf) IsCurrFontContainGlyph(r rune) (bool, error) {
 }
 
 //tool for validate pdf https://www.pdf-online.com/osa/validate.aspx
+
+//glyph not found" character(s)
+var glyphNotFoundCharacters []rune
+
+func getGlyphNotFoundCharacters() []rune {
+	//\u25A1
+	defaultGlyphNotFoundCharacters := []rune{rune('\u25A0'), rune('\u0020')}
+	buff := glyphNotFoundCharacters
+	buff = append(buff, defaultGlyphNotFoundCharacters...)
+	return buff
+}

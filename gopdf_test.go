@@ -491,3 +491,71 @@ func TestRectangle(t *testing.T) {
 		return
 	}
 }
+
+func TestWhiteTransparent195(t *testing.T) {
+	err := initTesting()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	// create pdf.
+	pdf := GoPdf{}
+	pdf.Start(Config{PageSize: *PageSizeA4})
+	pdf.AddPage()
+
+	var glyphNotFoundOfLiberationSerif []rune
+	err = pdf.AddTTFFontWithOption("LiberationSerif-Regular", "test/res/LiberationSerif-Regular.ttf", TtfOption{
+		OnGlyphNotFound: func(r rune) { //call when can not find glyph inside ttf file.
+			glyphNotFoundOfLiberationSerif = append(glyphNotFoundOfLiberationSerif, r)
+			//log.Printf("glyph not found %c", r)
+		},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = pdf.SetFont("LiberationSerif-Regular", "", 14)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	// write text.
+	op := CellOption{Align: Left | Middle}
+	rect := Rect{W: 20, H: 30}
+	pdf.SetX(350)
+	pdf.SetY(50)
+	// err = pdf.Cell(&rect, "あいうえ") // OK.
+	// err = pdf.Cell(&rect, "あ う") // OK.
+	err = pdf.CellWithOption(&rect, "あい うえ", op) // NG. "abcdef." is White/Transparent.
+	// err = pdf.Cell(&rect, " あいうえ") // NG. "abcdef." is White/Transparent.
+	// err = pdf.Cell(&rect, "あいうえ ") // NG. "abcdef." is White/Transparent.
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	pdf.SetY(100)
+	err = pdf.CellWithOption(&rect, "abcกdef.", op)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	//coz あ い う え  not contain in "test/res/LiberationSerif-Regular.ttf"
+	// if len(glyphNotFoundOfLiberationSerif) != 4 {
+	// 	t.Error(err)
+	// 	return
+	// }
+
+	//pdf.SetNoCompression()
+	err = pdf.WritePdf("./test/out/white_transparent195.pdf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+}
+
+func BenchmarkWhiteTransparent195(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+
+	}
+}

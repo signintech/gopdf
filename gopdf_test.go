@@ -507,7 +507,9 @@ func TestWhiteTransparent195(t *testing.T) {
 	err = pdf.AddTTFFontWithOption("LiberationSerif-Regular", "test/res/LiberationSerif-Regular.ttf", TtfOption{
 		OnGlyphNotFound: func(r rune) { //call when can not find glyph inside ttf file.
 			glyphNotFoundOfLiberationSerif = append(glyphNotFoundOfLiberationSerif, r)
-			//log.Printf("glyph not found %c", r)
+		},
+		OnGlyphNotFoundGetReplace: func(r rune) rune {
+			return rune('\u25A1')
 		},
 	})
 	if err != nil {
@@ -546,16 +548,10 @@ func TestWhiteTransparent195(t *testing.T) {
 	// 	return
 	// }
 
-	//pdf.SetNoCompression()
+	pdf.SetNoCompression()
 	err = pdf.WritePdf("./test/out/white_transparent195.pdf")
 	if err != nil {
 		t.Error(err)
 		return
-	}
-}
-
-func BenchmarkWhiteTransparent195(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-
 	}
 }

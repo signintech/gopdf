@@ -25,18 +25,13 @@ type SubsetFontObj struct {
 	ttfFontOption         TtfOption
 	funcKernOverride      FuncKernOverride
 	funcGetRoot           func() *GoPdf
-
-	//for glyph not found
-	notfoundCharSelected   bool
-	notfoundCharRune       rune
-	notfoundCharGlyphIndex uint
 }
 
 func (s *SubsetFontObj) init(funcGetRoot func() *GoPdf) {
 	s.CharacterToGlyphIndex = NewMapOfCharacterToGlyphIndex() //make(map[rune]uint)
 	s.funcKernOverride = nil
 	s.funcGetRoot = funcGetRoot
-	s.notfoundCharSelected = false
+
 }
 
 func (s *SubsetFontObj) write(w io.Writer, objID int) error {
@@ -74,6 +69,9 @@ func (s *SubsetFontObj) GetFamily() string {
 
 //SetTtfFontOption set TtfOption must set before SetTTFByPath
 func (s *SubsetFontObj) SetTtfFontOption(option TtfOption) {
+	if option.OnGlyphNotFoundGetReplace == nil {
+		option.OnGlyphNotFoundGetReplace = DefaultOnGlyphNotFoundGetReplace
+	}
 	s.ttfFontOption = option
 }
 
@@ -135,9 +133,39 @@ func (s *SubsetFontObj) SetTTFData(data []byte) error {
 }
 
 //AddChars add char to map CharacterToGlyphIndex
-func (s *SubsetFontObj) AddChars(txt string) error {
+func (s *SubsetFontObj) AddChars(txt string) (string, error) {
+	var buff []rune
+	for _, runeValue := range txt {
+		if s.CharacterToGlyphIndex.KeyExists(runeValue) {
+			buff = append(buff, runeValue)
+			continue
+		}
+		glyphIndex, err := s.CharCodeToGlyphIndex(runeValue)
+		if err == ErrGlyphNotFound {
+			//never return error on this, just call function OnGlyphNotFound
+			if s.ttfFontOption.OnGlyphNotFound != nil {
+				s.ttfFontOption.OnGlyphNotFound(runeValue)
+			}
+			//start: try to find rune for replace
+			runeValueReplace, foundGlyphIndexReplace, glyphIndexReplace := s.replaceGlyphThatNotFound(runeValue)
+			if foundGlyphIndexReplace {
+				s.CharacterToGlyphIndex.Set(runeValueReplace, glyphIndexReplace) // [runeValue] = glyphIndex
+			}
+			//end: try to find rune for replace
+			buff = append(buff, runeValueReplace)
+			continue
+		} else if err != nil {
+			return "", err
+		}
+		s.CharacterToGlyphIndex.Set(runeValue, glyphIndex) // [runeValue] = glyphIndex
+		buff = append(buff, runeValue)
+	}
+	return string(buff), nil
+}
 
-	notfoundChars := getGlyphNotFoundCharacters()
+/*
+//AddChars add char to map CharacterToGlyphIndex
+func (s *SubsetFontObj) AddChars(txt string) error {
 
 	for _, runeValue := range txt {
 		if s.CharacterToGlyphIndex.KeyExists(runeValue) {
@@ -149,36 +177,35 @@ func (s *SubsetFontObj) AddChars(txt string) error {
 			if s.ttfFontOption.OnGlyphNotFound != nil {
 				s.ttfFontOption.OnGlyphNotFound(runeValue)
 			}
-
 			//start: try to find rune for replace
-			if !s.notfoundCharSelected {
-				for _, notfoundChar := range notfoundChars {
-					glyphIndexForReplace, err := s.CharCodeToGlyphIndex(notfoundChar)
-					if err != nil {
-						continue
-					}
-					glyphIndex = glyphIndexForReplace
-					runeValue = notfoundChar
-					s.notfoundCharSelected = true
-					s.notfoundCharGlyphIndex = glyphIndex
-					s.notfoundCharRune = runeValue
-					fmt.Printf("------------->xxxxxx %c  %d\n", runeValue, glyphIndex)
-					break
-				}
-				if s.CharacterToGlyphIndex.KeyExists(runeValue) {
-					continue
-				}
-			} else {
-				continue
+			runeValueReplace, glyphIndexReplace, ok := s.replaceGlyphThatNotFound(runeValue)
+			if ok {
+				s.CharacterToGlyphIndex.Set(runeValueReplace, glyphIndexReplace) // [runeValue] = glyphIndex
 			}
 			//end: try to find rune for replace
-
+			continue
 		} else if err != nil {
 			return err
 		}
 		s.CharacterToGlyphIndex.Set(runeValue, glyphIndex) // [runeValue] = glyphIndex
 	}
 	return nil
+}
+*/
+
+func (s *SubsetFontObj) replaceGlyphThatNotFound(runeNotFound rune) (rune, bool, uint) {
+	if s.ttfFontOption.OnGlyphNotFoundGetReplace != nil {
+		runeForReplace := s.ttfFontOption.OnGlyphNotFoundGetReplace(runeNotFound)
+		if s.CharacterToGlyphIndex.KeyExists(runeForReplace) {
+			return runeForReplace, false, 0
+		}
+		glyphIndexForReplace, err := s.CharCodeToGlyphIndex(runeForReplace)
+		if err != nil {
+			return runeForReplace, false, 0
+		}
+		return runeForReplace, true, glyphIndexForReplace
+	}
+	return runeNotFound, false, 0
 }
 
 //CharIndex index of char in glyph table

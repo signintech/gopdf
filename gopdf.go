@@ -881,7 +881,7 @@ func (gp *GoPdf) GetBytesPdf() []byte {
 //Text write text start at current x,y ( current y is the baseline of text )
 func (gp *GoPdf) Text(text string) error {
 
-	err := gp.curr.FontISubset.AddChars(text)
+	text, err := gp.curr.FontISubset.AddChars(text)
 	if err != nil {
 		return err
 	}
@@ -906,7 +906,8 @@ func (gp *GoPdf) CellWithOption(rectangle *Rect, text string, opt CellOption) er
 	}
 
 	rectangle = rectangle.UnitsToPoints(gp.config.Unit)
-	if err := gp.curr.FontISubset.AddChars(text); err != nil {
+	text, err = gp.curr.FontISubset.AddChars(text)
+	if err != nil {
 		return err
 	}
 	if err := gp.getContent().AppendStreamSubsetFont(rectangle, text, opt); err != nil {
@@ -926,7 +927,7 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 		Float:  Right,
 	}
 
-	err := gp.curr.FontISubset.AddChars(text)
+	text, err := gp.curr.FontISubset.AddChars(text)
 	if err != nil {
 		return err
 	}
@@ -946,7 +947,8 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 	length := len([]rune(text))
 
 	// get lineHeight
-	if err := gp.curr.FontISubset.AddChars(text); err != nil {
+	text, err := gp.curr.FontISubset.AddChars(text)
+	if err != nil {
 		return err
 	}
 	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, nil)
@@ -1296,7 +1298,7 @@ func (gp *GoPdf) SetFillColor(r uint8, g uint8, b uint8) {
 //MeasureTextWidth : measure Width of text (use current font)
 func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 
-	err := gp.curr.FontISubset.AddChars(text) //AddChars for create CharacterToGlyphIndex
+	text, err := gp.curr.FontISubset.AddChars(text) //AddChars for create CharacterToGlyphIndex
 	if err != nil {
 		return 0, err
 	}
@@ -1803,14 +1805,3 @@ func (gp *GoPdf) IsCurrFontContainGlyph(r rune) (bool, error) {
 }
 
 //tool for validate pdf https://www.pdf-online.com/osa/validate.aspx
-
-//glyph not found" character(s)
-var glyphNotFoundCharacters []rune
-
-func getGlyphNotFoundCharacters() []rune {
-	//\u25A1
-	defaultGlyphNotFoundCharacters := []rune{rune('\u25A0'), rune('\u0020')}
-	buff := glyphNotFoundCharacters
-	buff = append(buff, defaultGlyphNotFoundCharacters...)
-	return buff
-}

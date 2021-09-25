@@ -69,8 +69,8 @@ func (s *SubsetFontObj) GetFamily() string {
 
 //SetTtfFontOption set TtfOption must set before SetTTFByPath
 func (s *SubsetFontObj) SetTtfFontOption(option TtfOption) {
-	if option.OnGlyphNotFoundGetReplace == nil {
-		option.OnGlyphNotFoundGetReplace = DefaultOnGlyphNotFoundGetReplace
+	if option.OnGlyphNotFoundSubstitute == nil {
+		option.OnGlyphNotFoundSubstitute = DefaultOnGlyphNotFoundGetReplace
 	}
 	s.ttfFontOption = option
 }
@@ -194,8 +194,8 @@ func (s *SubsetFontObj) AddChars(txt string) error {
 */
 
 func (s *SubsetFontObj) replaceGlyphThatNotFound(runeNotFound rune) (rune, bool, uint) {
-	if s.ttfFontOption.OnGlyphNotFoundGetReplace != nil {
-		runeForReplace := s.ttfFontOption.OnGlyphNotFoundGetReplace(runeNotFound)
+	if s.ttfFontOption.OnGlyphNotFoundSubstitute != nil {
+		runeForReplace := s.ttfFontOption.OnGlyphNotFoundSubstitute(runeNotFound)
 		if s.CharacterToGlyphIndex.KeyExists(runeForReplace) {
 			return runeForReplace, false, 0
 		}

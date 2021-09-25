@@ -508,8 +508,8 @@ func TestWhiteTransparent195(t *testing.T) {
 		OnGlyphNotFound: func(r rune) { //call when can not find glyph inside ttf file.
 			glyphNotFoundOfLiberationSerif = append(glyphNotFoundOfLiberationSerif, r)
 		},
-		OnGlyphNotFoundGetReplace: func(r rune) rune {
-			return rune('\u25A1')
+		OnGlyphNotFoundSubstitute: func(r rune) rune {
+			return rune('\u25A1') //(U+25A1) = “□”
 		},
 	})
 	if err != nil {

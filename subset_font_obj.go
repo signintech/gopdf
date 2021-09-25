@@ -70,7 +70,7 @@ func (s *SubsetFontObj) GetFamily() string {
 //SetTtfFontOption set TtfOption must set before SetTTFByPath
 func (s *SubsetFontObj) SetTtfFontOption(option TtfOption) {
 	if option.OnGlyphNotFoundSubstitute == nil {
-		option.OnGlyphNotFoundSubstitute = DefaultOnGlyphNotFoundGetReplace
+		option.OnGlyphNotFoundSubstitute = DefaultOnGlyphNotFoundSubstitute
 	}
 	s.ttfFontOption = option
 }

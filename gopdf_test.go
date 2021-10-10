@@ -504,12 +504,14 @@ func TestWhiteTransparent195(t *testing.T) {
 	pdf.AddPage()
 
 	var glyphNotFoundOfLiberationSerif []rune
-	err = pdf.AddTTFFontWithOption("LiberationSerif-Regular", "test/res/LiberationSerif-Regular.ttf", TtfOption{
+	err = pdf.AddTTFFontWithOption("LiberationSerif-Regular", "/Users/oneplus/Code/Work/gopdf_old/test/res/Meera-Regular.ttf", TtfOption{
+		//err = pdf.AddTTFFontWithOption("LiberationSerif-Regular", "test/res/LiberationSerif-Regular.ttf", TtfOption{
 		OnGlyphNotFound: func(r rune) { //call when can not find glyph inside ttf file.
 			glyphNotFoundOfLiberationSerif = append(glyphNotFoundOfLiberationSerif, r)
 		},
 		OnGlyphNotFoundSubstitute: func(r rune) rune {
-			return rune('\u25A1') //(U+25A1) = “□”
+			//return r
+			return rune('\u20b0') //(U+25A1) = “□”
 		},
 	})
 	if err != nil {
@@ -526,10 +528,10 @@ func TestWhiteTransparent195(t *testing.T) {
 	rect := Rect{W: 20, H: 30}
 	pdf.SetX(350)
 	pdf.SetY(50)
-	// err = pdf.Cell(&rect, "あいうえ") // OK.
-	// err = pdf.Cell(&rect, "あ う") // OK.
-	err = pdf.CellWithOption(&rect, "あい うえ", op) // NG. "abcdef." is White/Transparent.
-	// err = pdf.Cell(&rect, " あいうえ") // NG. "abcdef." is White/Transparent.
+	//err = pdf.Cell(&rect, "あいうえ") // OK.
+	//err = pdf.Cell(&rect, "あうう") // OK.
+	err = pdf.CellWithOption(&rect, "あいうえ", op) // NG. "abcdef." is White/Transparent.
+	//err = pdf.Cell(&rect, " あいうえ") // NG. "abcdef." is White/Transparent.
 	// err = pdf.Cell(&rect, "あいうえ ") // NG. "abcdef." is White/Transparent.
 	if err != nil {
 		t.Error(err)

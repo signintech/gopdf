@@ -88,6 +88,20 @@ func (p *PdfDictionaryObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 	p.PtrToSubsetFontObj = ptr
 }
 
+//distinctInts distinct number in nn ( value in nn must sorted )
+func (p *PdfDictionaryObj) distinctInts(nn []int) []int {
+	var buff []int
+	var prev = -1
+	for _, g := range nn {
+		if g == prev {
+			continue
+		}
+		buff = append(buff, g)
+		prev = g
+	}
+	return buff
+}
+
 func (p *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 	ttfp := p.PtrToSubsetFontObj.GetTTFParser()
 	var glyf core.TableDirectoryEntry
@@ -96,6 +110,7 @@ func (p *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 
 	glyphArray := p.completeGlyphClosure(p.PtrToSubsetFontObj.CharacterToGlyphIndex)
 	sort.Ints(glyphArray)
+	glyphArray = p.distinctInts(glyphArray)
 	glyphCount := len(glyphArray)
 
 	size := 0

@@ -504,14 +504,14 @@ func TestWhiteTransparent195(t *testing.T) {
 	pdf.AddPage()
 
 	var glyphNotFoundOfLiberationSerif []rune
-	err = pdf.AddTTFFontWithOption("LiberationSerif-Regular", "/Users/oneplus/Code/Work/gopdf_old/test/res/Meera-Regular.ttf", TtfOption{
-		//err = pdf.AddTTFFontWithOption("LiberationSerif-Regular", "test/res/LiberationSerif-Regular.ttf", TtfOption{
+	//err = pdf.AddTTFFontWithOption("LiberationSerif-Regular", "/Users/oneplus/Code/Work/gopdf_old/test/res/Meera-Regular.ttf", TtfOption{
+	err = pdf.AddTTFFontWithOption("LiberationSerif-Regular", "test/res/LiberationSerif-Regular.ttf", TtfOption{
 		OnGlyphNotFound: func(r rune) { //call when can not find glyph inside ttf file.
 			glyphNotFoundOfLiberationSerif = append(glyphNotFoundOfLiberationSerif, r)
 		},
 		OnGlyphNotFoundSubstitute: func(r rune) rune {
-			//return r
-			return rune('\u20b0') //(U+25A1) = “□”
+			return r
+			//return rune('\u20b0') //(U+25A1) = “□”
 		},
 	})
 	if err != nil {

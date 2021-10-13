@@ -1579,7 +1579,6 @@ func (gp *GoPdf) prepare() {
 		max := len(gp.pdfObjs)
 		for i < max {
 			objtype := gp.pdfObjs[i].getType()
-			//fmt.Printf(" objtype = %s , %d \n", objtype , i)
 			switch objtype {
 			case "Page":
 				pagesObj.Kids = fmt.Sprintf("%s %d 0 R ", pagesObj.Kids, i+1)

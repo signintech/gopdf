@@ -510,8 +510,8 @@ func TestWhiteTransparent195(t *testing.T) {
 			glyphNotFoundOfLiberationSerif = append(glyphNotFoundOfLiberationSerif, r)
 		},
 		OnGlyphNotFoundSubstitute: func(r rune) rune {
-			return r
-			//return rune('\u20b0') //(U+25A1) = “□”
+			//return r
+			return rune('\u20b0') //(U+25A1) = “□”
 		},
 	})
 	if err != nil {

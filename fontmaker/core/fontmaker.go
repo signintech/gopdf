@@ -251,6 +251,9 @@ func (f *FontMaker) MakeFontDescriptor(info TtfInfo) (string, error) {
 	}
 	flags += 1 << 5
 	italicAngle, err := info.GetInt64("ItalicAngle")
+	if err != nil {
+		return "", err
+	}
 	if italicAngle != 0 {
 		flags += 1 << 6
 	}

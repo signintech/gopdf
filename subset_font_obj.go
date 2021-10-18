@@ -322,7 +322,7 @@ func (s *SubsetFontObj) GetUnderlineThickness() int {
 	return s.ttfp.UnderlineThickness()
 }
 
-func (s *SubsetFontObj) GetUnderlineThicknessPx(fontSize int) float64 {
+func (s *SubsetFontObj) GetUnderlineThicknessPx(fontSize float64) float64 {
 	return (float64(s.ttfp.UnderlineThickness()) / float64(s.ttfp.UnitsPerEm())) * float64(fontSize)
 }
 
@@ -331,7 +331,7 @@ func (s *SubsetFontObj) GetUnderlinePosition() int {
 	return s.ttfp.UnderlinePosition()
 }
 
-func (s *SubsetFontObj) GetUnderlinePositionPx(fontSize int) float64 {
+func (s *SubsetFontObj) GetUnderlinePositionPx(fontSize float64) float64 {
 	return (float64(s.ttfp.UnderlinePosition()) / float64(s.ttfp.UnitsPerEm())) * float64(fontSize)
 }
 
@@ -347,6 +347,6 @@ func (s *SubsetFontObj) GetDescender() int {
 	return s.ttfp.Descender()
 }
 
-func (s *SubsetFontObj) GetDescenderPx(fontSize int) float64 {
+func (s *SubsetFontObj) GetDescenderPx(fontSize float64) float64 {
 	return (float64(s.ttfp.Descender()) / float64(s.ttfp.UnitsPerEm())) * float64(fontSize)
 }

@@ -339,8 +339,8 @@ func (s *SubsetFontObj) GetAscender() int {
 	return s.ttfp.Ascender()
 }
 
-func (s *SubsetFontObj) GetAscenderPx(fontSize int) float64 {
-	return (float64(s.ttfp.Ascender()) / float64(s.ttfp.UnitsPerEm())) * float64(fontSize)
+func (s *SubsetFontObj) GetAscenderPx(fontSize float64) float64 {
+	return (float64(s.ttfp.Ascender()) / float64(s.ttfp.UnitsPerEm())) * fontSize
 }
 
 func (s *SubsetFontObj) GetDescender() int {

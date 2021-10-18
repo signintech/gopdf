@@ -9,9 +9,15 @@ type cacheContentPolygon struct {
 	pageHeight float64
 	style      string
 	points     []Point
+	opts       polygonOptions
 }
 
 func (c *cacheContentPolygon) write(w io.Writer, protection *PDFProtection) error {
+
+	fmt.Fprintf(w, "q\n")
+	for _, extGStateIndex := range c.opts.extGStateIndexes {
+		fmt.Fprintf(w, "/GS%d gs\n", extGStateIndex)
+	}
 
 	for i, point := range c.points {
 		fmt.Fprintf(w, "%.2f %.2f", point.X, c.pageHeight-point.Y)
@@ -31,5 +37,6 @@ func (c *cacheContentPolygon) write(w io.Writer, protection *PDFProtection) erro
 		fmt.Fprintf(w, " s\n")
 	}
 
+	fmt.Fprintf(w, "Q\n")
 	return nil
 }

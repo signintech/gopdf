@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"time"
@@ -116,6 +117,14 @@ type MaskOptions struct {
 	Holder ImageHolder
 }
 
+type lineOptions struct {
+	extGStateIndexes []int
+}
+
+type polygonOptions struct {
+	extGStateIndexes []int
+}
+
 //SetLineWidth : set line width
 func (gp *GoPdf) SetLineWidth(width float64) {
 	gp.curr.lineWidth = gp.UnitsToPoints(width)
@@ -158,9 +167,24 @@ func (gp *GoPdf) SetLineType(linetype string) {
 }
 
 //Line : draw line
+// 	Usage:
+//	pdf.SetTransparency(gopdf.Transparency{Alpha: 0.5,BlendModeType: gopdf.ColorBurn})
+//	pdf.SetLineType("dotted")
+//	pdf.SetStrokeColor(255, 0, 0)
+//	pdf.SetLineWidth(2)
+//	pdf.Line(10, 30, 585, 30)
+//	pdf.ClearTransparency()
 func (gp *GoPdf) Line(x1 float64, y1 float64, x2 float64, y2 float64) {
 	gp.UnitsToPointsVar(&x1, &y1, &x2, &y2)
-	gp.getContent().AppendStreamLine(x1, y1, x2, y2)
+	transparency, err := gp.getCachedTransparency(nil)
+	if err != nil {
+		transparency = nil
+	}
+	var opts = lineOptions{}
+	if transparency != nil {
+		opts.extGStateIndexes = append(opts.extGStateIndexes, transparency.extGStateIndex)
+	}
+	gp.getContent().AppendStreamLine(x1, y1, x2, y2, opts)
 }
 
 //RectFromLowerLeft : draw rectangle from lower-left corner (x, y)
@@ -686,10 +710,46 @@ func (gp *GoPdf) Start(config Config) {
 
 }
 
+// convertNumericToFloat64 : accept numeric types, return float64-value
+func convertNumericToFloat64(size interface{}) (fontSize float64, err error) {
+	switch size := size.(type) {
+	case float32:
+		return float64(size), nil
+	case float64:
+		return float64(size), nil
+	case int:
+		return float64(size), nil
+	case int16:
+		return float64(size), nil
+	case int32:
+		return float64(size), nil
+	case int64:
+		return float64(size), nil
+	case int8:
+		return float64(size), nil
+	case uint:
+		return float64(size), nil
+	case uint16:
+		return float64(size), nil
+	case uint32:
+		return float64(size), nil
+	case uint64:
+		return float64(size), nil
+	case uint8:
+		return float64(size), nil
+	default:
+		return 0.0, errors.Errorf("fontSize must be of type (u)int* or float*, not %T", size)
+	}
+}
+
 // SetFontWithStyle : set font style support Regular or Underline
 // for Bold|Italic should be loaded apropriate fonts with same styles defined
-func (gp *GoPdf) SetFontWithStyle(family string, style int, size int) error {
-
+// size MUST be uint*, int* or float64*
+func (gp *GoPdf) SetFontWithStyle(family string, style int, size interface{}) error {
+	fontSize, err := convertNumericToFloat64(size)
+	if err != nil {
+		return err
+	}
 	found := false
 	i := 0
 	max := len(gp.pdfObjs)
@@ -699,7 +759,7 @@ func (gp *GoPdf) SetFontWithStyle(family string, style int, size int) error {
 			sub, ok := obj.(*SubsetFontObj)
 			if ok {
 				if sub.GetFamily() == family && sub.GetTtfFontOption().Style == style&^Underline {
-					gp.curr.FontSize = size
+					gp.curr.FontSize = fontSize
 					gp.curr.FontStyle = style
 					gp.curr.FontFontCount = sub.CountOfFont
 					gp.curr.FontISubset = sub
@@ -720,8 +780,16 @@ func (gp *GoPdf) SetFontWithStyle(family string, style int, size int) error {
 
 //SetFont : set font style support "" or "U"
 // for "B" and "I" should be loaded apropriate fonts with same styles defined
-func (gp *GoPdf) SetFont(family string, style string, size int) error {
+// size MUST be uint*, int* or float64*
+func (gp *GoPdf) SetFont(family string, style string, size interface{}) error {
 	return gp.SetFontWithStyle(family, getConvertedStyle(style), size)
+}
+
+//SetFontSize : set the font size (and only the font size) of the currently
+// active font
+func (gp *GoPdf) SetFontSize(fontSize float64) error {
+	gp.curr.FontSize = fontSize
+	return nil
 }
 
 //WritePdf : wirte pdf file
@@ -813,7 +881,7 @@ func (gp *GoPdf) GetBytesPdf() []byte {
 //Text write text start at current x,y ( current y is the baseline of text )
 func (gp *GoPdf) Text(text string) error {
 
-	err := gp.curr.FontISubset.AddChars(text)
+	text, err := gp.curr.FontISubset.AddChars(text)
 	if err != nil {
 		return err
 	}
@@ -838,7 +906,8 @@ func (gp *GoPdf) CellWithOption(rectangle *Rect, text string, opt CellOption) er
 	}
 
 	rectangle = rectangle.UnitsToPoints(gp.config.Unit)
-	if err := gp.curr.FontISubset.AddChars(text); err != nil {
+	text, err = gp.curr.FontISubset.AddChars(text)
+	if err != nil {
 		return err
 	}
 	if err := gp.getContent().AppendStreamSubsetFont(rectangle, text, opt); err != nil {
@@ -858,7 +927,7 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 		Float:  Right,
 	}
 
-	err := gp.curr.FontISubset.AddChars(text)
+	text, err := gp.curr.FontISubset.AddChars(text)
 	if err != nil {
 		return err
 	}
@@ -878,7 +947,8 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 	length := len([]rune(text))
 
 	// get lineHeight
-	if err := gp.curr.FontISubset.AddChars(text); err != nil {
+	text, err := gp.curr.FontISubset.AddChars(text)
+	if err != nil {
 		return err
 	}
 	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, nil)
@@ -1228,7 +1298,7 @@ func (gp *GoPdf) SetFillColor(r uint8, g uint8, b uint8) {
 //MeasureTextWidth : measure Width of text (use current font)
 func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 
-	err := gp.curr.FontISubset.AddChars(text) //AddChars for create CharacterToGlyphIndex
+	text, err := gp.curr.FontISubset.AddChars(text) //AddChars for create CharacterToGlyphIndex
 	if err != nil {
 		return 0, err
 	}
@@ -1289,6 +1359,17 @@ func (gp *GoPdf) RotateReset() {
 //	pdf.SetFillColor(0, 255, 0)
 //	pdf.Polygon([]gopdf.Point{{X: 10, Y: 30}, {X: 585, Y: 200}, {X: 585, Y: 250}}, "DF")
 func (gp *GoPdf) Polygon(points []Point, style string) {
+
+	transparency, err := gp.getCachedTransparency(nil)
+	if err != nil {
+		transparency = nil
+	}
+
+	var opts = polygonOptions{}
+	if transparency != nil {
+		opts.extGStateIndexes = append(opts.extGStateIndexes, transparency.extGStateIndex)
+	}
+
 	var pointReals []Point
 	for _, p := range points {
 		x := p.X
@@ -1296,7 +1377,97 @@ func (gp *GoPdf) Polygon(points []Point, style string) {
 		gp.UnitsToPointsVar(&x, &y)
 		pointReals = append(pointReals, Point{X: x, Y: y})
 	}
-	gp.getContent().AppendStreamPolygon(pointReals, style)
+	gp.getContent().AppendStreamPolygon(pointReals, style, opts)
+}
+
+//Rectangle : draw rectangle, and add radius input to make a round corner, it helps to calculate the round corner coordinates and use Polygon functions to draw rectangle
+// - style: Style of Rectangle (draw and/or fill: D, F, DF, FD)
+//		D or empty string: draw. This is the default value.
+//		F: fill
+//		DF or FD: draw and fill
+// Usage:
+//  pdf.SetStrokeColor(255, 0, 0)
+//	pdf.SetLineWidth(2)
+//	pdf.SetFillColor(0, 255, 0)
+//	pdf.Rectangle(196.6, 336.8, 398.3, 379.3, "DF", 3, 10)
+func (gp *GoPdf) Rectangle(x0 float64, y0 float64, x1 float64, y1 float64, style string, radius float64, radiusPointNum int) error {
+	if x1 <= x0 || y1 <= y0 {
+		return errors.New("Invalid coordinates for the rectangle")
+	}
+	if radiusPointNum <= 0 || radius <= 0 {
+		//draw rectangle without round corner
+		points := []Point{}
+		points = append(points, Point{X: x0, Y: y0})
+		points = append(points, Point{X: x1, Y: y0})
+		points = append(points, Point{X: x1, Y: y1})
+		points = append(points, Point{X: x0, Y: y1})
+		gp.Polygon(points, style)
+
+	} else {
+
+		if radius > (x1-x0) || radius > (y1-y0) {
+			return errors.New("Radius length cannot exceed rectangle height or width")
+		}
+
+		degrees := []float64{}
+		angle := float64(90) / float64(radiusPointNum+1)
+		accAngle := angle
+		for accAngle < float64(90) {
+			degrees = append(degrees, accAngle)
+			accAngle += angle
+		}
+
+		radians := []float64{}
+		for _, v := range degrees {
+			radians = append(radians, v*math.Pi/180)
+		}
+
+		points := []Point{}
+		points = append(points, Point{X: x0, Y: (y0 + radius)})
+		for _, v := range radians {
+			offsetX := radius * math.Cos(v)
+			offsetY := radius * math.Sin(v)
+			x := x0 + radius - offsetX
+			y := y0 + radius - offsetY
+			points = append(points, Point{X: x, Y: y})
+		}
+		points = append(points, Point{X: (x0 + radius), Y: y0})
+
+		points = append(points, Point{X: (x1 - radius), Y: y0})
+		for i := range radians {
+			v := radians[len(radians)-1-i]
+			offsetX := radius * math.Cos(v)
+			offsetY := radius * math.Sin(v)
+			x := x1 - radius + offsetX
+			y := y0 + radius - offsetY
+			points = append(points, Point{X: x, Y: y})
+		}
+		points = append(points, Point{X: x1, Y: (y0 + radius)})
+
+		points = append(points, Point{X: x1, Y: (y1 - radius)})
+		for _, v := range radians {
+			offsetX := radius * math.Cos(v)
+			offsetY := radius * math.Sin(v)
+			x := x1 - radius + offsetX
+			y := y1 - radius + offsetY
+			points = append(points, Point{X: x, Y: y})
+		}
+		points = append(points, Point{X: (x1 - radius), Y: y1})
+
+		points = append(points, Point{X: (x0 + radius), Y: y1})
+		for i := range radians {
+			v := radians[len(radians)-1-i]
+			offsetX := radius * math.Cos(v)
+			offsetY := radius * math.Sin(v)
+			x := x0 + radius - offsetX
+			y := y1 - radius + offsetY
+			points = append(points, Point{X: x, Y: y})
+		}
+		points = append(points, Point{X: x0, Y: y1 - radius})
+
+		gp.Polygon(points, style)
+	}
+	return nil
 }
 
 /*---private---*/
@@ -1408,7 +1579,6 @@ func (gp *GoPdf) prepare() {
 		max := len(gp.pdfObjs)
 		for i < max {
 			objtype := gp.pdfObjs[i].getType()
-			//fmt.Printf(" objtype = %s , %d \n", objtype , i)
 			switch objtype {
 			case "Page":
 				pagesObj.Kids = fmt.Sprintf("%s %d 0 R ", pagesObj.Kids, i+1)
@@ -1563,6 +1733,10 @@ func (gp *GoPdf) SetTransparency(transparency Transparency) error {
 	gp.curr.transparency = t
 
 	return nil
+}
+
+func (gp *GoPdf) ClearTransparency() {
+	gp.curr.transparency = nil
 }
 
 func (gp *GoPdf) getCachedTransparency(transparency *Transparency) (*Transparency, error) {

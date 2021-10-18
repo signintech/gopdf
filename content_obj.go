@@ -180,7 +180,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOp
 }
 
 //AppendStreamLine append line
-func (c *ContentObj) AppendStreamLine(x1 float64, y1 float64, x2 float64, y2 float64) {
+func (c *ContentObj) AppendStreamLine(x1 float64, y1 float64, x2 float64, y2 float64, lineOpts lineOptions) {
 	//h := c.getRoot().config.PageSize.H
 	//c.stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", x1, h-y1, x2, h-y2))
 	var cache cacheContentLine
@@ -189,6 +189,7 @@ func (c *ContentObj) AppendStreamLine(x1 float64, y1 float64, x2 float64, y2 flo
 	cache.y1 = y1
 	cache.x2 = x2
 	cache.y2 = y2
+	cache.opts = lineOpts
 	c.listCache.append(&cache)
 }
 
@@ -320,11 +321,12 @@ func (c *ContentObj) AppendStreamImage(index int, opts ImageOptions) {
 }
 
 //AppendStreamPolygon append polygon
-func (c *ContentObj) AppendStreamPolygon(points []Point, style string) {
+func (c *ContentObj) AppendStreamPolygon(points []Point, style string, opts polygonOptions) {
 	var cache cacheContentPolygon
 	cache.points = points
 	cache.style = style
 	cache.pageHeight = c.getRoot().curr.pageSize.H
+	cache.opts = opts
 	c.listCache.append(&cache)
 }
 
@@ -344,8 +346,14 @@ func (c *ContentObj) appendRotateReset() {
 	c.listCache.append(&cache)
 }
 
-//ContentObjCalTextHeight calculates height of text.
+//ContentObjCalTextHeight : calculates height of text.
 func ContentObjCalTextHeight(fontsize int) float64 {
+	return ContentObjCalTextHeightPrecise(float64(fontsize))
+}
+
+//ContentObjCalTextHeightPrecise : like ContentObjCalTextHeight,
+// but fontsize float64
+func ContentObjCalTextHeightPrecise(fontsize float64) float64 {
 	return (float64(fontsize) * 0.7)
 }
 

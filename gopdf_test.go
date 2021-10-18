@@ -446,3 +446,114 @@ func TestWhiteTransparent(t *testing.T) {
 	}
 
 }
+
+func TestRectangle(t *testing.T) {
+	err := initTesting()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	// create pdf.
+	pdf := GoPdf{}
+	pdf.Start(Config{PageSize: *PageSizeA4})
+	pdf.AddPage()
+
+	pdf.SetStrokeColor(240, 98, 146)
+	pdf.SetLineWidth(1)
+	pdf.SetFillColor(255, 255, 255)
+	// draw rectangle with round radius
+	err = pdf.Rectangle(100.6, 150.8, 150.3, 379.3, "DF", 20, 10)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	// draw rectangle with round radius but less point number
+	err = pdf.Rectangle(200.6, 150.8, 250.3, 379.3, "DF", 20, 2)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	pdf.SetStrokeColor(240, 98, 146)
+	pdf.SetLineWidth(1)
+	pdf.SetFillColor(255, 255, 255)
+	// draw rectangle directly
+	err = pdf.Rectangle(100.6, 50.8, 130, 150, "DF", 0, 0)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = pdf.WritePdf("./test/out/rectangle_with_round_corner.pdf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+}
+
+func TestWhiteTransparent195(t *testing.T) {
+	err := initTesting()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	// create pdf.
+	pdf := GoPdf{}
+	pdf.Start(Config{PageSize: *PageSizeA4})
+	pdf.AddPage()
+
+	var glyphNotFoundOfLiberationSerif []rune
+	//err = pdf.AddTTFFontWithOption("LiberationSerif-Regular", "/Users/oneplus/Code/Work/gopdf_old/test/res/Meera-Regular.ttf", TtfOption{
+	err = pdf.AddTTFFontWithOption("LiberationSerif-Regular", "test/res/LiberationSerif-Regular.ttf", TtfOption{
+		OnGlyphNotFound: func(r rune) { //call when can not find glyph inside ttf file.
+			glyphNotFoundOfLiberationSerif = append(glyphNotFoundOfLiberationSerif, r)
+		},
+		OnGlyphNotFoundSubstitute: func(r rune) rune {
+			//return r
+			return rune('\u20b0') //(U+25A1) = “□”
+		},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = pdf.SetFont("LiberationSerif-Regular", "", 14)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	// write text.
+	op := CellOption{Align: Left | Middle}
+	rect := Rect{W: 20, H: 30}
+	pdf.SetX(350)
+	pdf.SetY(50)
+	//err = pdf.Cell(&rect, "あいうえ") // OK.
+	//err = pdf.Cell(&rect, "あうう") // OK.
+	err = pdf.CellWithOption(&rect, "あいうえ", op) // NG. "abcdef." is White/Transparent.
+	//err = pdf.Cell(&rect, " あいうえ") // NG. "abcdef." is White/Transparent.
+	// err = pdf.Cell(&rect, "あいうえ ") // NG. "abcdef." is White/Transparent.
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	pdf.SetY(100)
+	err = pdf.CellWithOption(&rect, "abcกdef.", op)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	//coz あ い う え  not contain in "test/res/LiberationSerif-Regular.ttf"
+	// if len(glyphNotFoundOfLiberationSerif) != 4 {
+	// 	t.Error(err)
+	// 	return
+	// }
+
+	pdf.SetNoCompression()
+	err = pdf.WritePdf("./test/out/white_transparent195.pdf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+}

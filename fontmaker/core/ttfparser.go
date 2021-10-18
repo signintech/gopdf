@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -262,12 +261,10 @@ func (t *TTFParser) ParseFontData(fontData []byte) error {
 		if err != nil {
 			return err
 		}
-		//fmt.Printf("\n\ntag=%s  \nOffset = %d\n", tag, offset)
 		var table TableDirectoryEntry
 		table.Offset = uint(offset)
 		table.CheckSum = checksum
 		table.Length = length
-		//fmt.Printf("\n\ntag=%s  \nOffset = %d\nPaddedLength =%d\n\n ", tag, table.Offset, table.PaddedLength())
 		t.tables[t.BytesToString(tag)] = table
 		i++
 	}
@@ -335,7 +332,6 @@ func (t *TTFParser) ParseLoca(fd *bytes.Reader) error {
 		t.IsShortIndex = true
 	}
 
-	//fmt.Printf("indexToLocFormat = %d\n", me.indexToLocFormat)
 	err := t.Seek(fd, "loca")
 	if err != nil {
 		return err
@@ -398,13 +394,10 @@ func (t *TTFParser) ParsePost(fd *bytes.Reader) error {
 		return err
 	}
 
-	//fmt.Printf("start>>>>>>>\n")
 	t.underlineThickness, err = t.ReadShort(fd)
 	if err != nil {
 		return err
 	}
-	//fmt.Printf("underlineThickness=%d\n", t.underlineThickness)
-	//fmt.Printf(">>>>>>>%d\n", me.underlineThickness)
 
 	isFixedPitch, err := t.ReadULong(fd)
 	if err != nil {
@@ -564,7 +557,8 @@ func (t *TTFParser) ParseName(fd *bytes.Reader) error {
 					tmpStmp = append(tmpStmp, v)
 				}
 			}
-			s := fmt.Sprintf("%s", string(tmpStmp)) //strings(stmp)
+			//s := fmt.Sprintf("%s", string(tmpStmp)) //strings(stmp)
+			s := string(tmpStmp)
 			s = strings.Replace(s, strconv.Itoa(0), "", -1)
 			s, err = t.PregReplace("|[ \\[\\](){}<>/%]|", "", s)
 			if err != nil {
@@ -579,7 +573,6 @@ func (t *TTFParser) ParseName(fd *bytes.Reader) error {
 		return ERROR_POSTSCRIPT_NAME_NOT_FOUND
 	}
 
-	//fmt.Printf("%s\n", me.postScriptName)
 	return nil
 }
 
@@ -624,7 +617,6 @@ func (t *TTFParser) ParseCmap(fd *bytes.Reader) error {
 			}
 			offset31 = offset
 		}
-		//fmt.Printf("me.symbol=%d\n", me.symbol)
 	} //end for
 
 	if offset31 == 0 {
@@ -653,7 +645,6 @@ func (t *TTFParser) ParseCmap(fd *bytes.Reader) error {
 	if err != nil {
 		return err
 	}
-	//fmt.Printf("\nlength=%d\n", length)
 
 	err = t.Skip(fd, 2) // language
 	if err != nil {
@@ -671,7 +662,6 @@ func (t *TTFParser) ParseCmap(fd *bytes.Reader) error {
 	}
 
 	glyphCount := (length - (16 + 8*segCount)) / 2
-	//fmt.Printf("\nglyphCount=%d\n", glyphCount)
 
 	for i := 0; i < int(segCount); i++ {
 		tmp, err := t.ReadUShort(fd)
@@ -761,7 +751,6 @@ func (t *TTFParser) ParseCmap(fd *bytes.Reader) error {
 				gid -= 65536
 			}
 			if gid > 0 {
-				//fmt.Printf("%d gid = %d, ", int(c), gid)
 				t.chars[int(c)] = gid
 			}
 		}
@@ -828,7 +817,6 @@ func (t *TTFParser) ArrayPadUint(arr []uint, size uint, val uint) ([]uint, error
 //ParseHead parse head table  https://www.microsoft.com/typography/otspec/Head.htm
 func (t *TTFParser) ParseHead(fd *bytes.Reader) error {
 
-	//fmt.Printf("\nParseHead\n")
 	err := t.Seek(fd, "head")
 	if err != nil {
 		return err
@@ -843,7 +831,6 @@ func (t *TTFParser) ParseHead(fd *bytes.Reader) error {
 		return err
 	}
 
-	//fmt.Printf("\nmagicNumber = %d\n", magicNumber)
 	if magicNumber != 0x5F0F3CF5 {
 		return ERROR_INCORRECT_MAGIC_NUMBER
 	}
@@ -988,7 +975,6 @@ func (t *TTFParser) ReadShort(fd *bytes.Reader) (int, error) {
 		return 0, err
 	}
 
-	//fmt.Printf("%#v\n", buff)
 	var v int
 	if u >= 0x8000 {
 		v = int(u) - 65536
@@ -1010,7 +996,6 @@ func (t *TTFParser) ReadShortInt16(fd *bytes.Reader) (int16, error) {
 //ReadULong read ulong
 func (t *TTFParser) ReadULong(fd *bytes.Reader) (uint, error) {
 	buff, err := t.Read(fd, 4)
-	//fmt.Printf("%#v\n", buff)
 	if err != nil {
 		return 0, err
 	}
@@ -1037,6 +1022,5 @@ func (t *TTFParser) Read(fd *bytes.Reader, length int) ([]byte, error) {
 	if readlength != length {
 		return nil, errors.New("file out of length")
 	}
-	//fmt.Printf("%d,%s\n", readlength, string(buff))
 	return buff, nil
 }

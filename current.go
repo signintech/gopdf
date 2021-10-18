@@ -11,7 +11,7 @@ type Current struct {
 	CountOfFont    int
 	CountOfL       int
 
-	FontSize      int
+	FontSize      float64
 	FontStyle     int // Regular|Bold|Italic|Underline
 	FontFontCount int
 	FontType      int // CURRENT_FONT_TYPE_IFONT or  CURRENT_FONT_TYPE_SUBSET

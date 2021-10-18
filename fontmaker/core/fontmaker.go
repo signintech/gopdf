@@ -251,11 +251,14 @@ func (f *FontMaker) MakeFontDescriptor(info TtfInfo) (string, error) {
 	}
 	flags += 1 << 5
 	italicAngle, err := info.GetInt64("ItalicAngle")
+	if err != nil {
+		return "", err
+	}
 	if italicAngle != 0 {
 		flags += 1 << 6
 	}
 	fd += fmt.Sprintf("\tme.desc[3] =  gopdf.FontDescItem{ Key: \"Flags\", Val :  \"%d\" }\n", flags)
-	//fmt.Printf("\n----\n")
+
 	// FontBBox
 	fbb, err := info.GetInt64s("FontBBox")
 	if err != nil {
@@ -480,7 +483,6 @@ func (f *FontMaker) LoadMap(encodingpath string) ([]FontMap, error) {
 			return nil, err
 		}
 		name := e[2]
-		//fmt.Println("strC = "+strC+"strUv = "+strUv+" c=%d , uv= %d", c, uv)
 		fontmaps[c].Name = name
 		fontmaps[c].Uv = int(uv)
 	}

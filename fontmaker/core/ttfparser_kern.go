@@ -52,7 +52,6 @@ func (t *TTFParser) parsekernSubTable(fd *bytes.Reader) error {
 	}
 
 	format := coverage & 0xf0
-	//fmt.Printf("format = %d\n", format) //debug
 	t.kern.Kerning = make(KernMap) //init
 	if format == 0 {
 		t.parsekernSubTableFormat0(fd)

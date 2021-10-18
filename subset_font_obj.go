@@ -24,11 +24,14 @@ type SubsetFontObj struct {
 	indexObjUnicodeMap    int
 	ttfFontOption         TtfOption
 	funcKernOverride      FuncKernOverride
+	funcGetRoot           func() *GoPdf
 }
 
 func (s *SubsetFontObj) init(funcGetRoot func() *GoPdf) {
 	s.CharacterToGlyphIndex = NewMapOfCharacterToGlyphIndex() //make(map[rune]uint)
 	s.funcKernOverride = nil
+	s.funcGetRoot = funcGetRoot
+
 }
 
 func (s *SubsetFontObj) write(w io.Writer, objID int) error {
@@ -66,6 +69,9 @@ func (s *SubsetFontObj) GetFamily() string {
 
 //SetTtfFontOption set TtfOption must set before SetTTFByPath
 func (s *SubsetFontObj) SetTtfFontOption(option TtfOption) {
+	if option.OnGlyphNotFoundSubstitute == nil {
+		option.OnGlyphNotFoundSubstitute = DefaultOnGlyphNotFoundSubstitute
+	}
 	s.ttfFontOption = option
 }
 
@@ -127,7 +133,40 @@ func (s *SubsetFontObj) SetTTFData(data []byte) error {
 }
 
 //AddChars add char to map CharacterToGlyphIndex
+func (s *SubsetFontObj) AddChars(txt string) (string, error) {
+	var buff []rune
+	for _, runeValue := range txt {
+		if s.CharacterToGlyphIndex.KeyExists(runeValue) {
+			buff = append(buff, runeValue)
+			continue
+		}
+		glyphIndex, err := s.CharCodeToGlyphIndex(runeValue)
+		if err == ErrGlyphNotFound {
+			//never return error on this, just call function OnGlyphNotFound
+			if s.ttfFontOption.OnGlyphNotFound != nil {
+				s.ttfFontOption.OnGlyphNotFound(runeValue)
+			}
+			//start: try to find rune for replace
+			alreadyExists, runeValueReplace, glyphIndexReplace := s.replaceGlyphThatNotFound(runeValue)
+			if !alreadyExists {
+				s.CharacterToGlyphIndex.Set(runeValueReplace, glyphIndexReplace) // [runeValue] = glyphIndex
+			}
+			//end: try to find rune for replace
+			buff = append(buff, runeValueReplace)
+			continue
+		} else if err != nil {
+			return "", err
+		}
+		s.CharacterToGlyphIndex.Set(runeValue, glyphIndex) // [runeValue] = glyphIndex
+		buff = append(buff, runeValue)
+	}
+	return string(buff), nil
+}
+
+/*
+//AddChars add char to map CharacterToGlyphIndex
 func (s *SubsetFontObj) AddChars(txt string) error {
+
 	for _, runeValue := range txt {
 		if s.CharacterToGlyphIndex.KeyExists(runeValue) {
 			continue
@@ -138,12 +177,41 @@ func (s *SubsetFontObj) AddChars(txt string) error {
 			if s.ttfFontOption.OnGlyphNotFound != nil {
 				s.ttfFontOption.OnGlyphNotFound(runeValue)
 			}
+			//start: try to find rune for replace
+			runeValueReplace, glyphIndexReplace, ok := s.replaceGlyphThatNotFound(runeValue)
+			if ok {
+				s.CharacterToGlyphIndex.Set(runeValueReplace, glyphIndexReplace) // [runeValue] = glyphIndex
+			}
+			//end: try to find rune for replace
+			continue
 		} else if err != nil {
 			return err
 		}
 		s.CharacterToGlyphIndex.Set(runeValue, glyphIndex) // [runeValue] = glyphIndex
 	}
 	return nil
+}
+*/
+
+//replaceGlyphThatNotFound find glyph to replaced
+// it returns
+// - true if rune already add to CharacterToGlyphIndex
+// - rune for replace
+// - rune for replace is found or not
+// - glyph index for replace
+func (s *SubsetFontObj) replaceGlyphThatNotFound(runeNotFound rune) (bool, rune, uint) {
+	if s.ttfFontOption.OnGlyphNotFoundSubstitute != nil {
+		runeForReplace := s.ttfFontOption.OnGlyphNotFoundSubstitute(runeNotFound)
+		if s.CharacterToGlyphIndex.KeyExists(runeForReplace) {
+			return true, runeForReplace, 0
+		}
+		glyphIndexForReplace, err := s.CharCodeToGlyphIndex(runeForReplace)
+		if err != nil {
+			return false, runeForReplace, 0
+		}
+		return false, runeForReplace, glyphIndexForReplace
+	}
+	return false, runeNotFound, 0
 }
 
 //CharIndex index of char in glyph table

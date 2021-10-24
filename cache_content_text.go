@@ -8,6 +8,10 @@ import (
 	"strconv"
 )
 
+const defaultCoefLineHeight = float64(1)
+const defaultCoefUnderlinePosition = float64(1)
+const defaultcoefUnderlineThickness = float64(1)
+
 //ContentTypeCell cell
 const ContentTypeCell = 0
 
@@ -145,8 +149,7 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	}
 
 	fmt.Fprintf(w, "%0.2f %0.2f TD\n", x, y)
-	fmt.Fprintf(w, "/F%d %s Tf\n", c.fontCountIndex,
-		FormatFloatTrim(c.fontSize))
+	fmt.Fprintf(w, "/F%d %s Tf\n", c.fontCountIndex, FormatFloatTrim(c.fontSize))
 
 	if c.txtColorMode == "color" {
 		fmt.Fprintf(w, "%0.3f %0.3f %0.3f rg\n", float64(r)/255, float64(g)/255, float64(b)/255)
@@ -183,8 +186,7 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	io.WriteString(w, "ET\n")
 
 	if c.fontStyle&Underline == Underline {
-		err := c.underline(w, c.x, c.y, c.x+c.cellWidthPdfUnit, c.y)
-		if err != nil {
+		if err := c.underline(w); err != nil {
 			return err
 		}
 	}
@@ -247,20 +249,42 @@ func (c *cacheContentText) drawBorder(w io.Writer) error {
 	return nil
 }
 
-func (c *cacheContentText) underline(w io.Writer, startX float64, startY float64, endX float64, endY float64) error {
-
+func (c *cacheContentText) underline(w io.Writer) error {
 	if c.fontSubset == nil {
 		return errors.New("error AppendUnderline not found font")
 	}
-	unitsPerEm := float64(c.fontSubset.ttfp.UnitsPerEm())
-	h := c.pageHeight()
-	ut := float64(c.fontSubset.GetUt())
-	up := float64(c.fontSubset.GetUp())
-	textH := ContentObjCalTextHeightPrecise(c.fontSize)
-	arg3 := float64(h) - (float64(startY) - ((up / unitsPerEm) * float64(c.fontSize))) - textH
-	arg4 := (ut / unitsPerEm) * float64(c.fontSize)
-	fmt.Fprintf(w, "%0.2f %0.2f %0.2f -%0.2f re f\n", startX, arg3, endX-startX, arg4)
-	//fmt.Printf("arg3=%f arg4=%f\n", arg3, arg4)
+
+	coefLineHeight := defaultCoefLineHeight
+	if c.cellOpt.CoefLineHeight != 0 {
+		coefLineHeight = c.cellOpt.CoefLineHeight
+	}
+
+	coefUnderlinePosition := defaultCoefUnderlinePosition
+	if c.cellOpt.CoefUnderlinePosition != 0 {
+		coefUnderlinePosition = c.cellOpt.CoefUnderlinePosition
+	}
+
+	coefUnderlineThickness := defaultcoefUnderlineThickness
+	if c.cellOpt.CoefUnderlineThickness != 0 {
+		coefUnderlineThickness = c.cellOpt.CoefUnderlineThickness
+	}
+
+	ascenderPx := c.fontSubset.GetAscenderPx(c.fontSize)
+	descenderPx := -c.fontSubset.GetDescenderPx(c.fontSize)
+
+	contentHeight := ascenderPx + descenderPx
+	virtualHeight := coefLineHeight * float64(c.fontSize)
+	leading := (contentHeight - virtualHeight) / 2
+
+	baseline := ascenderPx + leading
+
+	underlinePositionPx := c.fontSubset.GetUnderlinePositionPx(c.fontSize) * coefUnderlinePosition
+	underlineThicknessPx := c.fontSubset.GetUnderlineThicknessPx(c.fontSize) * coefUnderlineThickness
+
+	yUnderlinePosition := c.pageHeight() - c.y + underlinePositionPx - baseline
+	if _, err := fmt.Fprintf(w, "%0.2f %0.2f %0.2f %0.2f re f\n", c.x, yUnderlinePosition, c.cellWidthPdfUnit, underlineThicknessPx); err != nil {
+		return err
+	}
 
 	return nil
 }

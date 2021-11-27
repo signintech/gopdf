@@ -353,14 +353,26 @@ func TestReuseFontData(t *testing.T) {
 		return
 	}
 
-	if err := os.WriteFile("./test/out/result1_by_parsed_ttf_font.pdf", rst1, 0644); err != nil {
+	if err := writeFile("./test/out/result1_by_parsed_ttf_font.pdf", rst1, 0644); err != nil {
 		t.Error(err)
 		return
 	}
-	if err := os.WriteFile("./test/out/result2_by_parsed_ttf_font.pdf", rst1, 0644); err != nil {
+	if err := writeFile("./test/out/result2_by_parsed_ttf_font.pdf", rst1, 0644); err != nil {
 		t.Error(err)
 		return
 	}
+}
+
+func writeFile(name string, data []byte, perm os.FileMode) error {
+	f, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
+	if err != nil {
+		return err
+	}
+	_, err = f.Write(data)
+	if err1 := f.Close(); err1 != nil && err == nil {
+		err = err1
+	}
+	return err
 }
 
 func generatePDFBytesByAddTTFFontData(pdf *GoPdf, fontData []byte) ([]byte, error) {

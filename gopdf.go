@@ -674,6 +674,11 @@ func (gp *GoPdf) AddOutline(title string) {
 	gp.outlines.AddOutline(gp.curr.IndexOfPageObj+1, title)
 }
 
+// AddOutlineWithPosition add an outline with position
+func (gp *GoPdf) AddOutlineWithPosition(title string) *OutlineObj {
+	return gp.outlines.AddOutlinesWithPosition(gp.curr.IndexOfPageObj+1, title, gp.config.PageSize.H-gp.curr.Y+20)
+}
+
 //Start : init gopdf
 func (gp *GoPdf) Start(config Config) {
 

@@ -829,8 +829,7 @@ func (gp *GoPdf) compilePdf(w io.Writer) error {
 	}
 	max := len(gp.pdfObjs)
 	writer := newCountingWriter(w)
-	//io.WriteString(w, "%PDF-1.7\n\n")
-	fmt.Fprint(writer, "%PDF-1.7\n\n")
+	fmt.Fprint(writer, "%PDF-1.7\n%����\n\n")
 	linelens := make([]int, max)
 	i := 0
 

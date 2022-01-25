@@ -2,7 +2,7 @@ package outline_example
 
 import (
 	"fmt"
-	"github.com/signintech/gopdf"
+	"github.com/crello/gopdf"
 	"os"
 	"time"
 )

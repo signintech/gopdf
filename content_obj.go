@@ -302,6 +302,7 @@ func (c *ContentObj) GetCacheContentImage(index int, opts ImageOptions) *cacheCo
 	h := c.getRoot().curr.pageSize.H
 
 	return &cacheContentImage{
+		radianAngle:      opts.RadianAngle,
 		pageHeight:       h,
 		index:            index,
 		x:                opts.X,

@@ -3,9 +3,11 @@ package gopdf
 import (
 	"fmt"
 	"io"
+	"math"
 )
 
 type cacheContentImage struct {
+	radianAngle      float64
 	verticalFlip     bool
 	horizontalFlip   bool
 	index            int
@@ -41,6 +43,8 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 		contentStream += fmt.Sprintf("%s 0 0 %s 0 0 cm\n", fh, fv)
 	}
 
+	contentStream += "q "
+
 	if c.crop != nil {
 		clippingX := c.x
 		if c.horizontalFlip {
@@ -63,7 +67,7 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 		}
 
 		contentStream += fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re W* n\n", clippingX, clippingY, c.crop.Width, c.crop.Height)
-		contentStream += fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", width, height, startX, startY, c.index+1)
+		contentStream += fmt.Sprintf("%0.2f 0 0 %0.2f %0.2f %0.2f cm\n", width, height, startX, startY)
 	} else {
 		x := c.x
 		y := c.pageHeight - (c.y + height)
@@ -76,8 +80,17 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 			y = -y - height
 		}
 
-		contentStream += fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm /I%d Do Q\n", width, height, x, y, c.index+1)
+		contentStream += fmt.Sprintf("%0.2f 0 0 %0.2f %0.2f %0.2f cm\n", width, height, x, y)
 	}
+
+	if c.radianAngle != 0 {
+		cos := math.Cos(c.radianAngle)
+		sin := math.Sin(c.radianAngle)
+
+		contentStream += fmt.Sprintf("%.5f %.5f %.5f %.5f 1 0 cm\n", cos, sin, -sin, cos)
+	}
+
+	contentStream += fmt.Sprintf("/I%d Do Q\n", c.index+1)
 
 	contentStream += "Q\n"
 

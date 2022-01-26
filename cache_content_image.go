@@ -67,7 +67,6 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 		}
 
 		contentStream += fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re W* n\n", clippingX, clippingY, c.crop.Width, c.crop.Height)
-		contentStream += fmt.Sprintf("%0.2f 0 0 %0.2f %0.2f %0.2f cm\n", width, height, startX, startY)
 	} else {
 		x := c.x
 		y := c.pageHeight - (c.y + height)
@@ -87,7 +86,23 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 		cos := math.Cos(c.radianAngle)
 		sin := math.Sin(c.radianAngle)
 
-		contentStream += fmt.Sprintf("%.5f %.5f %.5f %.5f 1 0 cm\n", cos, sin, -sin, cos)
+		degreeAngle := int(math.Round(math.Abs(c.radianAngle / math.Pi * 180)))
+		if degreeAngle > 360 {
+			degreeAngle = degreeAngle % 360
+		}
+
+		translateX := 0
+		translateY := 0
+
+		if 180 == degreeAngle || degreeAngle == 360 {
+			translateX, translateY = 1, 1
+		} else if degreeAngle > 90 {
+			translateX, translateY = 1, 0
+		} else {
+			translateX, translateY = 0, 1
+		}
+
+		contentStream += fmt.Sprintf("%.5f %.5f %.5f %.5f %d %d cm\n", cos, sin, -sin, cos, translateX, translateY)
 	}
 
 	contentStream += fmt.Sprintf("/I%d Do Q\n", c.index+1)
@@ -99,4 +114,10 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 	}
 
 	return nil
+}
+
+const float64EqualityThreshold = 1e-9
+
+func almostEqual(a, b float64) bool {
+	return math.Abs(a-b) <= float64EqualityThreshold
 }

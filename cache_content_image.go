@@ -43,6 +43,8 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 		contentStream += fmt.Sprintf("%s 0 0 %s 0 0 cm\n", fh, fv)
 	}
 
+	rotateMat := computeRotateMat(c.radianAngle)
+
 	if c.crop != nil {
 		clippingX := c.x
 		if c.horizontalFlip {
@@ -65,6 +67,7 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 		}
 
 		contentStream += fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re W* n\n", clippingX, clippingY, c.crop.Width, c.crop.Height)
+		contentStream += fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm %s /I%d Do Q\n", width, height, startX, startY, rotateMat, c.index+1)
 	} else {
 		x := c.x
 		y := c.pageHeight - (c.y + height)
@@ -77,33 +80,8 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 			y = -y - height
 		}
 
-		contentStream += fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm\n", width, height, x, y)
+		contentStream += fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm %s /I%d Do Q\n", width, height, x, y, rotateMat, c.index+1)
 	}
-
-	if c.radianAngle != 0 {
-		cos := math.Cos(c.radianAngle)
-		sin := math.Sin(c.radianAngle)
-
-		degreeAngle := int(math.Round(math.Abs(c.radianAngle / math.Pi * 180)))
-		if degreeAngle > 360 {
-			degreeAngle = degreeAngle % 360
-		}
-
-		translateX := 0
-		translateY := 0
-
-		if 180 == degreeAngle || degreeAngle == 360 {
-			translateX, translateY = 1, 1
-		} else if degreeAngle > 90 {
-			translateX, translateY = 1, 0
-		} else {
-			translateX, translateY = 0, 1
-		}
-
-		contentStream += fmt.Sprintf("%.5f %.5f %.5f %.5f %d %d cm\n", cos, sin, -sin, cos, translateX, translateY)
-	}
-
-	contentStream += fmt.Sprintf("/I%d Do Q\n", c.index+1)
 
 	contentStream += "Q\n"
 
@@ -114,8 +92,29 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 	return nil
 }
 
-const float64EqualityThreshold = 1e-9
+func computeRotateMat(radianAngle float64) string {
+	if radianAngle == 0 {
+		return ""
+	}
 
-func almostEqual(a, b float64) bool {
-	return math.Abs(a-b) <= float64EqualityThreshold
+	cos := math.Cos(radianAngle)
+	sin := math.Sin(radianAngle)
+
+	degreeAngle := int(math.Round(math.Abs(radianAngle / math.Pi * 180)))
+	if degreeAngle > 360 {
+		degreeAngle = degreeAngle % 360
+	}
+
+	translateX := 0
+	translateY := 0
+
+	if 180 == degreeAngle || degreeAngle == 360 {
+		translateX, translateY = 1, 1
+	} else if degreeAngle > 90 {
+		translateX, translateY = 1, 0
+	} else {
+		translateX, translateY = 0, 1
+	}
+
+	return fmt.Sprintf("%.5f %.5f %.5f %.5f %d %d cm\n", cos, sin, -sin, cos, translateX, translateY)
 }

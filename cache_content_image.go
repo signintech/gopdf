@@ -20,6 +20,8 @@ type cacheContentImage struct {
 }
 
 func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error {
+	rotateMat := computeRotateMat(c.radianAngle)
+
 	width := c.rect.W
 	height := c.rect.H
 
@@ -42,8 +44,6 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 
 		contentStream += fmt.Sprintf("%s 0 0 %s 0 0 cm\n", fh, fv)
 	}
-
-	rotateMat := computeRotateMat(c.radianAngle)
 
 	if c.crop != nil {
 		clippingX := c.x
@@ -100,18 +100,20 @@ func computeRotateMat(radianAngle float64) string {
 	cos := math.Cos(radianAngle)
 	sin := math.Sin(radianAngle)
 
-	degreeAngle := int(math.Round(math.Abs(radianAngle / math.Pi * 180)))
-	if degreeAngle > 360 {
+	degreeAngle := int(math.Round(radianAngle / math.Pi * 180))
+	if math.Abs(float64(degreeAngle)) > 360 {
 		degreeAngle = degreeAngle % 360
 	}
 
 	translateX := 0
 	translateY := 0
 
-	if 180 == degreeAngle || degreeAngle == 360 {
+	if degreeAngle == 180 || degreeAngle == 360 || degreeAngle == -180 {
 		translateX, translateY = 1, 1
-	} else if degreeAngle > 90 {
+	} else if degreeAngle == 90 || degreeAngle == 270 || degreeAngle == -270 {
 		translateX, translateY = 1, 0
+	} else if degreeAngle == 0 {
+		translateX, translateY = 0, 0
 	} else {
 		translateX, translateY = 0, 1
 	}

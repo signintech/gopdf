@@ -43,8 +43,6 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 		contentStream += fmt.Sprintf("%s 0 0 %s 0 0 cm\n", fh, fv)
 	}
 
-	contentStream += "q "
-
 	if c.crop != nil {
 		clippingX := c.x
 		if c.horizontalFlip {
@@ -79,7 +77,7 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 			y = -y - height
 		}
 
-		contentStream += fmt.Sprintf("%0.2f 0 0 %0.2f %0.2f %0.2f cm\n", width, height, x, y)
+		contentStream += fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm\n", width, height, x, y)
 	}
 
 	if c.radianAngle != 0 {

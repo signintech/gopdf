@@ -110,7 +110,7 @@ func computeRotateMat(radianAngle float64) string {
 
 	if degreeAngle == 180 || degreeAngle == 360 || degreeAngle == -180 {
 		translateX, translateY = 1, 1
-	} else if degreeAngle == 90 || degreeAngle == 270 || degreeAngle == -270 {
+	} else if degreeAngle == 90 || degreeAngle == -270 {
 		translateX, translateY = 1, 0
 	} else if degreeAngle == 0 {
 		translateX, translateY = 0, 0

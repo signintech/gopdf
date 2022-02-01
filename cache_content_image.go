@@ -7,7 +7,7 @@ import (
 )
 
 type cacheContentImage struct {
-	isMask           bool
+	withMask         bool
 	maskAngle        float64
 	imageAngle       float64
 	verticalFlip     bool
@@ -26,7 +26,14 @@ func (c *cacheContentImage) write(writer io.Writer, protection *PDFProtection) e
 	height := c.rect.H
 
 	// проблема в том когда пишется стрим маски также пишется и поворот второй раз
-	if c.maskAngle != 0 && c.isMask {
+	var angle float64
+	if c.withMask {
+		angle = 0
+	} else {
+		angle = c.imageAngle
+	}
+
+	if angle != 0 {
 		w := c.rect.W
 		h := c.rect.H
 
@@ -42,7 +49,7 @@ func (c *cacheContentImage) write(writer io.Writer, protection *PDFProtection) e
 			x:          x,
 			y:          y,
 			pageHeight: c.pageHeight,
-			angle:      c.maskAngle,
+			angle:      angle,
 		}
 		if err := cacheRotate.write(writer, protection); err != nil {
 			return err
@@ -101,7 +108,7 @@ func (c *cacheContentImage) write(writer io.Writer, protection *PDFProtection) e
 		contentStream += fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re W* n\n", clippingX, clippingY, c.crop.Width, c.crop.Height)
 
 		var rotateMat string
-		if c.imageAngle != 0 {
+		if c.imageAngle != 0 && c.maskAngle != 0 {
 			x := c.x + width/2
 			y := c.y + height/2
 
@@ -122,7 +129,7 @@ func (c *cacheContentImage) write(writer io.Writer, protection *PDFProtection) e
 		}
 
 		var rotateMat string
-		if c.imageAngle != 0 {
+		if c.imageAngle != 0 && c.maskAngle != 0 {
 			rotatedX := c.x + width/2
 			rotatedY := c.y + height/2
 

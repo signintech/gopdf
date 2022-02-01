@@ -300,7 +300,6 @@ func (c *ContentObj) AppendStreamSetColorFill(r uint8, g uint8, b uint8) {
 
 func (c *ContentObj) GetCacheContentMaskImage(index int, opts ImageOptions) *cacheContentImage {
 	cache := c.getCacheContentImage(index, opts)
-	cache.isMask = true
 
 	if opts.Mask != nil {
 		cache.maskAngle = opts.Mask.DegreeAngle
@@ -313,6 +312,7 @@ func (c *ContentObj) GetCacheContentImage(index int, opts ImageOptions) *cacheCo
 	cache := c.getCacheContentImage(index, opts)
 
 	if opts.Mask != nil {
+		cache.withMask = true
 		cache.maskAngle = opts.Mask.DegreeAngle
 	}
 

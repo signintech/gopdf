@@ -300,7 +300,6 @@ func (c *ContentObj) AppendStreamSetColorFill(r uint8, g uint8, b uint8) {
 
 func (c *ContentObj) GetCacheContentMaskImage(index int, opts ImageOptions) *cacheContentImage {
 	cache := c.getCacheContentImage(index, opts)
-
 	cache.isMask = true
 
 	if opts.Mask != nil {

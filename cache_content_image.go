@@ -126,7 +126,7 @@ func (c *cacheContentImage) write(writer io.Writer, protection *PDFProtection) e
 			rotatedX := c.x + width/2
 			rotatedY := c.y + height/2
 
-			rotateMat = computeRotateTransformationMatrix(rotatedX, rotatedY, c.imageAngle, c.pageHeight)
+			rotateMat = computeRotateTransformationMatrix(rotatedX, rotatedY, c.maskAngle+c.imageAngle, c.pageHeight)
 		}
 
 		contentStream += fmt.Sprintf("q\n %s %0.2f 0 0\n %0.2f %0.2f %0.2f cm\n /I%d Do \nQ\n", rotateMat, width, height, x, y, c.index+1)

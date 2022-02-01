@@ -25,7 +25,6 @@ func (c *cacheContentImage) write(writer io.Writer, protection *PDFProtection) e
 	width := c.rect.W
 	height := c.rect.H
 
-	// проблема в том когда пишется стрим маски также пишется и поворот второй раз
 	var angle float64
 	if c.withMask {
 		angle = 0
@@ -108,7 +107,7 @@ func (c *cacheContentImage) write(writer io.Writer, protection *PDFProtection) e
 		contentStream += fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re W* n\n", clippingX, clippingY, c.crop.Width, c.crop.Height)
 
 		var rotateMat string
-		if c.imageAngle != 0 && c.maskAngle != 0 {
+		if c.maskAngle != 0 {
 			x := c.x + width/2
 			y := c.y + height/2
 
@@ -129,7 +128,7 @@ func (c *cacheContentImage) write(writer io.Writer, protection *PDFProtection) e
 		}
 
 		var rotateMat string
-		if c.imageAngle != 0 && c.maskAngle != 0 {
+		if c.maskAngle != 0 {
 			rotatedX := c.x + width/2
 			rotatedY := c.y + height/2
 

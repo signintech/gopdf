@@ -20,15 +20,23 @@ func (cc *cacheContentRotate) write(w io.Writer, protection *PDFProtection) erro
 
 		return nil
 	}
-	angle := (cc.angle * 22.0) / (180.0 * 7.0)
-	c := math.Cos(angle)
-	s := math.Sin(angle)
-	cy := cc.pageHeight - cc.y
 
-	contentStream := fmt.Sprintf("q %.5f %.5f %.5f %.5f %.2f %.2f cm 1 0 0 1 %.2f %.2f cm\n", c, s, -s, c, cc.x, cy, -cc.x, -cy)
+	matrix := computeRotateTransformationMatrix(cc.x, cc.y, cc.angle, cc.pageHeight)
+	contentStream := fmt.Sprintf("q\n %s", matrix)
+
 	if _, err := io.WriteString(w, contentStream); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func computeRotateTransformationMatrix(x, y, angle, pageHeight float64) string {
+	radianAngle := (angle * 22.0) / (180.0 * 7.0)
+
+	c := math.Cos(radianAngle)
+	s := math.Sin(radianAngle)
+	cy := pageHeight - y
+
+	return fmt.Sprintf("%.5f %.5f %.5f\n %.5f %.2f %.2f cm\n 1 0 0\n 1 %.2f %.2f cm\n", c, s, -s, c, x, cy, -x, -cy)
 }

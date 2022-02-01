@@ -3,11 +3,13 @@ package gopdf
 import (
 	"fmt"
 	"io"
-	"math"
+	"log"
 )
 
 type cacheContentImage struct {
-	radianAngle      float64
+	isMask           bool
+	maskAngle        float64
+	imageAngle       float64
 	verticalFlip     bool
 	horizontalFlip   bool
 	index            int
@@ -19,11 +21,41 @@ type cacheContentImage struct {
 	extGStateIndexes []int
 }
 
-func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error {
-	rotateMat := computeRotateMat(c.radianAngle)
-
+func (c *cacheContentImage) write(writer io.Writer, protection *PDFProtection) error {
 	width := c.rect.W
 	height := c.rect.H
+
+	// проблема в том когда пишется стрим маски также пишется и поворот второй раз
+	if c.maskAngle != 0 && c.isMask {
+		w := c.rect.W
+		h := c.rect.H
+
+		if c.crop != nil {
+			w = c.crop.Width
+			h = c.crop.Height
+		}
+
+		x := c.x + w/2
+		y := c.y + h/2
+
+		cacheRotate := cacheContentRotate{
+			x:          x,
+			y:          y,
+			pageHeight: c.pageHeight,
+			angle:      c.maskAngle,
+		}
+		if err := cacheRotate.write(writer, protection); err != nil {
+			return err
+		}
+
+		defer func() {
+			resetCacheRotate := cacheContentRotate{isReset: true}
+
+			if err := resetCacheRotate.write(writer, protection); err != nil {
+				log.Println(err)
+			}
+		}()
+	}
 
 	contentStream := "q\n"
 
@@ -67,7 +99,16 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 		}
 
 		contentStream += fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re W* n\n", clippingX, clippingY, c.crop.Width, c.crop.Height)
-		contentStream += fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm %s /I%d Do Q\n", width, height, startX, startY, rotateMat, c.index+1)
+
+		var rotateMat string
+		if c.imageAngle != 0 {
+			x := c.x + width/2
+			y := c.y + height/2
+
+			rotateMat = computeRotateTransformationMatrix(x, y, c.imageAngle, c.pageHeight)
+		}
+
+		contentStream += fmt.Sprintf("q\n %s %0.2f 0 0\n %0.2f %0.2f %0.2f cm /I%d Do \nQ\n", rotateMat, width, height, startX, startY, c.index+1)
 	} else {
 		x := c.x
 		y := c.pageHeight - (c.y + height)
@@ -80,43 +121,22 @@ func (c *cacheContentImage) write(w io.Writer, protection *PDFProtection) error 
 			y = -y - height
 		}
 
-		contentStream += fmt.Sprintf("q %0.2f 0 0 %0.2f %0.2f %0.2f cm %s /I%d Do Q\n", width, height, x, y, rotateMat, c.index+1)
+		var rotateMat string
+		if c.imageAngle != 0 {
+			rotatedX := c.x + width/2
+			rotatedY := c.y + height/2
+
+			rotateMat = computeRotateTransformationMatrix(rotatedX, rotatedY, c.imageAngle, c.pageHeight)
+		}
+
+		contentStream += fmt.Sprintf("q\n %s %0.2f 0 0\n %0.2f %0.2f %0.2f cm\n /I%d Do \nQ\n", rotateMat, width, height, x, y, c.index+1)
 	}
 
 	contentStream += "Q\n"
 
-	if _, err := io.WriteString(w, contentStream); err != nil {
+	if _, err := io.WriteString(writer, contentStream); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func computeRotateMat(radianAngle float64) string {
-	if radianAngle == 0 {
-		return ""
-	}
-
-	cos := math.Cos(radianAngle)
-	sin := math.Sin(radianAngle)
-
-	degreeAngle := int(math.Round(radianAngle / math.Pi * 180))
-	if math.Abs(float64(degreeAngle)) > 360 {
-		degreeAngle = degreeAngle % 360
-	}
-
-	translateX := 0
-	translateY := 0
-
-	if degreeAngle == 180 || degreeAngle == 360 || degreeAngle == -180 {
-		translateX, translateY = 1, 1
-	} else if degreeAngle == 90 || degreeAngle == -270 {
-		translateX, translateY = 1, 0
-	} else if degreeAngle == 0 {
-		translateX, translateY = 0, 0
-	} else {
-		translateX, translateY = 0, 1
-	}
-
-	return fmt.Sprintf("%.5f %.5f %.5f %.5f %d %d cm\n", cos, sin, -sin, cos, translateX, translateY)
 }

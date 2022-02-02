@@ -68,3 +68,5 @@ test/debug.test
 .DS_Store
 .idea
 .scannerwork
+
+*.pdf

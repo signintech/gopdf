@@ -92,38 +92,33 @@ func (c *cacheContentImage) write(writer io.Writer, protection *PDFProtection) e
 		contentStream += fmt.Sprintf("%s 0 0 %s 0 0 cm\n", fh, fv)
 	}
 
+	x := c.x
+	y := c.pageHeight - c.y
+
 	if c.crop != nil {
-		clippingX := c.x
+		clippingX := x
 		if c.horizontalFlip {
 			clippingX = -clippingX - c.crop.Width
 		}
 
-		clippingY := c.pageHeight - (c.y + c.crop.Height)
+		clippingY := y - c.crop.Height
 		if c.verticalFlip {
 			clippingY = -clippingY - c.crop.Height
 		}
 
-		startX := c.x - c.crop.X
-		if c.horizontalFlip {
-			startX = -startX - width
-		}
-
-		startY := c.pageHeight - (c.y - c.crop.Y + c.rect.H)
-		if c.verticalFlip {
-			startY = -startY - height
-		}
-
 		contentStream += fmt.Sprintf("%0.2f %0.2f %0.2f %0.2f re W* n\n", clippingX, clippingY, c.crop.Width, c.crop.Height)
 
-		var rotateMat string
-		if c.maskAngle != 0 {
-			rotateMat = c.computeMaskImageRotateTrMt()
+		x -= c.crop.X
+		if c.horizontalFlip {
+			x = -x - width
 		}
 
-		contentStream += fmt.Sprintf("q\n %s %0.2f 0 0\n %0.2f %0.2f %0.2f cm /I%d Do \nQ\n", rotateMat, width, height, startX, startY, c.index+1)
+		y += c.crop.Y - c.rect.H
+		if c.verticalFlip {
+			y = -y - height
+		}
 	} else {
-		x := c.x
-		y := c.pageHeight - (c.y + height)
+		y -= height
 
 		if c.horizontalFlip {
 			x = -x - width
@@ -132,14 +127,14 @@ func (c *cacheContentImage) write(writer io.Writer, protection *PDFProtection) e
 		if c.verticalFlip {
 			y = -y - height
 		}
-
-		var rotateMat string
-		if c.maskAngle != 0 {
-			rotateMat = c.computeMaskImageRotateTrMt()
-		}
-
-		contentStream += fmt.Sprintf("q\n %s %0.2f 0 0\n %0.2f %0.2f %0.2f cm\n /I%d Do \nQ\n", rotateMat, width, height, x, y, c.index+1)
 	}
+
+	var maskImageRotateMat string
+	if c.maskAngle != 0 {
+		maskImageRotateMat = c.computeMaskImageRotateTrMt()
+	}
+
+	contentStream += fmt.Sprintf("q\n %s %0.2f 0 0\n %0.2f %0.2f %0.2f cm /I%d Do \nQ\n", maskImageRotateMat, width, height, x, y, c.index+1)
 
 	contentStream += "Q\n"
 

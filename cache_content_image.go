@@ -52,10 +52,15 @@ func (c *cacheContentImage) closeImageRotateTrMt(writer io.Writer, protection *P
 }
 
 func (c *cacheContentImage) computeMaskImageRotateTrMt() string {
+	angle := c.maskAngle + c.imageAngle
+	if angle == 0 {
+		return ""
+	}
+
 	x := c.x + c.rect.W/2
 	y := c.y + c.rect.H/2
 
-	rotateMat := computeRotateTransformationMatrix(x, y, c.maskAngle+c.imageAngle, c.pageHeight)
+	rotateMat := computeRotateTransformationMatrix(x, y, angle, c.pageHeight)
 
 	return rotateMat
 }
@@ -130,7 +135,7 @@ func (c *cacheContentImage) write(writer io.Writer, protection *PDFProtection) e
 	}
 
 	var maskImageRotateMat string
-	if c.maskAngle != 0 {
+	if c.withMask {
 		maskImageRotateMat = c.computeMaskImageRotateTrMt()
 	}
 

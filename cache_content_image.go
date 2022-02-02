@@ -113,7 +113,7 @@ func (c *cacheContentImage) write(writer io.Writer, protection *PDFProtection) e
 			x = -x - width
 		}
 
-		y += c.crop.Y - c.rect.H
+		y += c.crop.Y - height
 		if c.verticalFlip {
 			y = -y - height
 		}

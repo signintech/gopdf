@@ -425,7 +425,6 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts MaskOptions) (int, error) {
 
 		if gp.indexOfProcSet != -1 {
 			index := gp.addObj(maskImgobj)
-
 			cacheContentImage = gp.getContent().GetCacheContentImage(index, opts.ImageOptions)
 			procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
 			procset.RelateXobjs = append(procset.RelateXobjs, RelateXobject{IndexOfObj: index})

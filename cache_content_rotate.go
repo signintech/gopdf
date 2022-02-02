@@ -31,8 +31,8 @@ func (cc *cacheContentRotate) write(w io.Writer, protection *PDFProtection) erro
 	return nil
 }
 
-func computeRotateTransformationMatrix(x, y, angle, pageHeight float64) string {
-	radianAngle := (angle * 22.0) / (180.0 * 7.0)
+func computeRotateTransformationMatrix(x, y, degreeAngle, pageHeight float64) string {
+	radianAngle := degreeAngle * (math.Pi / 180)
 
 	c := math.Cos(radianAngle)
 	s := math.Sin(radianAngle)

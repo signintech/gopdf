@@ -2,9 +2,10 @@ package outline_example
 
 import (
 	"fmt"
-	"github.com/crello/gopdf"
 	"os"
 	"time"
+
+	"github.com/signintech/gopdf"
 )
 
 func GetFont(pdf *gopdf.GoPdf, fontPath string) (err error) {

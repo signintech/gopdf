@@ -3,7 +3,6 @@ package gopdf
 import (
 	"fmt"
 	"io"
-	"log"
 )
 
 type cacheContentImage struct {
@@ -21,46 +20,56 @@ type cacheContentImage struct {
 	extGStateIndexes []int
 }
 
+func (c *cacheContentImage) openImageRotateTrMt(writer io.Writer, protection *PDFProtection) error {
+	w := c.rect.W
+	h := c.rect.H
+
+	if c.crop != nil {
+		w = c.crop.Width
+		h = c.crop.Height
+	}
+
+	x := c.x + w/2
+	y := c.y + h/2
+
+	cacheRotate := cacheContentRotate{
+		x:          x,
+		y:          y,
+		pageHeight: c.pageHeight,
+		angle:      c.imageAngle,
+	}
+	if err := cacheRotate.write(writer, protection); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *cacheContentImage) closeImageRotateTrMt(writer io.Writer, protection *PDFProtection) error {
+	resetCacheRotate := cacheContentRotate{isReset: true}
+
+	return resetCacheRotate.write(writer, protection)
+}
+
+func (c *cacheContentImage) computeMaskImageRotateTrMt() string {
+	x := c.x + c.rect.W/2
+	y := c.y + c.rect.H/2
+
+	rotateMat := computeRotateTransformationMatrix(x, y, c.maskAngle+c.imageAngle, c.pageHeight)
+
+	return rotateMat
+}
+
 func (c *cacheContentImage) write(writer io.Writer, protection *PDFProtection) error {
 	width := c.rect.W
 	height := c.rect.H
 
-	var angle float64
-	if c.withMask {
-		angle = 0
-	} else {
-		angle = c.imageAngle
-	}
-
-	if angle != 0 {
-		w := c.rect.W
-		h := c.rect.H
-
-		if c.crop != nil {
-			w = c.crop.Width
-			h = c.crop.Height
-		}
-
-		x := c.x + w/2
-		y := c.y + h/2
-
-		cacheRotate := cacheContentRotate{
-			x:          x,
-			y:          y,
-			pageHeight: c.pageHeight,
-			angle:      angle,
-		}
-		if err := cacheRotate.write(writer, protection); err != nil {
+	if !c.withMask {
+		if err := c.openImageRotateTrMt(writer, protection); err != nil {
 			return err
 		}
 
-		defer func() {
-			resetCacheRotate := cacheContentRotate{isReset: true}
-
-			if err := resetCacheRotate.write(writer, protection); err != nil {
-				log.Println(err)
-			}
-		}()
+		defer c.closeImageRotateTrMt(writer, protection)
 	}
 
 	contentStream := "q\n"
@@ -108,10 +117,7 @@ func (c *cacheContentImage) write(writer io.Writer, protection *PDFProtection) e
 
 		var rotateMat string
 		if c.maskAngle != 0 {
-			x := c.x + width/2
-			y := c.y + height/2
-
-			rotateMat = computeRotateTransformationMatrix(x, y, c.imageAngle, c.pageHeight)
+			rotateMat = c.computeMaskImageRotateTrMt()
 		}
 
 		contentStream += fmt.Sprintf("q\n %s %0.2f 0 0\n %0.2f %0.2f %0.2f cm /I%d Do \nQ\n", rotateMat, width, height, startX, startY, c.index+1)
@@ -129,10 +135,7 @@ func (c *cacheContentImage) write(writer io.Writer, protection *PDFProtection) e
 
 		var rotateMat string
 		if c.maskAngle != 0 {
-			rotatedX := c.x + width/2
-			rotatedY := c.y + height/2
-
-			rotateMat = computeRotateTransformationMatrix(rotatedX, rotatedY, c.maskAngle+c.imageAngle, c.pageHeight)
+			rotateMat = c.computeMaskImageRotateTrMt()
 		}
 
 		contentStream += fmt.Sprintf("q\n %s %0.2f 0 0\n %0.2f %0.2f %0.2f cm\n /I%d Do \nQ\n", rotateMat, width, height, x, y, c.index+1)

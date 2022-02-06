@@ -99,6 +99,7 @@ type CropOptions struct {
 }
 
 type ImageOptions struct {
+	DegreeAngle    float64
 	VerticalFlip   bool
 	HorizontalFlip bool
 	X              float64

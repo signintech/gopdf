@@ -301,7 +301,18 @@ func (c *ContentObj) AppendStreamSetColorFill(r uint8, g uint8, b uint8) {
 func (c *ContentObj) GetCacheContentImage(index int, opts ImageOptions) *cacheContentImage {
 	h := c.getRoot().curr.pageSize.H
 
+	withMask := false
+	maskAngle := float64(0)
+
+	if opts.Mask != nil {
+		withMask = true
+		maskAngle = opts.Mask.DegreeAngle
+	}
+
 	return &cacheContentImage{
+		withMask:         withMask,
+		imageAngle:       opts.DegreeAngle,
+		maskAngle:        maskAngle,
 		pageHeight:       h,
 		index:            index,
 		x:                opts.X,

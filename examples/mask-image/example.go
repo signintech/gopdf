@@ -4,11 +4,20 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/signintech/gopdf"
 )
 
-const resourcesPath = "../../test/res"
+var resourcesPath string
+
+func init() {
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	resourcesPath = filepath.Join(cwd, "test/res")
+}
 
 func main() {
 	pdf := gopdf.GoPdf{}
@@ -83,7 +92,7 @@ func main() {
 	}
 
 	pdf.SetCompressLevel(0)
-	if err := pdf.WritePdf("mask-image.pdf"); err != nil {
+	if err := pdf.WritePdf("image.pdf"); err != nil {
 		log.Panic(err.Error())
 	}
 }

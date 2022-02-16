@@ -1479,6 +1479,13 @@ func (gp *GoPdf) Rectangle(x0 float64, y0 float64, x1 float64, y1 float64, style
 
 //init
 func (gp *GoPdf) init() {
+	gp.pdfObjs = []IObj{}
+	gp.buf = bytes.Buffer{}
+	gp.indexEncodingObjFonts = []int{}
+	gp.pdfProtection = nil
+	gp.encryptionObjID = 0
+	gp.isUseInfo = false
+	gp.info = nil
 
 	//default
 	gp.margins = Margins{
@@ -1490,6 +1497,7 @@ func (gp *GoPdf) init() {
 
 	//init curr
 	gp.resetCurrXY()
+	gp.curr = Current{}
 	gp.curr.IndexOfPageObj = -1
 	gp.curr.CountOfFont = 0
 	gp.curr.CountOfL = 0
@@ -1519,6 +1527,7 @@ func (gp *GoPdf) init() {
 
 	// init gofpdi free pdf document importer
 	gp.fpdi = gofpdi.NewImporter()
+
 }
 
 func (gp *GoPdf) resetCurrXY() {

@@ -569,3 +569,99 @@ func TestWhiteTransparent195(t *testing.T) {
 		return
 	}
 }
+
+func TestClearValue(t *testing.T) {
+	err := initTesting()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	pdf := GoPdf{}
+	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}, Protection: PDFProtectionConfig{
+		UseProtection: true,
+		OwnerPass:     []byte("123456"),
+		UserPass:      []byte("123456"),
+	}}) //595.28, 841.89 = A4
+	pdf.AddPage()
+	err = pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = pdf.SetFont("LiberationSerif-Regular", "", 14)
+	if err != nil {
+		log.Print(err.Error())
+		return
+	}
+
+	bytesOfImg, err := ioutil.ReadFile("./test/res/PNG_transparency_demonstration_1.png")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	imgH, err := ImageHolderByBytes(bytesOfImg)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = pdf.ImageByHolder(imgH, 20.0, 20, nil)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	pdf.SetX(250)
+	pdf.SetY(200)
+	pdf.Cell(nil, "gopher and gopher")
+	pdf.SetInfo(PdfInfo{
+		Title: "xx",
+	})
+	pdf.WritePdf("./test/out/test_clear_value.pdf")
+
+	//reset
+	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+
+	pdf2 := GoPdf{}
+	pdf2.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+
+	//check
+	if pdf.margins != pdf2.margins {
+		t.Fatal("pdf.margins != pdf2.margins")
+	}
+
+	if len(pdf2.pdfObjs) != len(pdf.pdfObjs) {
+		t.Fatalf("len(pdf2.pdfObjs) != len(pdf.pdfObjs)")
+	}
+
+	if len(pdf.anchors) > 0 {
+		t.Fatalf("len( pdf.anchors) = %d", len(pdf.anchors))
+	}
+
+	if len(pdf.indexEncodingObjFonts) != len(pdf2.indexEncodingObjFonts) {
+		t.Fatalf("len(pdf.indexEncodingObjFonts) != len(pdf2.indexEncodingObjFonts)")
+	}
+
+	if pdf.indexOfContent != pdf2.indexOfContent {
+		t.Fatalf("pdf.indexOfContent != pdf2.indexOfContent")
+	}
+
+	if pdf.buf.Len() > 0 {
+		t.Fatalf("pdf.buf.Len() > 0")
+	}
+
+	if pdf.pdfProtection != nil {
+		t.Fatalf("pdf.pdfProtection is not nil")
+	}
+	if pdf.encryptionObjID != 0 {
+		t.Fatalf("encryptionObjID %d", pdf.encryptionObjID)
+	}
+
+	if pdf.info != nil {
+		t.Fatalf("pdf.info %v", pdf.info)
+	}
+
+}

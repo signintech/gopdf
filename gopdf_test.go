@@ -620,7 +620,7 @@ func TestClearValue(t *testing.T) {
 	}
 }
 
-func TestSplitTextWithWordWrap(t *testing.T) {
+func TestSplitTextWithOptions(t *testing.T) {
 	err := initTesting()
 	if err != nil {
 		t.Error(err)
@@ -629,31 +629,65 @@ func TestSplitTextWithWordWrap(t *testing.T) {
 
 	pdf := setupDefaultA4PDF(t)
 
-	var splitTextTests = []struct{
+	var splitTextTests = []struct {
 		name string
-		in string
-		exp []string
+		in   string
+		opts *BreakOption
+		exp  []string
 	}{
+		{
+			"strict breaks no separator",
+			"Lorem ipsum dolor sit amet, consetetur",
+			&DefaultBreakOption,
+			[]string{"Lorem ipsum dol", "or sit amet, conse", "tetur"},
+		},
+		{
+			"no options given",
+			"Lorem ipsum dolor sit amet, consetetur",
+			nil,
+			[]string{"Lorem ipsum dol", "or sit amet, conse", "tetur"},
+		},
+		{
+			"strict breaks with separator",
+			"Lorem ipsum dolor sit amet, consetetur",
+			&BreakOption{
+				Separator: "-",
+				Mode:      BreakModeStrict,
+			},
+			[]string{"Lorem ipsum d-", "olor sit amet, c-", "onsetetur"},
+		},
 		{
 			"text with possible word-wrap",
 			"Lorem ipsum dolor sit amet, consetetur",
+			&BreakOption{
+				BreakIndicator: ' ',
+				Mode:           BreakModeIndicatorSensitive,
+			},
 			[]string{"Lorem ipsum", "dolor sit amet,", "consetetur"},
 		},
 		{
 			"text without possible word-wrap",
 			"Loremipsumdolorsitamet,consetetur",
+			&BreakOption{
+				BreakIndicator: ' ',
+				Mode:           BreakModeIndicatorSensitive,
+			},
 			[]string{"Loremipsumdolo", "rsitamet,consetet", "ur"},
 		},
 		{
 			"text with only empty spaces",
 			"                                                ",
+			&BreakOption{
+				BreakIndicator: ' ',
+				Mode:           BreakModeIndicatorSensitive,
+			},
 			[]string{"                           ", "                    "},
 		},
 	}
 
 	for _, tt := range splitTextTests {
 		t.Run(tt.name, func(t *testing.T) {
-			lines, err := pdf.SplitTextWithWordWrap(tt.in, 100)
+			lines, err := pdf.SplitTextWithOption(tt.in, 100, tt.opts)
 			if err != nil {
 				t.Fatal(err)
 			}

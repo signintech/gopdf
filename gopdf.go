@@ -987,48 +987,27 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 	return nil
 }
 
-// SplitText splits text into multiple lines based on width.
+// SplitText splits text into multiple lines based on width performing potential mid-word breaks.
 func (gp *GoPdf) SplitText(text string, width float64) ([]string, error) {
-	var lineText []rune
-	var lineTexts []string
-	utf8Texts := []rune(text)
-	utf8TextsLen := len(utf8Texts) // utf8 string quantity
-	if utf8TextsLen == 0 {
-		return lineTexts, errors.New("empty string")
-	}
-	for i := 0; i < utf8TextsLen; i++ {
-		lineWidth, err := gp.MeasureTextWidth(string(lineText))
-		if err != nil {
-			return nil, err
-		}
-		runeWidth, err := gp.MeasureTextWidth(string(utf8Texts[i]))
-		if err != nil {
-			return nil, err
-		}
-		if lineWidth+runeWidth > width && utf8Texts[i] != '\n' {
-			lineTexts = append(lineTexts, string(lineText))
-			lineText = lineText[0:0]
-			i--
-			continue
-		}
-		if utf8Texts[i] == '\n' {
-			lineTexts = append(lineTexts, string(lineText))
-			lineText = lineText[0:0]
-			continue
-		}
-		if i == utf8TextsLen-1 {
-			lineText = append(lineText, utf8Texts[i])
-			lineTexts = append(lineTexts, string(lineText))
-		}
-		lineText = append(lineText, utf8Texts[i])
-
-	}
-	return lineTexts, nil
+	return gp.SplitTextWithOption(text, width, &DefaultBreakOption)
 }
 
 // SplitTextWithWordWrap behaves the same way SplitText does but performs a word-wrap considering spaces in case
 // a text line split would split a word.
 func (gp *GoPdf) SplitTextWithWordWrap(text string, width float64) ([]string, error) {
+	return gp.SplitTextWithOption(text, width, &BreakOption{
+		Mode:           BreakModeIndicatorSensitive,
+		BreakIndicator: ' ',
+	})
+}
+
+// SplitTextWithOption splits a text into multiple lines based on the current font size of the document.
+// BreakOptions allow to define the behavior of the split (strict or sensitive). For more information see BreakOption.
+func (gp *GoPdf) SplitTextWithOption(text string, width float64, opt *BreakOption) ([]string, error) {
+	// fallback to default break option
+	if opt == nil {
+		opt = &DefaultBreakOption
+	}
 	var lineText []rune
 	var lineTexts []string
 	utf8Texts := []rune(text)
@@ -1036,6 +1015,12 @@ func (gp *GoPdf) SplitTextWithWordWrap(text string, width float64) ([]string, er
 	if utf8TextsLen == 0 {
 		return lineTexts, errors.New("empty string")
 	}
+	separatorWidth, err := gp.MeasureTextWidth(opt.Separator)
+	if err != nil {
+		return nil, err
+	}
+	// possible (not conflicting) position of the separator within the currently processed line
+	separatorIdx := 0
 	for i := 0; i < utf8TextsLen; i++ {
 		lineWidth, err := gp.MeasureTextWidth(string(lineText))
 		if err != nil {
@@ -1045,48 +1030,81 @@ func (gp *GoPdf) SplitTextWithWordWrap(text string, width float64) ([]string, er
 		if err != nil {
 			return nil, err
 		}
+		// mid-word break required since the max width of the given rect is exceeded
 		if lineWidth+runeWidth > width && utf8Texts[i] != '\n' {
-			wrapIdx := wordwrapIdx(lineText)
-			// no wrap idx found, break the line as it is
-			if wrapIdx <= 0 {
-				lineTexts = append(lineTexts, string(lineText))
-				i--
-			} else {
-				diff := len(lineText)-wrapIdx
-				lineText = lineText[0:wrapIdx]
-				lineTexts = append(lineTexts, string(lineText))
-				i -= diff
+			// forceBreak will be set to true in case an indicator sensitive break was not possible which will cause
+			// strict break to not exceed the desired width
+			forceBreak := false
+			if opt.Mode == BreakModeIndicatorSensitive {
+				forceBreak = !performIndicatorSensitiveLineBreak(&lineTexts, &lineText, &i, opt)
 			}
-			lineText = lineText[0:0]
+			// BreakModeStrict breaks immediately with an optionally available separator
+			if opt.Mode == BreakModeStrict || forceBreak {
+				performStrictLineBreak(&lineTexts, &lineText, &i, separatorIdx, opt)
+			}
 			continue
 		}
+		// regular break due to a new line rune
 		if utf8Texts[i] == '\n' {
 			lineTexts = append(lineTexts, string(lineText))
 			lineText = lineText[0:0]
 			continue
 		}
+		// end of text
 		if i == utf8TextsLen-1 {
 			lineText = append(lineText, utf8Texts[i])
 			lineTexts = append(lineTexts, string(lineText))
+		}
+		// store overall index when separator would still fit in the currently processed text-line
+		if opt.HasSeparator() && lineWidth+runeWidth+separatorWidth <= width {
+			separatorIdx = i
 		}
 		lineText = append(lineText, utf8Texts[i])
 	}
 	return lineTexts, nil
 }
 
-// wordwrapIdx returns the index where a text line (i.e. rune slice) can be split without breaking a word.
-// The used rune to identify a wrap is ' ' (space).
-// In case no possible wrap is found -1 is returned.
-func wordwrapIdx(text []rune) int {
-	for i := len(text)-1; i > 0; i-- {
-		if text[i] == ' ' {
+func performIndicatorSensitiveLineBreak(lineTexts *[]string, lineText *[]rune, i *int, opt *BreakOption) bool {
+	brIdx := breakIndicatorIndex(*lineText, opt.BreakIndicator)
+	if brIdx > 0 {
+		diff := len(*lineText) - brIdx
+		*lineText = (*lineText)[0:brIdx]
+		*lineTexts = append(*lineTexts, string(*lineText))
+		*lineText = (*lineText)[0:0]
+		*i -= diff
+		return true
+	}
+	return false
+}
+
+func performStrictLineBreak(lineTexts *[]string, lineText *[]rune, i *int, separatorIdx int, opt *BreakOption) {
+	if opt.HasSeparator() && separatorIdx > -1 {
+		// trim the line to the last possible index with an appended separator
+		trimIdx := *i - separatorIdx
+		*lineText = (*lineText)[0 : len(*lineText)-trimIdx]
+		// append separator to the line
+		*lineText = append(*lineText, []rune(opt.Separator)...)
+		*lineTexts = append(*lineTexts, string(*lineText))
+		*lineText = (*lineText)[0:0]
+		*i = separatorIdx - 1
+		return
+	}
+	*lineTexts = append(*lineTexts, string(*lineText))
+	*lineText = (*lineText)[0:0]
+	*i--
+}
+
+// breakIndicatorIndex returns the index where a text line (i.e. rune slice) can be split "gracefully" by checking on
+// the break indicator.
+// In case no possible break can be identified -1 is returned.
+func breakIndicatorIndex(text []rune, bi rune) int {
+	for i := len(text) - 1; i > 0; i-- {
+		if text[i] == bi {
 			return i
 		}
 	}
 	return -1
 }
-
-
 
 // ImportPage imports a page and return template id.
 // gofpdi code

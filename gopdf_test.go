@@ -54,14 +54,6 @@ func BenchmarkPdfWithImageHolder(b *testing.B) {
 	pdf.WritePdf("./test/out/image_bench.pdf")
 }
 
-func initTesting() error {
-	err := os.MkdirAll("./test/out", 0777)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func TestPdfWithImageHolder(t *testing.T) {
 	err := initTesting()
 	if err != nil {
@@ -69,20 +61,8 @@ func TestPdfWithImageHolder(t *testing.T) {
 		return
 	}
 
-	pdf := GoPdf{}
-	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf := setupDefaultA4PDF(t)
 	pdf.AddPage()
-	err = pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	err = pdf.SetFont("LiberationSerif-Regular", "", 14)
-	if err != nil {
-		log.Print(err.Error())
-		return
-	}
 
 	bytesOfImg, err := ioutil.ReadFile("./test/res/PNG_transparency_demonstration_1.png")
 	if err != nil {
@@ -116,25 +96,12 @@ func TestPdfWithImageHolder(t *testing.T) {
 }
 
 func TestRetrievingNumberOfPdfPage(t *testing.T) {
-	pdf := GoPdf{}
-	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf := setupDefaultA4PDF(t)
 	if pdf.GetNumberOfPages() != 0 {
 		t.Error("Invalid starting number of pages, should be 0")
 		return
 	}
-
 	pdf.AddPage()
-	err := pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	err = pdf.SetFont("LiberationSerif-Regular", "", 14)
-	if err != nil {
-		log.Print(err.Error())
-		return
-	}
 
 	bytesOfImg, err := ioutil.ReadFile("./test/res/gopher01.jpg")
 	if err != nil {
@@ -178,25 +145,13 @@ func TestRetrievingNumberOfPdfPage(t *testing.T) {
 }
 
 func TestImageCrop(t *testing.T) {
-	pdf := GoPdf{}
-	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf := setupDefaultA4PDF(t)
 	if pdf.GetNumberOfPages() != 0 {
 		t.Error("Invalid starting number of pages, should be 0")
 		return
 	}
 
 	pdf.AddPage()
-	err := pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	err = pdf.SetFont("LiberationSerif-Regular", "", 14)
-	if err != nil {
-		log.Print(err.Error())
-		return
-	}
 
 	bytesOfImg, err := ioutil.ReadFile("./test/res/gopher01.jpg")
 	if err != nil {
@@ -253,26 +208,6 @@ func TestImageCrop(t *testing.T) {
 	pdf.WritePdf("./test/out/image_crop.pdf")
 }
 
-/*
-func TestBuffer(t *testing.T) {
-	b := bytes.NewReader([]byte("ssssssss"))
-
-	b1, err := ioutil.ReadAll(b)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	fmt.Printf("->%s\n", string(b1))
-	b.Seek(0, 0)
-	b2, err := ioutil.ReadAll(b)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	fmt.Printf("+>%s\n", string(b2))
-}*/
-
 func BenchmarkAddTTFFontByReader(b *testing.B) {
 	ttf, err := os.Open("test/res/LiberationSerif-Regular.ttf")
 	if err != nil {
@@ -295,6 +230,26 @@ func BenchmarkAddTTFFontByReader(b *testing.B) {
 		}
 	}
 }
+
+/*
+func TestBuffer(t *testing.T) {
+	b := bytes.NewReader([]byte("ssssssss"))
+
+	b1, err := ioutil.ReadAll(b)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Printf("->%s\n", string(b1))
+	b.Seek(0, 0)
+	b2, err := ioutil.ReadAll(b)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	fmt.Printf("+>%s\n", string(b2))
+}*/
 
 func BenchmarkAddTTFFontData(b *testing.B) {
 	ttf, err := os.Open("test/res/LiberationSerif-Regular.ttf")
@@ -663,5 +618,78 @@ func TestClearValue(t *testing.T) {
 	if pdf.info != nil {
 		t.Fatalf("pdf.info %v", pdf.info)
 	}
+}
 
+func TestSplitTextWithWordWrap(t *testing.T) {
+	err := initTesting()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	pdf := setupDefaultA4PDF(t)
+
+	var splitTextTests = []struct{
+		name string
+		in string
+		exp []string
+	}{
+		{
+			"text with possible word-wrap",
+			"Lorem ipsum dolor sit amet, consetetur",
+			[]string{"Lorem ipsum", "dolor sit amet,", "consetetur"},
+		},
+		{
+			"text without possible word-wrap",
+			"Loremipsumdolorsitamet,consetetur",
+			[]string{"Loremipsumdolo", "rsitamet,consetet", "ur"},
+		},
+		{
+			"text with only empty spaces",
+			"                                                ",
+			[]string{"                           ", "                    "},
+		},
+	}
+
+	for _, tt := range splitTextTests {
+		t.Run(tt.name, func(t *testing.T) {
+			lines, err := pdf.SplitTextWithWordWrap(tt.in, 100)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(lines) != len(tt.exp) {
+				t.Fatalf("amount of expected and split lines invalid. Expected: %d, result: %d", len(tt.exp), len(lines))
+			}
+			for i, e := range tt.exp {
+				if e != lines[i] {
+					t.Fatalf("split text invalid. Expected: '%s', result: '%s'", e, lines[i])
+				}
+			}
+		})
+	}
+}
+
+func initTesting() error {
+	err := os.MkdirAll("./test/out", 0777)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// setupDefaultA4PDF creates an A4 sized pdf with a plain configuration adding and setting the required fonts for
+// further processing. Tests will fail in case adding or setting the font fails.
+func setupDefaultA4PDF(t *testing.T) *GoPdf {
+	pdf := GoPdf{}
+	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	err := pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = pdf.SetFont("LiberationSerif-Regular", "", 14)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return &pdf
 }

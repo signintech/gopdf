@@ -1026,6 +1026,68 @@ func (gp *GoPdf) SplitText(text string, width float64) ([]string, error) {
 	return lineTexts, nil
 }
 
+// SplitTextWithWordWrap behaves the same way SplitText does but performs a word-wrap considering spaces in case
+// a text line split would split a word.
+func (gp *GoPdf) SplitTextWithWordWrap(text string, width float64) ([]string, error) {
+	var lineText []rune
+	var lineTexts []string
+	utf8Texts := []rune(text)
+	utf8TextsLen := len(utf8Texts) // utf8 string quantity
+	if utf8TextsLen == 0 {
+		return lineTexts, errors.New("empty string")
+	}
+	for i := 0; i < utf8TextsLen; i++ {
+		lineWidth, err := gp.MeasureTextWidth(string(lineText))
+		if err != nil {
+			return nil, err
+		}
+		runeWidth, err := gp.MeasureTextWidth(string(utf8Texts[i]))
+		if err != nil {
+			return nil, err
+		}
+		if lineWidth+runeWidth > width && utf8Texts[i] != '\n' {
+			wrapIdx := wordwrapIdx(lineText)
+			// no wrap idx found, break the line as it is
+			if wrapIdx <= 0 {
+				lineTexts = append(lineTexts, string(lineText))
+				i--
+			} else {
+				diff := len(lineText)-wrapIdx
+				lineText = lineText[0:wrapIdx]
+				lineTexts = append(lineTexts, string(lineText))
+				i -= diff
+			}
+			lineText = lineText[0:0]
+			continue
+		}
+		if utf8Texts[i] == '\n' {
+			lineTexts = append(lineTexts, string(lineText))
+			lineText = lineText[0:0]
+			continue
+		}
+		if i == utf8TextsLen-1 {
+			lineText = append(lineText, utf8Texts[i])
+			lineTexts = append(lineTexts, string(lineText))
+		}
+		lineText = append(lineText, utf8Texts[i])
+	}
+	return lineTexts, nil
+}
+
+// wordwrapIdx returns the index where a text line (i.e. rune slice) can be split without breaking a word.
+// The used rune to identify a wrap is ' ' (space).
+// In case no possible wrap is found -1 is returned.
+func wordwrapIdx(text []rune) int {
+	for i := len(text)-1; i > 0; i-- {
+		if text[i] == ' ' {
+			return i
+		}
+	}
+	return -1
+}
+
+
+
 // ImportPage imports a page and return template id.
 // gofpdi code
 func (gp *GoPdf) ImportPage(sourceFile string, pageno int, box string) int {

@@ -327,12 +327,13 @@ func (gp *GoPdf) GetX() float64 {
 }
 
 //SetNewY : set current position y, and modified y if add a new page.
-// example:
+// Example:
 // For example, if the page height is set to 841px, MarginTop is 20px,
-// MarginBottom is 10px, and the height of the element to be inserted is 25px,
+// MarginBottom is 10px, and the height of the element(such as text) to be inserted is 25px,
 // because 10<25, you need to add another page and set y to 20px.
 // Because of called AddPage(), X is set to MarginLeft, so you should specify X if needed,
 // or make sure SetX() is after SetNewY(), or using SetNewXY().
+// SetNewYIfNoOffset is more suitable for scenarios where the offset does not change, such as pdf.Image().
 func (gp *GoPdf) SetNewY(y *float64, h float64) {
 	gp.UnitsToPointsVar(y)
 	if gp.curr.Y+h > gp.curr.pageSize.H-gp.MarginBottom() {
@@ -342,8 +343,23 @@ func (gp *GoPdf) SetNewY(y *float64, h float64) {
 	gp.curr.Y = *y
 }
 
+//SetNewYIfNoOffset : set current position y, and modified y if add a new page.
+// Example:
+// For example, if the page height is set to 841px, MarginTop is 20px,
+// MarginBottom is 10px, and the height of the element(such as image) to be inserted is 200px,
+// because 10<200, you need to add another page and set y to 20px.
+// Tips: gp.curr.X and gp.curr.Y do not change when pdf.Image() is called.
+func (gp *GoPdf) SetNewYIfNoOffset(y *float64, h float64) {
+	gp.UnitsToPointsVar(y)
+	if *y+h > gp.curr.pageSize.H-gp.MarginBottom() { // using new y(*y) instead of gp.curr.Y
+		gp.AddPage()
+		*y = gp.MarginTop() // reset to top of the page.
+	}
+	gp.curr.Y = *y
+}
+
 //SetNewXY : set current position x and y, and modified y if add a new page.
-// example:
+// Example:
 // For example, if the page height is set to 841px, MarginTop is 20px,
 // MarginBottom is 10px, and the height of the element to be inserted is 25px,
 // because 10<25, you need to add another page and set y to 20px.

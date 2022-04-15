@@ -334,13 +334,14 @@ func (gp *GoPdf) GetX() float64 {
 // Because of called AddPage(), X is set to MarginLeft, so you should specify X if needed,
 // or make sure SetX() is after SetNewY(), or using SetNewXY().
 // SetNewYIfNoOffset is more suitable for scenarios where the offset does not change, such as pdf.Image().
-func (gp *GoPdf) SetNewY(y *float64, h float64) {
-	gp.UnitsToPointsVar(y)
+func (gp *GoPdf) SetNewY(y float64, h float64) {
+	gp.UnitsToPointsVar(&y)
+	gp.UnitsToPointsVar(&h)
 	if gp.curr.Y+h > gp.curr.pageSize.H-gp.MarginBottom() {
 		gp.AddPage()
-		*y = gp.MarginTop() // reset to top of the page.
+		y = gp.MarginTop() // reset to top of the page.
 	}
-	gp.curr.Y = *y
+	gp.curr.Y = y
 }
 
 //SetNewYIfNoOffset : set current position y, and modified y if add a new page.
@@ -349,13 +350,14 @@ func (gp *GoPdf) SetNewY(y *float64, h float64) {
 // MarginBottom is 10px, and the height of the element(such as image) to be inserted is 200px,
 // because 10<200, you need to add another page and set y to 20px.
 // Tips: gp.curr.X and gp.curr.Y do not change when pdf.Image() is called.
-func (gp *GoPdf) SetNewYIfNoOffset(y *float64, h float64) {
-	gp.UnitsToPointsVar(y)
-	if *y+h > gp.curr.pageSize.H-gp.MarginBottom() { // using new y(*y) instead of gp.curr.Y
+func (gp *GoPdf) SetNewYIfNoOffset(y float64, h float64) {
+	gp.UnitsToPointsVar(&y)
+	gp.UnitsToPointsVar(&h)
+	if y+h > gp.curr.pageSize.H-gp.MarginBottom() { // using new y(*y) instead of gp.curr.Y
 		gp.AddPage()
-		*y = gp.MarginTop() // reset to top of the page.
+		y = gp.MarginTop() // reset to top of the page.
 	}
-	gp.curr.Y = *y
+	gp.curr.Y = y
 }
 
 //SetNewXY : set current position x and y, and modified y if add a new page.
@@ -365,15 +367,55 @@ func (gp *GoPdf) SetNewYIfNoOffset(y *float64, h float64) {
 // because 10<25, you need to add another page and set y to 20px.
 // Because of AddPage(), X is set to MarginLeft, so you should specify X if needed,
 // or make sure SetX() is after SetNewY().
-func (gp *GoPdf) SetNewXY(y *float64, x, h float64) {
-	gp.UnitsToPointsVar(y)
+func (gp *GoPdf) SetNewXY(y float64, x, h float64) {
+	gp.UnitsToPointsVar(&y)
+	gp.UnitsToPointsVar(&h)
 	if gp.curr.Y+h > gp.curr.pageSize.H-gp.MarginBottom() {
 		gp.AddPage()
-		*y = gp.MarginTop() // reset to top of the page.
+		y = gp.MarginTop() // reset to top of the page.
 	}
-	gp.curr.X = x
-	gp.curr.Y = *y
+	gp.curr.Y = y
+	gp.SetX(x)
 }
+
+/*
+//experimental
+func (gp *GoPdf) SetNewY(y float64, h float64) float64 {
+	gp.UnitsToPointsVar(&y)
+	gp.UnitsToPointsVar(&h)
+	if gp.curr.Y+h > gp.curr.pageSize.H-gp.MarginBottom() {
+		gp.AddPage()
+		y = gp.MarginTop() // reset to top of the page.
+	}
+	gp.curr.Y = y
+	return gp.GetY()
+}
+
+//experimental
+func (gp *GoPdf) SetNewYIfNoOffset(y float64, h float64) float64 {
+	gp.UnitsToPointsVar(&y)
+	gp.UnitsToPointsVar(&h)
+	if y+h > gp.curr.pageSize.H-gp.MarginBottom() { // using new y(*y) instead of gp.curr.Y
+		gp.AddPage()
+		y = gp.MarginTop() // reset to top of the page.
+	}
+	gp.curr.Y = y
+	return gp.GetY()
+}
+
+//experimental
+func (gp *GoPdf) SetNewXY(y float64, x, h float64) float64{
+	gp.UnitsToPointsVar(&y)
+	gp.UnitsToPointsVar(&h)
+	if gp.curr.Y+h > gp.curr.pageSize.H-gp.MarginBottom() {
+		gp.AddPage()
+		y = gp.MarginTop() // reset to top of the page.
+	}
+	gp.curr.Y = y
+	gp.SetX(x)
+	return gp.GetY()
+}
+*/
 
 //SetY : set current position y
 func (gp *GoPdf) SetY(y float64) {

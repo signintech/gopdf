@@ -2,10 +2,11 @@ package pagination
 
 import (
 	"fmt"
-	"github.com/signintech/gopdf"
 	"log"
 	"testing"
 	"time"
+
+	"github.com/signintech/gopdf"
 )
 
 func TestPageWithImage(t *testing.T) {
@@ -23,7 +24,8 @@ func TestPageWithImage(t *testing.T) {
 	}
 	for i := 0; i < 10; i++ {
 		var imgHeight float64 = 241 * 72 / 120
-		pdf.SetNewYIfNoOffset(&y, imgHeight)
+		pdf.SetNewYIfNoOffset(y, imgHeight)
+		y = pdf.GetY()
 		err = pdf.Image("../res/gopher01.jpg", x, y, imgRect)
 		if err != nil {
 			log.Fatal(err)

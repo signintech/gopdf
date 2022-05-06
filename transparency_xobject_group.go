@@ -12,7 +12,7 @@ type TransparencyXObjectGroup struct {
 	ExtGStateIndexes []int
 	XObjects         []cacheContentImage
 
-	getRoot func() *GoPdf
+	getRoot       func() *GoPdf
 	pdfProtection *PDFProtection
 }
 

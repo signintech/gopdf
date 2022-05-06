@@ -37,14 +37,12 @@ func TestSetFontCheckGetX(t *testing.T) {
 		t.Error(err)
 	}
 
-	pdf.SetX(30.0)
-	pdf.SetY(30.0)
+	pdf.SetXY(30.0, 30.0)
 	pdf.Text(prefix)
 	wantx, wanty := pdf.GetX(), pdf.GetY()
 
 	// ensure that GetX, GetY work as expected
-	pdf.SetX(30.0)
-	pdf.SetY(30.0)
+	pdf.SetXY(30.0, 30.0)
 	pdf.Text(prefix + prefix)
 	havex, havey := pdf.GetX(), pdf.GetY()
 	if havex <= wantx || havey != wanty {
@@ -53,8 +51,7 @@ func TestSetFontCheckGetX(t *testing.T) {
 }
 
 func moveAndAdd(pdf *GoPdf, prefix string) (float64, float64) {
-	pdf.SetX(30.0)
-	pdf.SetY(30.0)
+	pdf.SetXY(30.0, 30.0)
 	pdf.Text(prefix)
 	return pdf.GetX(), pdf.GetY()
 }

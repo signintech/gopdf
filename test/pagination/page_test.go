@@ -42,8 +42,7 @@ func TestSetY(t *testing.T) {
 	for i := 0; i < 200; i++ {
 		text := fmt.Sprintf("---------line no: %d -----------", i)
 		//var textH float64 = 25 // if text height is 25px.
-		pdf.SetX(x)
-		pdf.SetY(y)
+		pdf.SetXY(x, y)
 		err = pdf.Text(text)
 		if err != nil {
 			log.Fatalln(err)

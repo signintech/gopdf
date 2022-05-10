@@ -428,6 +428,16 @@ func (gp *GoPdf) GetY() float64 {
 	return gp.PointsToUnits(gp.curr.Y)
 }
 
+// SetXY : set current position x and y
+func (gp *GoPdf) SetXY(x, y float64) {
+	gp.UnitsToPointsVar(&x)
+	gp.curr.setXCount++
+	gp.curr.X = x
+
+	gp.UnitsToPointsVar(&y)
+	gp.curr.Y = y
+}
+
 //ImageByHolder : draw image by ImageHolder
 func (gp *GoPdf) ImageByHolder(img ImageHolder, x float64, y float64, rect *Rect) error {
 	gp.UnitsToPointsVar(&x, &y)

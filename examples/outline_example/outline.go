@@ -33,8 +33,7 @@ func OutlineWithPositionExample() (err error) {
 	}
 	pdf.AddPage()
 
-	pdf.SetX(150)
-	pdf.SetY(400)
+	pdf.SetXY(150, 400)
 	pdf.AddOutlineWithPosition("first page")
 	err = pdf.Text("1.Hello World")
 	if err != nil {
@@ -42,8 +41,7 @@ func OutlineWithPositionExample() (err error) {
 	}
 
 	pdf.AddPage()
-	pdf.SetX(150)
-	pdf.SetY(700)
+	pdf.SetXY(150, 700)
 	pdf.AddOutlineWithPosition("second page")
 	err = pdf.Text("2.Hello World")
 	if err != nil {
@@ -51,8 +49,7 @@ func OutlineWithPositionExample() (err error) {
 	}
 
 	pdf.AddPage()
-	pdf.SetX(150)
-	pdf.SetY(700)
+	pdf.SetXY(150, 700)
 	pdf.AddOutlineWithPosition("third page")
 	err = pdf.Text("3.Hello World")
 	if err != nil {
@@ -60,8 +57,7 @@ func OutlineWithPositionExample() (err error) {
 	}
 
 	pdf.AddPage()
-	pdf.SetX(150)
-	pdf.SetY(200)
+	pdf.SetXY(150, 200)
 	pdf.AddOutlineWithPosition("forth page")
 	err = pdf.Text("4.Hello World")
 	if err != nil {
@@ -112,8 +108,7 @@ func OutlineWithLevelExample() (err error) {
 	outlineNodes = nodeObjs
 
 	pdf.AddPage()
-	pdf.SetX(150)
-	pdf.SetY(200)
+	pdf.SetXY(150, 200)
 	first.Obj = pdf.AddOutlineWithPosition("first page")
 	err = pdf.Text("first page")
 	if err != nil {
@@ -121,8 +116,7 @@ func OutlineWithLevelExample() (err error) {
 	}
 
 	pdf.AddPage()
-	pdf.SetX(150)
-	pdf.SetY(200)
+	pdf.SetXY(150, 200)
 	second.Obj = pdf.AddOutlineWithPosition("second page")
 	err = pdf.Text("second page")
 	if err != nil {
@@ -170,8 +164,7 @@ func OutlineWithLevelExample() (err error) {
 	}
 
 	pdf.AddPage()
-	pdf.SetX(150)
-	pdf.SetY(200)
+	pdf.SetXY(150, 200)
 	third.Obj = pdf.AddOutlineWithPosition("third page")
 	err = pdf.Text("third page")
 	if err != nil {

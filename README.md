@@ -81,8 +81,7 @@ func main() {
 		log.Print(err.Error())
 		return
 	}
-	pdf.SetX(250) //move current location
-	pdf.SetY(200)
+	pdf.SetXY(250, 200) //move current location
 	pdf.Cell(nil, "gopher and gopher") //print text
 
 	pdf.WritePdf("image.pdf")
@@ -116,19 +115,16 @@ func main()  {
 		return
 	}
 
-	pdf.SetX(30)
-	pdf.SetY(40)
+	pdf.SetXY(30, 40)
 	pdf.Text("Link to example.com")
 	pdf.AddExternalLink("http://example.com/", 27.5, 28, 125, 15)
 
-	pdf.SetX(30)
-	pdf.SetY(70)
+	pdf.SetXY(30, 70)
 	pdf.Text("Link to second page")
 	pdf.AddInternalLink("anchor", 27.5, 58, 120, 15)
 
 	pdf.AddPage()
-	pdf.SetX(30)
-	pdf.SetY(100)
+	pdf.SetXY(30, 100)
 	pdf.SetAnchor("anchor")
 	pdf.Text("Anchor position")
 
@@ -171,8 +167,7 @@ if err != nil {
 
 ### Rotation text or image
 ```go
-pdf.SetX(100)
-pdf.SetY(100)
+pdf.SetXY(100, 100)
 pdf.Rotate(270.0, 100.0, 100.0)
 pdf.Text("Hello...")
 pdf.RotateReset() //reset
@@ -269,8 +264,7 @@ func main() {
         pdf.RectFromUpperLeftWithStyle(50, 100, 400, 600, "FD")
         pdf.SetFillColor(0, 0, 0)
 
-        pdf.SetX(50)
-        pdf.SetY(50)
+        pdf.SetXY(50, 50)
         pdf.Cell(nil, "Import existing PDF into GoPDF Document")
 
         // Import page 1

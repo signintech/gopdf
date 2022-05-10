@@ -47,8 +47,7 @@ func BenchmarkPdfWithImageHolder(b *testing.B) {
 		pdf.ImageByHolder(imgH, 20.0, float64(i)*2.0, nil)
 	}
 
-	pdf.SetX(250)
-	pdf.SetY(200)
+	pdf.SetXY(250, 200)
 	pdf.Cell(nil, "gopher and gopher")
 
 	pdf.WritePdf("./test/out/image_bench.pdf")
@@ -88,8 +87,7 @@ func TestPdfWithImageHolder(t *testing.T) {
 		return
 	}
 
-	pdf.SetX(250)
-	pdf.SetY(200)
+	pdf.SetXY(250, 200)
 	pdf.Cell(nil, "gopher and gopher")
 
 	pdf.WritePdf("./test/out/image_test.pdf")
@@ -126,14 +124,12 @@ func TestRetrievingNumberOfPdfPage(t *testing.T) {
 		return
 	}
 
-	pdf.SetX(250)
-	pdf.SetY(200)
+	pdf.SetXY(250, 200)
 	pdf.Cell(nil, "gopher and gopher")
 
 	pdf.AddPage()
 
-	pdf.SetX(250)
-	pdf.SetY(200)
+	pdf.SetXY(250, 200)
 	pdf.Cell(nil, "gopher and gopher again")
 
 	if pdf.GetNumberOfPages() != 2 {
@@ -190,14 +186,12 @@ func TestImageCrop(t *testing.T) {
 		return
 	}
 
-	pdf.SetX(250)
-	pdf.SetY(200)
+	pdf.SetXY(250, 200)
 	pdf.Cell(nil, "gopher and gopher")
 
 	pdf.AddPage()
 
-	pdf.SetX(250)
-	pdf.SetY(200)
+	pdf.SetXY(250, 200)
 	pdf.Cell(nil, "gopher and gopher again")
 
 	if pdf.GetNumberOfPages() != 2 {
@@ -382,8 +376,7 @@ func TestWhiteTransparent(t *testing.T) {
 	// write text.
 	op := CellOption{Align: Left | Middle}
 	rect := Rect{W: 20, H: 30}
-	pdf.SetX(350)
-	pdf.SetY(50)
+	pdf.SetXY(350, 50)
 	err = pdf.Cell(&rect, "あい")
 	//err = pdf.CellWithOption(&rect, "あい", op)
 	//err = pdf.CellWithOption(&rect, "あ", op)
@@ -493,8 +486,7 @@ func TestWhiteTransparent195(t *testing.T) {
 	// write text.
 	op := CellOption{Align: Left | Middle}
 	rect := Rect{W: 20, H: 30}
-	pdf.SetX(350)
-	pdf.SetY(50)
+	pdf.SetXY(350, 50)
 	//err = pdf.Cell(&rect, "あいうえ") // OK.
 	//err = pdf.Cell(&rect, "あうう") // OK.
 	err = pdf.CellWithOption(&rect, "あいうえ", op) // NG. "abcdef." is White/Transparent.
@@ -569,8 +561,7 @@ func TestClearValue(t *testing.T) {
 		return
 	}
 
-	pdf.SetX(250)
-	pdf.SetY(200)
+	pdf.SetXY(250, 200)
 	pdf.Cell(nil, "gopher and gopher")
 	pdf.SetInfo(PdfInfo{
 		Title: "xx",

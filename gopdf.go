@@ -1078,6 +1078,58 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 	return nil
 }
 
+//MultiCellWithOption create of text with line breaks ( use current x,y is upper-left corner of cell)
+func (gp *GoPdf) MultiCellWithOption(rectangle *Rect, text string, opt CellOption) error {
+	transparency, err := gp.getCachedTransparency(opt.Transparency)
+	if err != nil {
+		return err
+	}
+
+	if transparency != nil {
+		opt.extGStateIndexes = append(opt.extGStateIndexes, transparency.extGStateIndex)
+	}
+
+	var line []rune
+	x := gp.GetX()
+	var totalLineHeight float64
+	length := len([]rune(text))
+
+	// get lineHeight
+	text, err = gp.curr.FontISubset.AddChars(text)
+	if err != nil {
+		return err
+	}
+	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, nil)
+	if err != nil {
+		return err
+	}
+
+	for i, v := range []rune(text) {
+		if totalLineHeight+lineHeight > rectangle.H {
+			break
+		}
+		lineWidth, _ := gp.MeasureTextWidth(string(line))
+		runeWidth, _ := gp.MeasureTextWidth(string(v))
+
+		if lineWidth+runeWidth > rectangle.W {
+			gp.CellWithOption(&Rect{W: rectangle.W, H: lineHeight}, string(line), opt)
+			gp.Br(lineHeight)
+			gp.SetX(x)
+			totalLineHeight = totalLineHeight + lineHeight
+			line = nil
+		}
+
+		line = append(line, v)
+
+		if i == length-1 {
+			gp.CellWithOption(&Rect{W: rectangle.W, H: lineHeight}, string(line), opt)
+			gp.Br(lineHeight)
+			gp.SetX(x)
+		}
+	}
+	return nil
+}
+
 // SplitText splits text into multiple lines based on width performing potential mid-word breaks.
 func (gp *GoPdf) SplitText(text string, width float64) ([]string, error) {
 	return gp.SplitTextWithOption(text, width, &DefaultBreakOption)

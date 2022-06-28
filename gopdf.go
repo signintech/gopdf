@@ -899,7 +899,7 @@ func (gp *GoPdf) SetFontSize(fontSize float64) error {
 	return nil
 }
 
-//WritePdf : wirte pdf file
+//WritePdf : write pdf file
 func (gp *GoPdf) WritePdf(pdfPath string) error {
 	return ioutil.WriteFile(pdfPath, gp.GetBytesPdf(), 0644)
 }

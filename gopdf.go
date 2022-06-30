@@ -1533,6 +1533,16 @@ func (gp *GoPdf) SetFillColor(r uint8, g uint8, b uint8) {
 	gp.getContent().AppendStreamSetColorFill(r, g, b)
 }
 
+//SetStrokeColorCMYK set the color for the stroke in CMYK color mode
+func (gp *GoPdf) SetStrokeColorCMYK(c, m, y, k uint8) {
+	gp.getContent().AppendStreamSetColorStrokeCMYK(c, m, y, k)
+}
+
+//SetFillColorCMYK set the color for the fill in CMYK color mode
+func (gp *GoPdf) SetFillColorCMYK(c, m, y, k uint8) {
+	gp.getContent().AppendStreamSetColorFillCMYK(c, m, y, k)
+}
+
 //MeasureTextWidth : measure Width of text (use current font)
 func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 

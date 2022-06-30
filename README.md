@@ -165,6 +165,17 @@ if err != nil {
 }
 ```
 
+### Draw rectangle with round corner in CMYK color mode
+```go
+pdf.SetStrokeColorCMYK(88, 49, 0, 0)
+pdf.SetLineWidth(2)
+pdf.SetFillColorCMYK(0, 5, 89, 0)
+err := pdf.Rectangle(196.6, 336.8, 398.3, 379.3, "DF", 3, 10)
+if err != nil {
+	return err
+}
+```
+
 ### Rotation text or image
 ```go
 pdf.SetXY(100, 100)

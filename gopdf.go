@@ -899,7 +899,7 @@ func (gp *GoPdf) SetFontSize(fontSize float64) error {
 	return nil
 }
 
-//WritePdf : wirte pdf file
+//WritePdf : write pdf file
 func (gp *GoPdf) WritePdf(pdfPath string) error {
 	return ioutil.WriteFile(pdfPath, gp.GetBytesPdf(), 0644)
 }
@@ -1531,6 +1531,16 @@ func (gp *GoPdf) SetStrokeColor(r uint8, g uint8, b uint8) {
 //SetFillColor set the color for the stroke
 func (gp *GoPdf) SetFillColor(r uint8, g uint8, b uint8) {
 	gp.getContent().AppendStreamSetColorFill(r, g, b)
+}
+
+//SetStrokeColorCMYK set the color for the stroke in CMYK color mode
+func (gp *GoPdf) SetStrokeColorCMYK(c, m, y, k uint8) {
+	gp.getContent().AppendStreamSetColorStrokeCMYK(c, m, y, k)
+}
+
+//SetFillColorCMYK set the color for the fill in CMYK color mode
+func (gp *GoPdf) SetFillColorCMYK(c, m, y, k uint8) {
+	gp.getContent().AppendStreamSetColorFillCMYK(c, m, y, k)
 }
 
 //MeasureTextWidth : measure Width of text (use current font)

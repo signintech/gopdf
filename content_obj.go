@@ -298,6 +298,28 @@ func (c *ContentObj) AppendStreamSetColorFill(r uint8, g uint8, b uint8) {
 	c.listCache.append(&cache)
 }
 
+//AppendStreamSetColorStrokeCMYK  set the color stroke in CMYK color mode
+func (c *ContentObj) AppendStreamSetColorStrokeCMYK(cy, m, y, k uint8) {
+	var cache cacheContentCMYK
+	cache.colorType = cmykTypeStroke
+	cache.c = cy
+	cache.m = m
+	cache.y = y
+	cache.k = k
+	c.listCache.append(&cache)
+}
+
+//AppendStreamSetColorFillCMYK  set the color fill in CMYK color mode
+func (c *ContentObj) AppendStreamSetColorFillCMYK(cy, m, y, k uint8) {
+	var cache cacheContentCMYK
+	cache.colorType = cmykTypeFill
+	cache.c = cy
+	cache.m = m
+	cache.y = y
+	cache.k = k
+	c.listCache.append(&cache)
+}
+
 func (c *ContentObj) GetCacheContentImage(index int, opts ImageOptions) *cacheContentImage {
 	h := c.getRoot().curr.pageSize.H
 

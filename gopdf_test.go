@@ -694,6 +694,80 @@ func TestSplitTextWithOptions(t *testing.T) {
 	}
 }
 
+func TestTextColorRGB(t *testing.T) {
+	err := initTesting()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	// create pdf.
+	pdf := GoPdf{}
+	pdf.Start(Config{PageSize: *PageSizeA4})
+	pdf.AddPage()
+	err = pdf.AddTTFFont("LiberationSerif", "./test/res/LiberationSerif-Regular.ttf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = pdf.SetFont("LiberationSerif", "", 14)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	pdf.SetTextColor(0, 255, 255)
+	err = pdf.Cell(nil, "I'm colored text using RGB color model")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = pdf.WritePdf("./test/out/colored_text_rgb.pdf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+}
+
+func TestTextColorCMYK(t *testing.T) {
+	err := initTesting()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	// create pdf.
+	pdf := GoPdf{}
+	pdf.Start(Config{PageSize: *PageSizeA4})
+	pdf.AddPage()
+	err = pdf.AddTTFFont("LiberationSerif", "./test/res/LiberationSerif-Regular.ttf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = pdf.SetFont("LiberationSerif", "", 14)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	pdf.SetTextColorCMYK(0, 6, 14, 0)
+	err = pdf.Cell(nil, "I'm colored text using CMYK color model")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = pdf.WritePdf("./test/out/colored_text_cmyk.pdf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+}
+
 func initTesting() error {
 	err := os.MkdirAll("./test/out", 0777)
 	if err != nil {

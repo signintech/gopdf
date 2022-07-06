@@ -53,6 +53,20 @@ func main() {
 }
 
 ```
+
+### Set text color using RGB color model
+
+```go
+pdf.SetTextColor(156, 197, 140)
+pdf.Cell(nil, "您好")
+```
+
+### Set text color using CMYK color model
+
+```go
+pdf.SetTextColorCMYK(0, 6, 14, 0)
+pdf.Cell
+```
   
 ### Image
   
@@ -165,7 +179,7 @@ if err != nil {
 }
 ```
 
-### Draw rectangle with round corner in CMYK color mode
+### Draw rectangle with round corner using CMYK color model
 ```go
 pdf.SetStrokeColorCMYK(88, 49, 0, 0)
 pdf.SetLineWidth(2)

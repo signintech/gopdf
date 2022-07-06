@@ -5,16 +5,16 @@ import (
 	"io"
 )
 
-const colorTypeStroke = "RG"
+const colorTypeStrokeRGB = "RG"
 
-const colorTypeFill = "rg"
+const colorTypeFillRGB = "rg"
 
-type cacheContentColor struct {
+type cacheContentColorRGB struct {
 	colorType string
 	r, g, b   uint8
 }
 
-func (c *cacheContentColor) write(w io.Writer, protection *PDFProtection) error {
+func (c *cacheContentColorRGB) write(w io.Writer, protection *PDFProtection) error {
 	fmt.Fprintf(w, "%.3f %.3f %.3f %s\n", float64(c.r)/255, float64(c.g)/255, float64(c.b)/255, c.colorType)
 	return nil
 }

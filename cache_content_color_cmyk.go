@@ -5,15 +5,16 @@ import (
 	"io"
 )
 
-const cmykTypeStroke = "K"
-const cmykTypeFill = "k"
+const colorTypeStrokeCMYK = "K"
 
-type cacheContentCMYK struct {
+const colorTypeFillCMYK = "k"
+
+type cacheContentColorCMYK struct {
 	colorType  string
 	c, m, y, k uint8
 }
 
-func (c *cacheContentCMYK) write(w io.Writer, protection *PDFProtection) error {
+func (c *cacheContentColorCMYK) write(w io.Writer, protection *PDFProtection) error {
 	fmt.Fprintf(w, "%.2f %.2f %.2f %.2f %s\n", float64(c.c)/100, float64(c.m)/100, float64(c.y)/100, float64(c.k)/100, c.colorType)
 	return nil
 }

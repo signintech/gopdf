@@ -15,7 +15,10 @@ func (c cacheContentTextColorRGB) write(w io.Writer, protection *PDFProtection) 
 }
 
 func (c cacheContentTextColorRGB) equal(obj ICacheColorText) bool {
-	rgb := obj.(cacheContentTextColorRGB)
+	rgb, ok := obj.(cacheContentTextColorRGB)
+	if !ok {
+		return false
+	}
 
 	return c.r == rgb.r && c.g == rgb.g && c.b == rgb.b
 }

@@ -15,7 +15,10 @@ func (c cacheContentTextColorCMYK) write(w io.Writer, protection *PDFProtection)
 }
 
 func (c cacheContentTextColorCMYK) equal(obj ICacheColorText) bool {
-	cmyk := obj.(cacheContentTextColorCMYK)
+	cmyk, ok := obj.(cacheContentTextColorCMYK)
+	if !ok {
+		return false
+	}
 
 	return c.c == cmyk.c && c.m == cmyk.m && c.y == cmyk.y && c.k == cmyk.k
 }

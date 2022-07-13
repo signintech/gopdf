@@ -694,6 +694,44 @@ func TestSplitTextWithOptions(t *testing.T) {
 	}
 }
 
+func TestTextColor(t *testing.T) {
+	err := initTesting()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	// create pdf.
+	pdf := GoPdf{}
+	pdf.Start(Config{PageSize: *PageSizeA4})
+	pdf.AddPage()
+	err = pdf.AddTTFFont("LiberationSerif", "./test/res/LiberationSerif-Regular.ttf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = pdf.SetFont("LiberationSerif", "", 14)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	pdf.SetTextColor(255, 0, 2)
+	pdf.Br(20)
+	pdf.Cell(nil, "a")
+
+	pdf.SetTextColorCMYK(0, 6, 14, 0)
+	pdf.Br(20)
+	pdf.Cell(nil, "b")
+
+	err = pdf.WritePdf("./test/out/colored_text.pdf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+}
+
 func initTesting() error {
 	err := os.MkdirAll("./test/out", 0777)
 	if err != nil {

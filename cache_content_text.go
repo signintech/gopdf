@@ -21,7 +21,7 @@ const ContentTypeText = 1
 type cacheContentText struct {
 	//---setup---
 	rectangle      *Rect
-	textColor      Rgb
+	textColor      ICacheColorText
 	grayFill       float64
 	txtColorMode   string
 	fontCountIndex int //Curr.FontFontCount+1
@@ -42,10 +42,13 @@ type cacheContentText struct {
 
 func (c *cacheContentText) isSame(cache cacheContentText) bool {
 	if c.rectangle != nil {
-		//if rectangle != nil we assumes this is not same content
+		//if rectangle != nil we assume this is not same content
 		return false
 	}
-	if c.textColor.equal(cache.textColor) &&
+
+	// if both colors are nil we assume them equal
+	if ((c.textColor == nil && cache.textColor == nil) ||
+		(c.textColor != nil && c.textColor.equal(cache.textColor))) &&
 		c.grayFill == cache.grayFill &&
 		c.fontCountIndex == cache.fontCountIndex &&
 		c.fontSize == cache.fontSize &&
@@ -125,9 +128,6 @@ func FormatFloatTrim(floatval float64) (formatted string) {
 }
 
 func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
-	r := c.textColor.r
-	g := c.textColor.g
-	b := c.textColor.b
 	x, err := c.calX()
 	if err != nil {
 		return err
@@ -152,7 +152,7 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	fmt.Fprintf(w, "/F%d %s Tf\n", c.fontCountIndex, FormatFloatTrim(c.fontSize))
 
 	if c.txtColorMode == "color" {
-		fmt.Fprintf(w, "%0.3f %0.3f %0.3f rg\n", float64(r)/255, float64(g)/255, float64(b)/255)
+		c.textColor.write(w, protection)
 	}
 	io.WriteString(w, "[<")
 
@@ -376,7 +376,7 @@ type CacheContent struct {
 
 //Setup setup all information for cacheContent
 func (c *CacheContent) Setup(rectangle *Rect,
-	textColor Rgb,
+	textColor ICacheColorText,
 	grayFill float64,
 	fontCountIndex int, //Curr.FontFontCount+1
 	fontSize float64,

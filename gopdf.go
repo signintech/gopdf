@@ -1515,12 +1515,23 @@ func (gp *GoPdf) KernOverride(family string, fn FuncKernOverride) error {
 //SetTextColor :  function sets the text color
 func (gp *GoPdf) SetTextColor(r uint8, g uint8, b uint8) {
 	gp.curr.txtColorMode = "color"
-	rgb := Rgb{
+	rgb := cacheContentTextColorRGB{
 		r: r,
 		g: g,
 		b: b,
 	}
 	gp.curr.setTextColor(rgb)
+}
+
+func (gp *GoPdf) SetTextColorCMYK(c, m, y, k uint8) {
+	gp.curr.txtColorMode = "color"
+	cmyk := cacheContentTextColorCMYK{
+		c: c,
+		m: m,
+		y: y,
+		k: k,
+	}
+	gp.curr.setTextColor(cmyk)
 }
 
 //SetStrokeColor set the color for the stroke

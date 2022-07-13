@@ -30,7 +30,7 @@ type Current struct {
 	txtColorMode string //color, gray
 
 	//text color
-	txtColor Rgb
+	txtColor ICacheColorText
 
 	//text grayscale
 	grayFill float64
@@ -51,11 +51,11 @@ type Current struct {
 	transparencyMap TransparencyMap
 }
 
-func (c *Current) setTextColor(rgb Rgb) {
-	c.txtColor = rgb
+func (c *Current) setTextColor(color ICacheColorText) {
+	c.txtColor = color
 }
 
-func (c *Current) textColor() Rgb {
+func (c *Current) textColor() ICacheColorText {
 	return c.txtColor
 }
 
@@ -64,33 +64,4 @@ type ImageCache struct {
 	Path  string //ID or Path
 	Index int
 	Rect  *Rect
-}
-
-//Rgb  rgb color
-type Rgb struct {
-	r uint8
-	g uint8
-	b uint8
-}
-
-//SetR set red
-func (rgb *Rgb) SetR(r uint8) {
-	rgb.r = r
-}
-
-//SetG set green
-func (rgb *Rgb) SetG(g uint8) {
-	rgb.g = g
-}
-
-//SetB set blue
-func (rgb *Rgb) SetB(b uint8) {
-	rgb.b = b
-}
-
-func (rgb Rgb) equal(obj Rgb) bool {
-	if rgb.r == obj.r && rgb.g == obj.g && rgb.b == obj.b {
-		return true
-	}
-	return false
 }

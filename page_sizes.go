@@ -36,6 +36,9 @@ var PageSizeA3 = &Rect{W: 842, H: 1190, unitOverride: UnitPT}
 // PageSizeA4 page format
 var PageSizeA4 = &Rect{W: 595, H: 842, unitOverride: UnitPT}
 
+// PageSizeA4Landscape page format
+var PageSizeA4Landscape = &Rect{W: 842, H: 595, unitOverride: UnitPT}
+
 // PageSizeA4Small page format
 var PageSizeA4Small = &Rect{W: 595, H: 842, unitOverride: UnitPT}
 

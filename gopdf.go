@@ -6,7 +6,7 @@ import (
 	"compress/zlib" // for constants
 	"fmt"
 	"image"
-	"image/jpeg"
+	"image/png"
 	"io"
 	"io/ioutil"
 	"log"
@@ -710,7 +710,7 @@ func (gp *GoPdf) ImageFrom(img image.Image, x float64, y float64, rect *Rect) er
 	r, w := io.Pipe()
 	go func() {
 		bw := bufio.NewWriter(w)
-		err := jpeg.Encode(bw, img, nil)
+		err := png.Encode(bw, img)
 		bw.Flush()
 		if err != nil {
 			w.CloseWithError(err)

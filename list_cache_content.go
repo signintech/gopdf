@@ -43,17 +43,17 @@ func (l *listCacheContent) appendContentText(cache cacheContentText, text string
 	//start add text
 	cacheFont.text += text
 
-	//re-create contnet
+	//re-create content
 	textWidthPdfUnit, textHeightPdfUnit, err := cacheFont.createContent()
 	if err != nil {
 		return x, y, err
 	}
 
 	if cacheFont.cellOpt.Float == 0 || cacheFont.cellOpt.Float&Right == Right || cacheFont.contentType == ContentTypeText {
-		x += textWidthPdfUnit
+		x = cacheFont.x + textWidthPdfUnit
 	}
 	if cacheFont.cellOpt.Float&Bottom == Bottom {
-		y += textHeightPdfUnit
+		y = cacheFont.y + textHeightPdfUnit
 	}
 
 	return x, y, nil

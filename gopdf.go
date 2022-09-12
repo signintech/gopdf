@@ -13,6 +13,7 @@ import (
 	"math"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/phpdave11/gofpdi"
@@ -1090,6 +1091,67 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 		}
 	}
 	return nil
+}
+
+// FitMultiCell : check whether the rect's area is big enough for the text
+func (gp *GoPdf) FitMultiCell(rectangle *Rect, text string) (bool, float64, error) {
+	var line []rune
+	var totalLineHeight float64
+	length := len([]rune(text))
+
+	// get lineHeight
+	text, err := gp.curr.FontISubset.AddChars(text)
+	if err != nil {
+		return false, totalLineHeight, err
+	}
+	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, nil)
+
+	if err != nil {
+		return false, totalLineHeight, err
+	}
+	gp.PointsToUnitsVar(&lineHeight)
+
+	for i, v := range []rune(text) {
+		if totalLineHeight+lineHeight > rectangle.H {
+			return false, totalLineHeight, nil
+		}
+		lineWidth, _ := gp.MeasureTextWidth(string(line))
+		runeWidth, _ := gp.MeasureTextWidth(string(v))
+
+		if lineWidth+runeWidth > rectangle.W {
+			totalLineHeight += lineHeight
+			line = nil
+		}
+
+		line = append(line, v)
+
+		if i == length-1 {
+			totalLineHeight += lineHeight
+		}
+	}
+
+	ok := true
+	if totalLineHeight > rectangle.H {
+		ok = false
+	}
+
+	return ok, totalLineHeight, nil
+}
+
+// FitMultiCellWithNewline : similar to FitMultiCell, but process char newline as Br
+func (gp *GoPdf) FitMultiCellWithNewline(rectangle *Rect, text string) (bool, error) {
+	r := *rectangle
+	strs := strings.Split(text, "\n")
+
+	for _, s := range strs {
+		ok, height, err := gp.FitMultiCell(&r, s)
+		if err != nil || !ok {
+			return false, err
+		}
+		r.H -= height
+	}
+
+	return true, nil
 }
 
 // MultiCellWithOption create of text with line breaks ( use current x,y is upper-left corner of cell)

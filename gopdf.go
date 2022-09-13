@@ -1139,19 +1139,19 @@ func (gp *GoPdf) FitMultiCell(rectangle *Rect, text string) (bool, float64, erro
 }
 
 // FitMultiCellWithNewline : similar to FitMultiCell, but process char newline as Br
-func (gp *GoPdf) FitMultiCellWithNewline(rectangle *Rect, text string) (bool, error) {
+func (gp *GoPdf) FitMultiCellWithNewline(rectangle *Rect, text string) (bool, float64, error) {
 	r := *rectangle
 	strs := strings.Split(text, "\n")
 
 	for _, s := range strs {
 		ok, height, err := gp.FitMultiCell(&r, s)
 		if err != nil || !ok {
-			return false, err
+			return false, 0, err
 		}
 		r.H -= height
 	}
 
-	return true, nil
+	return true, rectangle.H - r.H, nil
 }
 
 // MultiCellWithOption create of text with line breaks ( use current x,y is upper-left corner of cell)

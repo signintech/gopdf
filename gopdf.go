@@ -1093,8 +1093,8 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 	return nil
 }
 
-// FitMultiCell : check whether the rect's area is big enough for the text
-func (gp *GoPdf) FitMultiCell(rectangle *Rect, text string) (bool, float64, error) {
+// IsFitMultiCell : check whether the rectangle's area is big enough for the text
+func (gp *GoPdf) IsFitMultiCell(rectangle *Rect, text string) (bool, float64, error) {
 	var line []rune
 	var totalLineHeight float64
 	length := len([]rune(text))
@@ -1138,13 +1138,13 @@ func (gp *GoPdf) FitMultiCell(rectangle *Rect, text string) (bool, float64, erro
 	return ok, totalLineHeight, nil
 }
 
-// FitMultiCellWithNewline : similar to FitMultiCell, but process char newline as Br
-func (gp *GoPdf) FitMultiCellWithNewline(rectangle *Rect, text string) (bool, float64, error) {
+// IsFitMultiCellWithNewline : similar to IsFitMultiCell, but process char newline as Br
+func (gp *GoPdf) IsFitMultiCellWithNewline(rectangle *Rect, text string) (bool, float64, error) {
 	r := *rectangle
 	strs := strings.Split(text, "\n")
 
 	for _, s := range strs {
-		ok, height, err := gp.FitMultiCell(&r, s)
+		ok, height, err := gp.IsFitMultiCell(&r, s)
 		if err != nil || !ok {
 			return false, 0, err
 		}

@@ -1,21 +1,21 @@
 package gopdf
 
-//Left left
+// Left left
 const Left = 8 //001000
-//Top top
+// Top top
 const Top = 4 //000100
-//Right right
+// Right right
 const Right = 2 //000010
-//Bottom bottom
+// Bottom bottom
 const Bottom = 1 //000001
-//Center center
+// Center center
 const Center = 16 //010000
-//Middle middle
+// Middle middle
 const Middle = 32 //100000
-//AllBorders allborders
+// AllBorders allborders
 const AllBorders = 15 //001111
 
-//CellOption cell option
+// CellOption cell option
 type CellOption struct {
 	Align                  int //Allows to align the text. Possible values are: Left,Center,Right,Top,Bottom,Middle
 	Border                 int //Indicates if borders must be drawn around the cell. Possible values are: Left, Top, Right, Bottom, ALL

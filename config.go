@@ -25,7 +25,7 @@ const (
 	Unit_IN    = UnitIN    // inches
 )
 
-//Config static config
+// Config static config
 type Config struct {
 	Unit       int                 // The unit type to use when composing the document.
 	TrimBox    Box                 // The default trim box for all pages in the document
@@ -34,7 +34,7 @@ type Config struct {
 	Protection PDFProtectionConfig // Protection settings
 }
 
-//PDFProtectionConfig config of pdf protection
+// PDFProtectionConfig config of pdf protection
 type PDFProtectionConfig struct {
 	UseProtection bool
 	Permissions   int

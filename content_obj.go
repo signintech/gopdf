@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-//ContentObj content object
+// ContentObj content object
 type ContentObj struct { //impl IObj
 	listCache listCacheContent
 	//text bytes.Buffer
@@ -98,7 +98,7 @@ func (c *ContentObj) getType() string {
 	return "Content"
 }
 
-//AppendStreamText append text
+// AppendStreamText append text
 func (c *ContentObj) AppendStreamText(text string) error {
 
 	//support only CURRENT_FONT_TYPE_SUBSET
@@ -141,7 +141,7 @@ func (c *ContentObj) AppendStreamText(text string) error {
 	return nil
 }
 
-//AppendStreamSubsetFont add stream of text
+// AppendStreamSubsetFont add stream of text
 func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOpt CellOption) error {
 
 	textColor := c.getRoot().curr.textColor()
@@ -179,7 +179,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOp
 	return nil
 }
 
-//AppendStreamLine append line
+// AppendStreamLine append line
 func (c *ContentObj) AppendStreamLine(x1 float64, y1 float64, x2 float64, y2 float64, lineOpts lineOptions) {
 	//h := c.getRoot().config.PageSize.H
 	//c.stream.WriteString(fmt.Sprintf("%0.2f %0.2f m %0.2f %0.2f l s\n", x1, h-y1, x2, h-y2))
@@ -193,7 +193,7 @@ func (c *ContentObj) AppendStreamLine(x1 float64, y1 float64, x2 float64, y2 flo
 	c.listCache.append(&cache)
 }
 
-//AppendStreamImportedTemplate append imported template
+// AppendStreamImportedTemplate append imported template
 func (c *ContentObj) AppendStreamImportedTemplate(tplName string, scaleX float64, scaleY float64, tX float64, tY float64) {
 	var cache cacheContentImportedTemplate
 	cache.pageHeight = c.getRoot().curr.pageSize.H
@@ -210,7 +210,7 @@ func (c *ContentObj) AppendStreamRectangle(opts DrawableRectOptions) {
 	c.listCache.append(cache)
 }
 
-//AppendStreamOval append oval
+// AppendStreamOval append oval
 func (c *ContentObj) AppendStreamOval(x1 float64, y1 float64, x2 float64, y2 float64) {
 	var cache cacheContentOval
 	cache.pageHeight = c.getRoot().curr.pageSize.H
@@ -221,15 +221,15 @@ func (c *ContentObj) AppendStreamOval(x1 float64, y1 float64, x2 float64, y2 flo
 	c.listCache.append(&cache)
 }
 
-//AppendStreamCurve draw curve
-// - x0, y0: Start point
-// - x1, y1: Control point 1
-// - x2, y2: Control point 2
-// - x3, y3: End point
-// - style: Style of rectangule (draw and/or fill: D, F, DF, FD)
-//		D or empty string: draw. This is the default value.
-//		F: fill
-//		DF or FD: draw and fill
+// AppendStreamCurve draw curve
+//   - x0, y0: Start point
+//   - x1, y1: Control point 1
+//   - x2, y2: Control point 2
+//   - x3, y3: End point
+//   - style: Style of rectangule (draw and/or fill: D, F, DF, FD)
+//     D or empty string: draw. This is the default value.
+//     F: fill
+//     DF or FD: draw and fill
 func (c *ContentObj) AppendStreamCurve(x0 float64, y0 float64, x1 float64, y1 float64, x2 float64, y2 float64, x3 float64, y3 float64, style string) {
 	var cache cacheContentCurve
 	cache.pageHeight = c.getRoot().curr.pageSize.H
@@ -245,14 +245,14 @@ func (c *ContentObj) AppendStreamCurve(x0 float64, y0 float64, x1 float64, y1 fl
 	c.listCache.append(&cache)
 }
 
-//AppendStreamSetLineWidth : set line width
+// AppendStreamSetLineWidth : set line width
 func (c *ContentObj) AppendStreamSetLineWidth(w float64) {
 	var cache cacheContentLineWidth
 	cache.width = w
 	c.listCache.append(&cache)
 }
 
-//AppendStreamSetLineType : Set linetype [solid, dashed, dotted]
+// AppendStreamSetLineType : Set linetype [solid, dashed, dotted]
 func (c *ContentObj) AppendStreamSetLineType(t string) {
 	var cache cacheContentLineType
 	cache.lineType = t
@@ -260,7 +260,7 @@ func (c *ContentObj) AppendStreamSetLineType(t string) {
 
 }
 
-//AppendStreamSetGrayFill  set the grayscale fills
+// AppendStreamSetGrayFill  set the grayscale fills
 func (c *ContentObj) AppendStreamSetGrayFill(w float64) {
 	w = fixRange10(w)
 	var cache cacheContentGray
@@ -269,7 +269,7 @@ func (c *ContentObj) AppendStreamSetGrayFill(w float64) {
 	c.listCache.append(&cache)
 }
 
-//AppendStreamSetGrayStroke  set the grayscale stroke
+// AppendStreamSetGrayStroke  set the grayscale stroke
 func (c *ContentObj) AppendStreamSetGrayStroke(w float64) {
 	w = fixRange10(w)
 	var cache cacheContentGray
@@ -278,7 +278,7 @@ func (c *ContentObj) AppendStreamSetGrayStroke(w float64) {
 	c.listCache.append(&cache)
 }
 
-//AppendStreamSetColorStroke  set the color stroke
+// AppendStreamSetColorStroke  set the color stroke
 func (c *ContentObj) AppendStreamSetColorStroke(r uint8, g uint8, b uint8) {
 	var cache cacheContentColorRGB
 	cache.colorType = colorTypeStrokeRGB
@@ -288,7 +288,7 @@ func (c *ContentObj) AppendStreamSetColorStroke(r uint8, g uint8, b uint8) {
 	c.listCache.append(&cache)
 }
 
-//AppendStreamSetColorFill  set the color fill
+// AppendStreamSetColorFill  set the color fill
 func (c *ContentObj) AppendStreamSetColorFill(r uint8, g uint8, b uint8) {
 	var cache cacheContentColorRGB
 	cache.colorType = colorTypeFillRGB
@@ -298,7 +298,7 @@ func (c *ContentObj) AppendStreamSetColorFill(r uint8, g uint8, b uint8) {
 	c.listCache.append(&cache)
 }
 
-//AppendStreamSetColorStrokeCMYK  set the color stroke in CMYK color mode
+// AppendStreamSetColorStrokeCMYK  set the color stroke in CMYK color mode
 func (c *ContentObj) AppendStreamSetColorStrokeCMYK(cy, m, y, k uint8) {
 	var cache cacheContentColorCMYK
 	cache.colorType = colorTypeStrokeCMYK
@@ -309,7 +309,7 @@ func (c *ContentObj) AppendStreamSetColorStrokeCMYK(cy, m, y, k uint8) {
 	c.listCache.append(&cache)
 }
 
-//AppendStreamSetColorFillCMYK  set the color fill in CMYK color mode
+// AppendStreamSetColorFillCMYK  set the color fill in CMYK color mode
 func (c *ContentObj) AppendStreamSetColorFillCMYK(cy, m, y, k uint8) {
 	var cache cacheContentColorCMYK
 	cache.colorType = colorTypeFillCMYK
@@ -347,13 +347,13 @@ func (c *ContentObj) GetCacheContentImage(index int, opts ImageOptions) *cacheCo
 	}
 }
 
-//AppendStreamImage append image
+// AppendStreamImage append image
 func (c *ContentObj) AppendStreamImage(index int, opts ImageOptions) {
 	cache := c.GetCacheContentImage(index, opts)
 	c.listCache.append(cache)
 }
 
-//AppendStreamPolygon append polygon
+// AppendStreamPolygon append polygon
 func (c *ContentObj) AppendStreamPolygon(points []Point, style string, opts polygonOptions) {
 	var cache cacheContentPolygon
 	cache.points = points
@@ -379,12 +379,12 @@ func (c *ContentObj) appendRotateReset() {
 	c.listCache.append(&cache)
 }
 
-//ContentObjCalTextHeight : calculates height of text.
+// ContentObjCalTextHeight : calculates height of text.
 func ContentObjCalTextHeight(fontsize int) float64 {
 	return ContentObjCalTextHeightPrecise(float64(fontsize))
 }
 
-//ContentObjCalTextHeightPrecise : like ContentObjCalTextHeight,
+// ContentObjCalTextHeightPrecise : like ContentObjCalTextHeight,
 // but fontsize float64
 func ContentObjCalTextHeightPrecise(fontsize float64) float64 {
 	return (float64(fontsize) * 0.7)

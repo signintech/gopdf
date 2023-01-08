@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-//UnicodeMap unicode map
+// UnicodeMap unicode map
 type UnicodeMap struct {
 	PtrToSubsetFontObj *SubsetFontObj
 	//getRoot            func() *GoPdf
@@ -24,7 +24,7 @@ func (u *UnicodeMap) protection() *PDFProtection {
 	return u.pdfProtection
 }
 
-//SetPtrToSubsetFontObj set pointer to SubsetFontObj
+// SetPtrToSubsetFontObj set pointer to SubsetFontObj
 func (u *UnicodeMap) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 	u.PtrToSubsetFontObj = ptr
 }

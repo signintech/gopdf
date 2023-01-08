@@ -13,20 +13,20 @@ import (
 	"strings"
 )
 
-//ErrFontLicenseDoesNotAllowEmbedding Font license does not allow embedding
+// ErrFontLicenseDoesNotAllowEmbedding Font license does not allow embedding
 var ErrFontLicenseDoesNotAllowEmbedding = errors.New("Font license does not allow embedding")
 
-//FontMaker font maker
+// FontMaker font maker
 type FontMaker struct {
 	results []string
 }
 
-//GetResults get result
+// GetResults get result
 func (f *FontMaker) GetResults() []string {
 	return f.results
 }
 
-//NewFontMaker new FontMaker
+// NewFontMaker new FontMaker
 func NewFontMaker() *FontMaker {
 	return new(FontMaker)
 }

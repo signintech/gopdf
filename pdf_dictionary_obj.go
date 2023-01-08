@@ -10,7 +10,7 @@ import (
 	"github.com/signintech/gopdf/fontmaker/core"
 )
 
-//EntrySelectors entry selectors
+// EntrySelectors entry selectors
 var EntrySelectors = []int{
 	0, 0, 1, 1, 2, 2,
 	2, 2, 3, 3, 3, 3,
@@ -19,10 +19,10 @@ var EntrySelectors = []int{
 	4, 4, 4, 4, 4, 4, 4,
 }
 
-//ErrNotSupportShortIndexYet not suport none short index yet
+// ErrNotSupportShortIndexYet not suport none short index yet
 var ErrNotSupportShortIndexYet = errors.New("not suport none short index yet")
 
-//PdfDictionaryObj pdf dictionary object
+// PdfDictionaryObj pdf dictionary object
 type PdfDictionaryObj struct {
 	PtrToSubsetFontObj *SubsetFontObj
 	//getRoot            func() *GoPdf
@@ -83,12 +83,12 @@ func (p *PdfDictionaryObj) getType() string {
 	return "PdfDictionary"
 }
 
-//SetPtrToSubsetFontObj set subsetFontObj pointer
+// SetPtrToSubsetFontObj set subsetFontObj pointer
 func (p *PdfDictionaryObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 	p.PtrToSubsetFontObj = ptr
 }
 
-//distinctInts distinct number in nn ( value in nn must sorted )
+// distinctInts distinct number in nn ( value in nn must sorted )
 func (p *PdfDictionaryObj) distinctInts(nn []int) []int {
 	var buff []int
 	var prev = -1
@@ -302,8 +302,8 @@ func (p *PdfDictionaryObj) completeGlyphClosure(mapOfglyphs *MapOfCharacterToGly
 	return glyphArray
 }
 
-//AddCompositeGlyphs add composite glyph
-//composite glyph is a Unicode entity that can be defined as a sequence of one or more other characters.
+// AddCompositeGlyphs add composite glyph
+// composite glyph is a Unicode entity that can be defined as a sequence of one or more other characters.
 func (p *PdfDictionaryObj) AddCompositeGlyphs(glyphArray *[]int, glyph int) {
 	start := p.GetOffset(int(glyph))
 	if start == p.GetOffset(int(glyph)+1) {
@@ -362,7 +362,7 @@ const arg1and2areWords = 1
 const xAndYScale = 64
 const twoByTwo = 128
 
-//GetOffset get offset from glyf table
+// GetOffset get offset from glyf table
 func (p *PdfDictionaryObj) GetOffset(glyph int) int {
 	ttfp := p.PtrToSubsetFontObj.GetTTFParser()
 	glyf := ttfp.GetTables()["glyf"]
@@ -370,7 +370,7 @@ func (p *PdfDictionaryObj) GetOffset(glyph int) int {
 	return offset
 }
 
-//CheckSum check sum
+// CheckSum check sum
 func CheckSum(data []byte) uint {
 
 	var byte3, byte2, byte1, byte0 uint64

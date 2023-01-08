@@ -12,10 +12,10 @@ const defaultCoefLineHeight = float64(1)
 const defaultCoefUnderlinePosition = float64(1)
 const defaultcoefUnderlineThickness = float64(1)
 
-//ContentTypeCell cell
+// ContentTypeCell cell
 const ContentTypeCell = 0
 
-//ContentTypeText text
+// ContentTypeText text
 const ContentTypeText = 1
 
 type cacheContentText struct {
@@ -369,12 +369,12 @@ func kern(f *SubsetFontObj, leftRune rune, rightRune rune, leftIndex uint, right
 	return pairVal
 }
 
-//CacheContent Export cacheContent
+// CacheContent Export cacheContent
 type CacheContent struct {
 	cacheContentText
 }
 
-//Setup setup all information for cacheContent
+// Setup setup all information for cacheContent
 func (c *CacheContent) Setup(rectangle *Rect,
 	textColor ICacheColorText,
 	grayFill float64,
@@ -407,7 +407,7 @@ func (c *CacheContent) Setup(rectangle *Rect,
 	}
 }
 
-//WriteTextToContent write text to content
+// WriteTextToContent write text to content
 func (c *CacheContent) WriteTextToContent(text string) {
 	c.cacheContentText.text += text
 }

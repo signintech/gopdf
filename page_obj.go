@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-//PageObj pdf page object
+// PageObj pdf page object
 type PageObj struct { //impl IObj
 	Contents        string
 	ResourcesRelate string

@@ -13,7 +13,7 @@ const (
 	SMaskLuminositySubtype = "/Luminosity"
 )
 
-//SMask smask
+// SMask smask
 type SMask struct {
 	imgInfo
 	data []byte

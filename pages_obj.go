@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-//PagesObj pdf pages object
+// PagesObj pdf pages object
 type PagesObj struct { //impl IObj
 	PageCount int
 	Kids      string

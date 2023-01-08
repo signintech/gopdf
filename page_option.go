@@ -1,6 +1,6 @@
 package gopdf
 
-//PageOption option of page
+// PageOption option of page
 type PageOption struct {
 	TrimBox  *Box
 	PageSize *Rect

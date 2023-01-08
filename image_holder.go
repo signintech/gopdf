@@ -8,28 +8,28 @@ import (
 	"io/ioutil"
 )
 
-//ImageHolder hold image data
+// ImageHolder hold image data
 type ImageHolder interface {
 	ID() string
 	io.Reader
 }
 
-//ImageHolderByBytes create ImageHolder by []byte
+// ImageHolderByBytes create ImageHolder by []byte
 func ImageHolderByBytes(b []byte) (ImageHolder, error) {
 	return newImageBuff(b)
 }
 
-//ImageHolderByPath create ImageHolder by image path
+// ImageHolderByPath create ImageHolder by image path
 func ImageHolderByPath(path string) (ImageHolder, error) {
 	return newImageBuffByPath(path)
 }
 
-//ImageHolderByReader create ImageHolder by io.Reader
+// ImageHolderByReader create ImageHolder by io.Reader
 func ImageHolderByReader(r io.Reader) (ImageHolder, error) {
 	return newImageBuffByReader(r)
 }
 
-//imageBuff image holder (impl ImageHolder)
+// imageBuff image holder (impl ImageHolder)
 type imageBuff struct {
 	id string
 	bytes.Buffer

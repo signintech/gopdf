@@ -1,6 +1,6 @@
 package gopdf
 
-//Current current state
+// Current current state
 type Current struct {
 	setXCount int //many times we go func SetX()
 	X         float64

@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-//DeviceRGBObj  DeviceRGB
+// DeviceRGBObj  DeviceRGB
 type DeviceRGBObj struct {
 	data    []byte
 	getRoot func() *GoPdf
@@ -23,7 +23,7 @@ func (d *DeviceRGBObj) getType() string {
 	return "devicergb"
 }
 
-//สร้าง ข้อมูลใน pdf
+// สร้าง ข้อมูลใน pdf
 func (d *DeviceRGBObj) write(w io.Writer, objID int) error {
 
 	io.WriteString(w, "<<\n")

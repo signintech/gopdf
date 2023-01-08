@@ -4,13 +4,13 @@ import (
 	"strings"
 )
 
-//Regular - font style regular
+// Regular - font style regular
 const Regular = 0 //000000
-//Italic - font style italic
+// Italic - font style italic
 const Italic = 1 //000001
-//Bold - font style bold
+// Bold - font style bold
 const Bold = 2 //000010
-//Underline - font style underline
+// Underline - font style underline
 const Underline = 4 //000100
 
 func getConvertedStyle(fontStyle string) (style int) {

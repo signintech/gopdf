@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-//OutlinesObj : outlines dictionary
+// OutlinesObj : outlines dictionary
 type OutlinesObj struct { //impl IObj
 	getRoot func() *GoPdf
 

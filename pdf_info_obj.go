@@ -2,7 +2,7 @@ package gopdf
 
 import "time"
 
-//PdfInfo Document Information Dictionary
+// PdfInfo Document Information Dictionary
 type PdfInfo struct {
 	Title        string    //The document’s title
 	Author       string    //The name of the person who created the document.

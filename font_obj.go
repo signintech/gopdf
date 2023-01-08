@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-//FontObj font obj
+// FontObj font obj
 type FontObj struct {
 	Family string
 	//Style string

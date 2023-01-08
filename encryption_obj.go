@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-//EncryptionObj  encryption object res
+// EncryptionObj  encryption object res
 type EncryptionObj struct {
 	uValue []byte //U entry in pdf document
 	oValue []byte //O entry in pdf document

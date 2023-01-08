@@ -1,12 +1,12 @@
 package gopdf
 
-//Buff for pdf content
+// Buff for pdf content
 type Buff struct {
 	position int
 	datas    []byte
 }
 
-//Write : write []byte to buffer
+// Write : write []byte to buffer
 func (b *Buff) Write(p []byte) (int, error) {
 	for len(b.datas) < b.position+len(p) {
 		b.datas = append(b.datas, 0)
@@ -21,22 +21,22 @@ func (b *Buff) Write(p []byte) (int, error) {
 	return 0, nil
 }
 
-//Len : len of buffer
+// Len : len of buffer
 func (b *Buff) Len() int {
 	return len(b.datas)
 }
 
-//Bytes : get bytes
+// Bytes : get bytes
 func (b *Buff) Bytes() []byte {
 	return b.datas
 }
 
-//Position : get current postion
+// Position : get current postion
 func (b *Buff) Position() int {
 	return b.position
 }
 
-//SetPosition : set current postion
+// SetPosition : set current postion
 func (b *Buff) SetPosition(pos int) {
 	b.position = pos
 }

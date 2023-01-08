@@ -1,6 +1,6 @@
 package gopdf
 
-//TtfOption  font option
+// TtfOption  font option
 type TtfOption struct {
 	UseKerning                bool
 	Style                     int               //Regular|Bold|Italic

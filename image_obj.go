@@ -15,7 +15,7 @@ import (
 	"os"
 )
 
-//ImageObj image object
+// ImageObj image object
 type ImageObj struct {
 	//imagepath string
 	IsMask        bool
@@ -116,7 +116,7 @@ func (i *ImageObj) getType() string {
 	return "Image"
 }
 
-//SetImagePath set image path
+// SetImagePath set image path
 func (i *ImageObj) SetImagePath(path string) error {
 
 	file, err := os.Open(path)
@@ -132,7 +132,7 @@ func (i *ImageObj) SetImagePath(path string) error {
 	return nil
 }
 
-//SetImage set image
+// SetImage set image
 func (i *ImageObj) SetImage(r io.Reader) error {
 
 	data, err := ioutil.ReadAll(r)
@@ -144,7 +144,7 @@ func (i *ImageObj) SetImage(r io.Reader) error {
 	return nil
 }
 
-//GetRect get rect of img
+// GetRect get rect of img
 func (i *ImageObj) GetRect() *Rect {
 
 	rect, err := i.getRect()
@@ -154,7 +154,7 @@ func (i *ImageObj) GetRect() *Rect {
 	return rect
 }
 
-//GetRect get rect of img
+// GetRect get rect of img
 func (i *ImageObj) getRect() (*Rect, error) {
 
 	i.rawImgReader.Seek(0, 0)
@@ -199,7 +199,7 @@ func (i *ImageObj) parse() error {
 	return nil
 }
 
-//Parse parse img
+// Parse parse img
 func (i *ImageObj) Parse() error {
 	return i.parse()
 }

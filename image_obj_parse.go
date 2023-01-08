@@ -504,7 +504,7 @@ func isDeviceRGB(formatname string, img *image.Image) bool {
 	return false
 }
 
-//ImgReactagleToWH  Rectangle to W and H
+// ImgReactagleToWH  Rectangle to W and H
 func ImgReactagleToWH(imageRect image.Rectangle) (float64, float64) {
 	k := 1
 	w := -128 //init

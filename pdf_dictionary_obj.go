@@ -7,7 +7,7 @@ import (
 	"io"
 	"sort"
 
-	"github.com/signintech/gopdf/fontmaker/core"
+	"github.com/crello/gopdf/fontmaker/core"
 )
 
 // EntrySelectors entry selectors

@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/crello/gopdf"
+	"github.com/signintech/gopdf"
 )
 
 var resourcesPath string

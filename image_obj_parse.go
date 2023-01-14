@@ -133,7 +133,7 @@ func parseImgByPath(path string) (imgInfo, error) {
 }
 
 func parseImg(raw *bytes.Reader) (imgInfo, error) {
-	//fmt.Printf("----------\n")
+	// fmt.Printf("----------\n")
 	var info imgInfo
 	raw.Seek(0, 0)
 	imgConfig, formatname, err := image.DecodeConfig(raw)
@@ -161,7 +161,7 @@ func parseImg(raw *bytes.Reader) (imgInfo, error) {
 		}
 	}
 
-	//fmt.Printf("%#v\n", info)
+	// fmt.Printf("%#v\n", info)
 
 	return info, nil
 }
@@ -190,7 +190,7 @@ var pngMagicNumber = []byte{0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a}
 var pngIHDR = []byte{0x49, 0x48, 0x44, 0x52}
 
 func parsePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
-	//f := bytes.NewReader(raw)
+	// f := bytes.NewReader(raw)
 	f.Seek(0, 0)
 	b, err := readBytes(f, 8)
 	if err != nil {
@@ -200,7 +200,7 @@ func parsePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 		return errors.New("Not a PNG file")
 	}
 
-	f.Seek(4, 1) //skip header chunk
+	f.Seek(4, 1) // skip header chunk
 	b, err = readBytes(f, 4)
 	if err != nil {
 		return err
@@ -217,7 +217,7 @@ func parsePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 	if err != nil {
 		return err
 	}
-	//fmt.Printf("w=%d h=%d\n", w, h)
+	// fmt.Printf("w=%d h=%d\n", w, h)
 
 	bpc, err := readBytes(f, 1)
 	if err != nil {
@@ -269,12 +269,12 @@ func parsePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 		return errors.New("Interlacing not supported")
 	}
 
-	_, err = f.Seek(4, 1) //skip
+	_, err = f.Seek(4, 1) // skip
 	if err != nil {
 		return err
 	}
 
-	//decodeParms := "/Predictor 15 /Colors '.($colspace=='DeviceRGB' ? 3 : 1).' /BitsPerComponent '.$bpc.' /Columns '.$w;
+	// decodeParms := "/Predictor 15 /Colors '.($colspace=='DeviceRGB' ? 3 : 1).' /BitsPerComponent '.$bpc.' /Columns '.$w;
 
 	var pal []byte
 	var trns []byte
@@ -286,7 +286,7 @@ func parsePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 		}
 		n := int(un)
 		typ, err := readBytes(f, 4)
-		//fmt.Printf(">>>>%+v-%s-%d\n", typ, string(typ), n)
+		// fmt.Printf(">>>>%+v-%s-%d\n", typ, string(typ), n)
 		if err != nil {
 			return err
 		}
@@ -296,7 +296,7 @@ func parsePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 			if err != nil {
 				return err
 			}
-			_, err = f.Seek(int64(4), 1) //skip
+			_, err = f.Seek(int64(4), 1) // skip
 			if err != nil {
 				return err
 			}
@@ -319,27 +319,27 @@ func parsePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 				}
 			}
 
-			_, err = f.Seek(int64(4), 1) //skip
+			_, err = f.Seek(int64(4), 1) // skip
 			if err != nil {
 				return err
 			}
 
 		} else if string(typ) == "IDAT" {
-			//fmt.Printf("n=%d\n\n", n)
+			// fmt.Printf("n=%d\n\n", n)
 			var d []byte
 			d, err = readBytes(f, n)
 			if err != nil {
 				return err
 			}
 			data = append(data, d...)
-			_, err = f.Seek(int64(4), 1) //skip
+			_, err = f.Seek(int64(4), 1) // skip
 			if err != nil {
 				return err
 			}
 		} else if string(typ) == "IEND" {
 			break
 		} else {
-			_, err = f.Seek(int64(n+4), 1) //skip
+			_, err = f.Seek(int64(n+4), 1) // skip
 			if err != nil {
 				return err
 			}
@@ -348,13 +348,13 @@ func parsePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 		if n <= 0 {
 			break
 		}
-	} //end for
+	} // end for
 
-	//info.data = data //ok
+	// info.data = data //ok
 	info.trns = trns
 	info.pal = pal
 
-	//fmt.Printf("data= %x", md5.Sum(data))
+	// fmt.Printf("data= %x", md5.Sum(data))
 
 	if colspace == "Indexed" && strings.TrimSpace(string(pal)) == "" {
 		return errors.New("Missing palette")
@@ -372,8 +372,8 @@ func parsePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 	}
 	info.decodeParms = fmt.Sprintf("/Predictor 15 /Colors  %d /BitsPerComponent %s /Columns %d", colors, info.bitsPerComponent, w)
 
-	//fmt.Printf("%d = ct[0]\n", ct[0])
-	//fmt.Printf("%x\n", md5.Sum(data))
+	// fmt.Printf("%d = ct[0]\n", ct[0])
+	// fmt.Printf("%x\n", md5.Sum(data))
 	if ct[0] >= 4 {
 		zipReader, err := zlib.NewReader(bytes.NewReader(data))
 		if err != nil {
@@ -406,7 +406,7 @@ func parsePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 				}
 				i++
 			}
-			//fmt.Print("aaaaa")
+			// fmt.Print("aaaaa")
 
 		} else {
 			// RGB image
@@ -463,7 +463,7 @@ func compress(data []byte) ([]byte, error) {
 
 func readUInt(f *bytes.Reader) (uint, error) {
 	buff, err := readBytes(f, 4)
-	//fmt.Printf("%#v\n\n", buff)
+	// fmt.Printf("%#v\n\n", buff)
 	if err != nil {
 		return 0, err
 	}
@@ -472,17 +472,11 @@ func readUInt(f *bytes.Reader) (uint, error) {
 }
 
 func readInt(f *bytes.Reader) (int, error) {
-
 	u, err := readUInt(f)
 	if err != nil {
 		return 0, err
 	}
-	var v int
-	if u >= 0x8000 {
-		v = int(u) - 65536
-	} else {
-		v = int(u)
-	}
+	v := int(u)
 	return v, nil
 }
 
@@ -507,8 +501,8 @@ func isDeviceRGB(formatname string, img *image.Image) bool {
 // ImgReactagleToWH  Rectangle to W and H
 func ImgReactagleToWH(imageRect image.Rectangle) (float64, float64) {
 	k := 1
-	w := -128 //init
-	h := -128 //init
+	w := -128 // init
+	h := -128 // init
 	if w < 0 {
 		w = -imageRect.Dx() * 72 / w / k
 	}

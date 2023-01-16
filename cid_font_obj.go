@@ -15,7 +15,7 @@ type CIDFontObj struct {
 func (ci *CIDFontObj) init(funcGetRoot func() *GoPdf) {
 }
 
-//SetIndexObjSubfontDescriptor set  indexObjSubfontDescriptor
+// SetIndexObjSubfontDescriptor set  indexObjSubfontDescriptor
 func (ci *CIDFontObj) SetIndexObjSubfontDescriptor(index int) {
 	ci.indexObjSubfontDescriptor = index
 }
@@ -47,7 +47,7 @@ func (ci *CIDFontObj) write(w io.Writer, objID int) error {
 	return nil
 }
 
-//SetPtrToSubsetFontObj set PtrToSubsetFontObj
+// SetPtrToSubsetFontObj set PtrToSubsetFontObj
 func (ci *CIDFontObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 	ci.PtrToSubsetFontObj = ptr
 }

@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-//ParseCmapFormat12 parse cmap table format 12 https://www.microsoft.com/typography/otspec/cmap.htm
+// ParseCmapFormat12 parse cmap table format 12 https://www.microsoft.com/typography/otspec/cmap.htm
 func (t *TTFParser) ParseCmapFormat12(fd *bytes.Reader) (bool, error) {
 
 	t.Seek(fd, "cmap")

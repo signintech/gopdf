@@ -24,7 +24,7 @@ var protectionPadding = []byte{
 	0x2E, 0x2E, 0x00, 0xB6, 0xD0, 0x68, 0x3E, 0x80, 0x2F, 0x0C, 0xA9, 0xFE, 0x64, 0x53, 0x69, 0x7A,
 }
 
-//PDFProtection protection in pdf
+// PDFProtection protection in pdf
 type PDFProtection struct {
 	encrypted bool   //whether document is protected
 	uValue    []byte //U entry in pdf document
@@ -34,7 +34,7 @@ type PDFProtection struct {
 	encryptionKey []byte
 }
 
-//SetProtection set protection infomation
+// SetProtection set protection infomation
 func (p *PDFProtection) SetProtection(permissions int, userPass []byte, ownerPass []byte) error {
 	return p.setProtection(permissions, userPass, ownerPass)
 }
@@ -71,7 +71,7 @@ func (p *PDFProtection) generateEncryptionKey(userPass []byte, ownerPass []byte,
 	return nil
 }
 
-//EncryptionObj get Encryption Object
+// EncryptionObj get Encryption Object
 func (p *PDFProtection) EncryptionObj() *EncryptionObj {
 	return p.encryptionObj()
 }
@@ -123,7 +123,7 @@ func (p *PDFProtection) randomPass(strlen int) []byte {
 	return result
 }
 
-//Objectkey create object key from ObjID
+// Objectkey create object key from ObjID
 func (p *PDFProtection) Objectkey(objID int) []byte {
 	return p.objectkey(objID)
 }

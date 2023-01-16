@@ -4,7 +4,7 @@ import (
 	"io"
 )
 
-//ImportedObj : imported object
+// ImportedObj : imported object
 type ImportedObj struct { //impl IObj
 	Data string
 }

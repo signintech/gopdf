@@ -5,12 +5,12 @@ import (
 	"strings"
 )
 
-//StrHelperGetStringWidth get string width
+// StrHelperGetStringWidth get string width
 func StrHelperGetStringWidth(str string, fontSize int, ifont IFont) float64 {
 	return StrHelperGetStringWidthPrecise(str, float64(fontSize), ifont)
 }
 
-//StrHelperGetStringWidthPrecise get string width with real number fontSize
+// StrHelperGetStringWidthPrecise get string width with real number fontSize
 func StrHelperGetStringWidthPrecise(str string, fontSize float64, ifont IFont) float64 {
 
 	w := 0
@@ -24,14 +24,14 @@ func StrHelperGetStringWidthPrecise(str string, fontSize float64, ifont IFont) f
 	return float64(w) * (float64(fontSize) / 1000.0)
 }
 
-//CreateEmbeddedFontSubsetName create Embedded font (subset font) name
+// CreateEmbeddedFontSubsetName create Embedded font (subset font) name
 func CreateEmbeddedFontSubsetName(name string) string {
 	name = strings.Replace(name, " ", "+", -1)
 	name = strings.Replace(name, "/", "+", -1)
 	return name
 }
 
-//ReadShortFromByte read short from byte array
+// ReadShortFromByte read short from byte array
 func ReadShortFromByte(data []byte, offset int) (int64, int) {
 	buff := data[offset : offset+2]
 	num := big.NewInt(0)
@@ -46,7 +46,7 @@ func ReadShortFromByte(data []byte, offset int) (int64, int) {
 	return v, 2
 }
 
-//ReadUShortFromByte read ushort from byte array
+// ReadUShortFromByte read ushort from byte array
 func ReadUShortFromByte(data []byte, offset int) (uint64, int) {
 	buff := data[offset : offset+2]
 	num := big.NewInt(0)

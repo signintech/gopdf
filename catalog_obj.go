@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-//CatalogObj : catalog dictionary
+// CatalogObj : catalog dictionary
 type CatalogObj struct { //impl IObj
 	outlinesObjID int
 }

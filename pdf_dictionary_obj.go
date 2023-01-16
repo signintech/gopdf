@@ -7,10 +7,10 @@ import (
 	"io"
 	"sort"
 
-	"github.com/crello/gopdf/fontmaker/core"
+	"github.com/signintech/gopdf/fontmaker/core"
 )
 
-//EntrySelectors entry selectors
+// EntrySelectors entry selectors
 var EntrySelectors = []int{
 	0, 0, 1, 1, 2, 2,
 	2, 2, 3, 3, 3, 3,
@@ -19,18 +19,18 @@ var EntrySelectors = []int{
 	4, 4, 4, 4, 4, 4, 4,
 }
 
-//ErrNotSupportShortIndexYet not suport none short index yet
+// ErrNotSupportShortIndexYet not suport none short index yet
 var ErrNotSupportShortIndexYet = errors.New("not suport none short index yet")
 
-//PdfDictionaryObj pdf dictionary object
+// PdfDictionaryObj pdf dictionary object
 type PdfDictionaryObj struct {
 	PtrToSubsetFontObj *SubsetFontObj
-	//getRoot            func() *GoPdf
+	// getRoot            func() *GoPdf
 	pdfProtection *PDFProtection
 }
 
 func (p *PdfDictionaryObj) init(funcGetRoot func() *GoPdf) {
-	//p.getRoot = funcGetRoot
+	// p.getRoot = funcGetRoot
 }
 
 func (p *PdfDictionaryObj) setProtection(pr *PDFProtection) {
@@ -44,11 +44,11 @@ func (p *PdfDictionaryObj) protection() *PDFProtection {
 func (p *PdfDictionaryObj) write(w io.Writer, objID int) error {
 	b, err := p.makeFont()
 	if err != nil {
-		//log.Panicf("%s", err.Error())
+		// log.Panicf("%s", err.Error())
 		return err
 	}
 
-	//zipvar buff bytes.Buffer
+	// zipvar buff bytes.Buffer
 	zbuff := GetBuffer()
 	defer PutBuffer(zbuff)
 
@@ -70,7 +70,7 @@ func (p *PdfDictionaryObj) write(w io.Writer, objID int) error {
 			return err
 		}
 		w.Write(tmp)
-		//p.buffer.WriteString("\n")
+		// p.buffer.WriteString("\n")
 	} else {
 		w.Write(zbuff.Bytes())
 	}
@@ -83,12 +83,12 @@ func (p *PdfDictionaryObj) getType() string {
 	return "PdfDictionary"
 }
 
-//SetPtrToSubsetFontObj set subsetFontObj pointer
+// SetPtrToSubsetFontObj set subsetFontObj pointer
 func (p *PdfDictionaryObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 	p.PtrToSubsetFontObj = ptr
 }
 
-//distinctInts distinct number in nn ( value in nn must sorted )
+// distinctInts distinct number in nn ( value in nn must sorted )
 func (p *PdfDictionaryObj) distinctInts(nn []int) []int {
 	var buff []int
 	var prev = -1
@@ -152,7 +152,7 @@ func (p *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 				}
 			}
 		}
-	} //end for
+	} // end for
 	locaTable[numGlyphs] = glyphOffset
 	return glyphTable, locaTable, nil
 }
@@ -185,7 +185,7 @@ func (p *PdfDictionaryObj) makeFont() ([]byte, error) {
 	var buff Buff
 	ttfp := p.PtrToSubsetFontObj.GetTTFParser()
 	tables := make(map[string]core.TableDirectoryEntry)
-	tables["cvt "] = ttfp.GetTables()["cvt "] //มีช่องว่างด้วยนะ
+	tables["cvt "] = ttfp.GetTables()["cvt "] // มีช่องว่างด้วยนะ
 	tables["fpgm"] = ttfp.GetTables()["fpgm"]
 	tables["glyf"] = ttfp.GetTables()["glyf"]
 	tables["head"] = ttfp.GetTables()["head"]
@@ -210,14 +210,14 @@ func (p *PdfDictionaryObj) makeFont() ([]byte, error) {
 
 	var tags []string
 	for tag := range tables {
-		tags = append(tags, tag) //copy all tag
+		tags = append(tags, tag) // copy all tag
 	}
-	sort.Strings(tags) //order
+	sort.Strings(tags) // order
 	idx := 0
 	tablePosition := int(12 + 16*tableCount)
 	for idx < tableCount {
 		entry := tables[tags[idx]]
-		//write data
+		// write data
 		offset := uint64(tablePosition)
 		buff.SetPosition(tablePosition)
 		if tags[idx] == "glyf" {
@@ -263,24 +263,24 @@ func (p *PdfDictionaryObj) makeFont() ([]byte, error) {
 		endPosition := buff.Position()
 		tablePosition = endPosition
 
-		//write table
+		// write table
 		buff.SetPosition(idx*16 + 12)
 		WriteTag(&buff, tags[idx])
 		WriteUInt32(&buff, uint(entry.CheckSum))
-		WriteUInt32(&buff, uint(offset)) //offset
+		WriteUInt32(&buff, uint(offset)) // offset
 		WriteUInt32(&buff, uint(entry.Length))
 
 		tablePosition = endPosition
 		idx++
 	}
-	//DebugSubType(buff.Bytes())
-	//me.buffer.Write(buff.Bytes())
+	// DebugSubType(buff.Bytes())
+	// me.buffer.Write(buff.Bytes())
 	return buff.Bytes(), nil
 }
 
 func (p *PdfDictionaryObj) completeGlyphClosure(mapOfglyphs *MapOfCharacterToGlyphIndex) []int {
 	var glyphArray []int
-	//copy
+	// copy
 	isContainZero := false
 	glyphs := mapOfglyphs.AllVals()
 	for _, v := range glyphs {
@@ -302,8 +302,8 @@ func (p *PdfDictionaryObj) completeGlyphClosure(mapOfglyphs *MapOfCharacterToGly
 	return glyphArray
 }
 
-//AddCompositeGlyphs add composite glyph
-//composite glyph is a Unicode entity that can be defined as a sequence of one or more other characters.
+// AddCompositeGlyphs add composite glyph
+// composite glyph is a Unicode entity that can be defined as a sequence of one or more other characters.
 func (p *PdfDictionaryObj) AddCompositeGlyphs(glyphArray *[]int, glyph int) {
 	start := p.GetOffset(int(glyph))
 	if start == p.GetOffset(int(glyph)+1) {
@@ -325,7 +325,7 @@ func (p *PdfDictionaryObj) AddCompositeGlyphs(glyphArray *[]int, glyph int) {
 		offset += step1
 		cGlyph, step2 := ReadUShortFromByte(fontData, offset)
 		offset += step2
-		//check cGlyph is contain in glyphArray?
+		// check cGlyph is contain in glyphArray?
 		glyphContainsKey := false
 		for _, g := range *glyphArray {
 			if g == int(cGlyph) {
@@ -362,7 +362,7 @@ const arg1and2areWords = 1
 const xAndYScale = 64
 const twoByTwo = 128
 
-//GetOffset get offset from glyf table
+// GetOffset get offset from glyf table
 func (p *PdfDictionaryObj) GetOffset(glyph int) int {
 	ttfp := p.PtrToSubsetFontObj.GetTTFParser()
 	glyf := ttfp.GetTables()["glyf"]
@@ -370,7 +370,7 @@ func (p *PdfDictionaryObj) GetOffset(glyph int) int {
 	return offset
 }
 
-//CheckSum check sum
+// CheckSum check sum
 func CheckSum(data []byte) uint {
 
 	var byte3, byte2, byte1, byte0 uint64
@@ -390,7 +390,7 @@ func CheckSum(data []byte) uint {
 		byte0 += uint64(data[i])
 		i++
 	}
-	//var result uint32
+	// var result uint32
 	result := uint32(byte3<<24) + uint32(byte2<<16) + uint32(byte1<<8) + uint32(byte0)
 	return uint(result)
 }

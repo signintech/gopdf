@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/crello/gopdf/fontmaker/core"
+	"github.com/signintech/gopdf/fontmaker/core"
 )
 
-//SubfontDescriptorObj pdf subfont descriptorObj object
+// SubfontDescriptorObj pdf subfont descriptorObj object
 type SubfontDescriptorObj struct {
 	PtrToSubsetFontObj    *SubsetFontObj
 	indexObjPdfDictionary int
@@ -21,7 +21,7 @@ func (s *SubfontDescriptorObj) getType() string {
 
 func (s *SubfontDescriptorObj) write(w io.Writer, objID int) error {
 	ttfp := s.PtrToSubsetFontObj.GetTTFParser()
-	//fmt.Printf("-->%d\n", ttfp.UnitsPerEm())
+	// fmt.Printf("-->%d\n", ttfp.UnitsPerEm())
 	io.WriteString(w, "<<\n")
 	io.WriteString(w, "/Type /FontDescriptor\n")
 	fmt.Fprintf(w, "/Ascent %d\n", DesignUnitsToPdf(ttfp.Ascender(), ttfp.UnitsPerEm()))
@@ -43,17 +43,17 @@ func (s *SubfontDescriptorObj) write(w io.Writer, objID int) error {
 	return nil
 }
 
-//SetIndexObjPdfDictionary set PdfDictionary pointer
+// SetIndexObjPdfDictionary set PdfDictionary pointer
 func (s *SubfontDescriptorObj) SetIndexObjPdfDictionary(index int) {
 	s.indexObjPdfDictionary = index
 }
 
-//SetPtrToSubsetFontObj set SubsetFont pointer
+// SetPtrToSubsetFontObj set SubsetFont pointer
 func (s *SubfontDescriptorObj) SetPtrToSubsetFontObj(ptr *SubsetFontObj) {
 	s.PtrToSubsetFontObj = ptr
 }
 
-//DesignUnitsToPdf convert unit
+// DesignUnitsToPdf convert unit
 func DesignUnitsToPdf(val int, unitsPerEm uint) int {
 	return core.Round(float64(float64(val) * 1000.00 / float64(unitsPerEm)))
 }

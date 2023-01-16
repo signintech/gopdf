@@ -17,7 +17,7 @@ A minimum version of Go 1.13 is required.
 
 ## Installation
  ```
- go get -u github.com/crello/gopdf
+ go get -u github.com/signintech/gopdf
  ```
 
 
@@ -28,7 +28,7 @@ A minimum version of Go 1.13 is required.
 package main
 import (
 	"log"
-	"github.com/crello/gopdf"
+	"github.com/signintech/gopdf"
 )
 
 func main() {
@@ -75,7 +75,7 @@ pdf.Cell
 package main
 import (
 	"log"
-	"github.com/crello/gopdf"
+	"github.com/signintech/gopdf"
 )
 
 func main() {
@@ -110,7 +110,7 @@ package main
 
 import (
 	"log"
-	"github.com/crello/gopdf"
+	"github.com/signintech/gopdf"
 )
 
 func main()  {
@@ -218,7 +218,7 @@ package main
 import (
 	"log"
 
-	"github.com/crello/gopdf"
+	"github.com/signintech/gopdf"
 )
 
 
@@ -247,7 +247,7 @@ Import existing PDF power by package [gofpdi](https://github.com/phpdave11/gofpd
 package main
 
 import (
-        "github.com/crello/gopdf"
+        "github.com/signintech/gopdf"
         "io"
         "net/http"
         "os"
@@ -334,7 +334,7 @@ package main
 import (
 	"log"
 
-	"github.com/crello/gopdf"
+	"github.com/signintech/gopdf"
 )
 
 func main() {

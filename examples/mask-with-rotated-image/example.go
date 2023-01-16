@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/crello/gopdf"
+	"github.com/signintech/gopdf"
 )
 
 var resourcesPath string
@@ -21,7 +21,7 @@ func init() {
 func main() {
 	pdf := gopdf.GoPdf{}
 
-	pdf.Start(gopdf.Config{PageSize: gopdf.Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf.Start(gopdf.Config{PageSize: gopdf.Rect{W: 595.28, H: 841.89}}) // 595.28, 841.89 = A4
 	pdf.AddPage()
 
 	if err := pdf.AddTTFFont("loma", resourcesPath+"/LiberationSerif-Regular.ttf"); err != nil {
@@ -50,7 +50,7 @@ func main() {
 		log.Panic(err.Error())
 	}
 
-	//When the image is rotated 90 degrees, the ratio of the image changes.
+	// When the image is rotated 90 degrees, the ratio of the image changes.
 	if err := pdf.ImageByHolderWithOptions(chili, gopdf.ImageOptions{
 		DegreeAngle: 90,
 		X:           200,

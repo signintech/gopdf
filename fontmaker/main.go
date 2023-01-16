@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/crello/gopdf/fontmaker/core"
-	//"runtime/debug"
+	"github.com/signintech/gopdf/fontmaker/core"
+	// "runtime/debug"
 )
 
 func main() {
@@ -31,7 +31,7 @@ func main() {
 		return
 	}
 
-	//print result
+	// print result
 	results := fmk.GetResults()
 	for _, result := range results {
 		fmt.Println(result)
@@ -45,7 +45,7 @@ func echoUsage() {
 	buff.WriteString("\nUsage:\n")
 	buff.WriteString("\tfontmaker encoding map_folder font_file output_folder\n")
 	buff.WriteString("\nExample:\n")
-	buff.WriteString("\tfontmaker cp874 /gopath/github.com/crello/gopdf/fontmaker/map  ../ttf/Loma.ttf ./tmp\n")
+	buff.WriteString("\tfontmaker cp874 /gopath/github.com/signintech/gopdf/fontmaker/map  ../ttf/Loma.ttf ./tmp\n")
 	buff.WriteString("\n")
 	fmt.Print(buff.String())
 }

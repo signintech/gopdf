@@ -13,20 +13,20 @@ import (
 	"strings"
 )
 
-//ErrFontLicenseDoesNotAllowEmbedding Font license does not allow embedding
+// ErrFontLicenseDoesNotAllowEmbedding Font license does not allow embedding
 var ErrFontLicenseDoesNotAllowEmbedding = errors.New("Font license does not allow embedding")
 
-//FontMaker font maker
+// FontMaker font maker
 type FontMaker struct {
 	results []string
 }
 
-//GetResults get result
+// GetResults get result
 func (f *FontMaker) GetResults() []string {
 	return f.results
 }
 
-//NewFontMaker new FontMaker
+// NewFontMaker new FontMaker
 func NewFontMaker() *FontMaker {
 	return new(FontMaker)
 }
@@ -35,14 +35,14 @@ func (f *FontMaker) MakeFont(fontpath string, mappath string, encode string, out
 
 	encodingpath := mappath + "/" + encode + ".map"
 
-	//read font file
+	// read font file
 	if _, err := os.Stat(fontpath); os.IsNotExist(err) {
 		return err
 	}
 
 	fileext := filepath.Ext(fontpath)
 	if strings.ToLower(fileext) != ".ttf" {
-		//now support only ttf :-P
+		// now support only ttf :-P
 		return errors.New("support only ttf ")
 	}
 
@@ -56,7 +56,7 @@ func (f *FontMaker) MakeFont(fontpath string, mappath string, encode string, out
 		return err
 	}
 
-	//zip
+	// zip
 	basename := filepath.Base(fontpath)
 	tmp := strings.Split(basename, ".")
 	basename = strings.Replace(tmp[0], " ", "_", -1)
@@ -82,7 +82,7 @@ func (f *FontMaker) MakeFont(fontpath string, mappath string, encode string, out
 	info.PushString("File", gzfilename)
 	f.results = append(f.results, fmt.Sprintf("Save Z file at %s.", outfolderpath+"/"+gzfilename))
 
-	//Definition File
+	// Definition File
 	_, err = f.MakeDefinitionFile(f.GoStructName(basename), mappath, outfolderpath+"/"+basename+".font.go", encode, fontmaps, info)
 	if err != nil {
 		return err
@@ -102,7 +102,7 @@ func (f *FontMaker) MakeDefinitionFile(gofontname string, mappath string, export
 	str := ""
 	str += "package fonts //change this\n"
 	str += "import (\n"
-	str += "	\"github.com/crello/gopdf\"\n"
+	str += "	\"github.com/signintech/gopdf\"\n"
 	str += ")\n"
 	str += "type " + gofontname + " struct {\n"
 	str += "\tfamily string\n"
@@ -415,7 +415,7 @@ func (f *FontMaker) GetInfoFromTrueType(fontpath string, fontmaps []FontMap) (Tt
 		c++
 	}
 
-	c = 0 //reset
+	c = 0 // reset
 	for c < max {
 		if fontmaps[c].Name != ".notdef" {
 			uv := fontmaps[c].Uv

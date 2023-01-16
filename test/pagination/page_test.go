@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/crello/gopdf"
+	"github.com/signintech/gopdf"
 )
 
 func GetFont(pdf *gopdf.GoPdf, fontPath string) (err error) {
@@ -41,7 +41,7 @@ func TestSetY(t *testing.T) {
 	var y float64 = 10
 	for i := 0; i < 200; i++ {
 		text := fmt.Sprintf("---------line no: %d -----------", i)
-		//var textH float64 = 25 // if text height is 25px.
+		// var textH float64 = 25 // if text height is 25px.
 		pdf.SetXY(x, y)
 		err = pdf.Text(text)
 		if err != nil {
@@ -112,7 +112,7 @@ func TestSetNewXY(t *testing.T) {
 	for i := 0; i < 200; i++ {
 		text := fmt.Sprintf("---------line no: %d -----------", i)
 		var textH float64 = 25 // if text height is 25px.
-		//pdf.SetX(x)
+		// pdf.SetX(x)
 		pdf.SetNewXY(y, x, textH)
 		y = pdf.GetY()
 		err = pdf.Text(text)

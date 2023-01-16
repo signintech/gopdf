@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/crello/gopdf"
+	"github.com/signintech/gopdf"
 )
 
 var resourcesPath string
@@ -22,7 +22,7 @@ func init() {
 func main() {
 	pdf := gopdf.GoPdf{}
 
-	pdf.Start(gopdf.Config{PageSize: gopdf.Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf.Start(gopdf.Config{PageSize: gopdf.Rect{W: 595.28, H: 841.89}}) // 595.28, 841.89 = A4
 	pdf.AddPage()
 
 	if err := pdf.AddTTFFont("loma", resourcesPath+"/LiberationSerif-Regular.ttf"); err != nil {
@@ -33,7 +33,7 @@ func main() {
 		log.Panic(err.Error())
 	}
 
-	//image bytes
+	// image bytes
 	b, err := ioutil.ReadFile(resourcesPath + "/gopher01.jpg")
 	if err != nil {
 		log.Panic(err.Error())
@@ -47,7 +47,7 @@ func main() {
 		log.Panic(err.Error())
 	}
 
-	//image io.Reader
+	// image io.Reader
 	file, err := os.Open(resourcesPath + "/chilli.jpg")
 	if err != nil {
 		log.Panic(err.Error())

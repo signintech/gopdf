@@ -257,7 +257,14 @@ func (c *ContentObj) AppendStreamSetLineType(t string) {
 	var cache cacheContentLineType
 	cache.lineType = t
 	c.listCache.append(&cache)
+}
 
+// AppendStreamSetCustomLineType : set a custom line type
+func (c *ContentObj) AppendStreamSetCustomLineType(a []float64, p float64) {
+	var cache cacheContentCustomLineType
+	cache.dashArray = a
+	cache.dashPhase = p
+	c.listCache.append(&cache)
 }
 
 // AppendStreamSetGrayFill  set the grayscale fills

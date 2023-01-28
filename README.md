@@ -162,7 +162,7 @@ func main() {
     pdf := gopdf.GoPdf{}
     pdf.Start(gopdf.Config{ PageSize: *gopdf.PageSizeA4 }) //595.28, 841.89 = A4
 
-    err = pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
+    err := pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
     if err != nil {
         log.Print(err.Error())
         return

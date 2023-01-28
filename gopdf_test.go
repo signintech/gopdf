@@ -732,6 +732,52 @@ func TestTextColor(t *testing.T) {
 	}
 }
 
+func TestAddHeaderFooter(t *testing.T) {
+	err := initTesting()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	// create pdf.
+	pdf := GoPdf{}
+	pdf.Start(Config{PageSize: *PageSizeA4})
+
+	err = pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = pdf.SetFont("LiberationSerif-Regular", "", 14)
+	if err != nil {
+		log.Print(err.Error())
+		return
+	}
+
+	pdf.AddHeader(func() {
+		pdf.SetY(5)
+		pdf.Cell(nil, "header")
+	})
+	pdf.AddFooter(func() {
+		pdf.SetY(825)
+		pdf.Cell(nil, "footer")
+	})
+
+	pdf.AddPage()
+	pdf.SetY(400)
+	pdf.Text("page 1 content")
+	pdf.AddPage()
+	pdf.SetY(400)
+	pdf.Text("page 2 content")
+
+	err = pdf.WritePdf("./test/out/header_footer.pdf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+}
+
 func initTesting() error {
 	err := os.MkdirAll("./test/out", 0777)
 	if err != nil {

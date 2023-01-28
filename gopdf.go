@@ -78,6 +78,10 @@ type GoPdf struct {
 	outlines           *OutlinesObj
 	indexOfOutlinesObj int
 
+	//header and footer functions
+	headerFunc func()
+	footerFunc func()
+
 	// gofpdi free pdf document importer
 	fpdi *gofpdi.Importer
 }
@@ -787,6 +791,16 @@ func (gp *GoPdf) AddPageWithOption(opt PageOption) {
 	//reset
 	gp.indexOfContent = -1
 	gp.resetCurrXY()
+
+	if gp.headerFunc != nil {
+		gp.headerFunc()
+		gp.resetCurrXY()
+	}
+
+	if gp.footerFunc != nil {
+		gp.footerFunc()
+		gp.resetCurrXY()
+	}
 }
 
 func (gp *GoPdf) AddOutline(title string) {
@@ -796,6 +810,16 @@ func (gp *GoPdf) AddOutline(title string) {
 // AddOutlineWithPosition add an outline with position
 func (gp *GoPdf) AddOutlineWithPosition(title string) *OutlineObj {
 	return gp.outlines.AddOutlinesWithPosition(gp.curr.IndexOfPageObj+1, title, gp.config.PageSize.H-gp.curr.Y+20)
+}
+
+// AddHeader - add a header function, if present this will be automatically called by AddPage()
+func (gp *GoPdf) AddHeader(f func()) {
+	gp.headerFunc = f
+}
+
+// AddFooter - add a footer function, if present this will be automatically called by AddPage()
+func (gp *GoPdf) AddFooter(f func()) {
+	gp.footerFunc = f
 }
 
 // Start : init gopdf

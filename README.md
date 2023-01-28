@@ -147,6 +147,55 @@ func main()  {
 }
 ```
 
+### Header and Footer
+
+```go
+
+package main
+
+import (
+    "log"
+    "github.com/signintech/gopdf"
+)
+
+func main() {
+    pdf := gopdf.GoPdf{}
+    pdf.Start(gopdf.Config{ PageSize: *gopdf.PageSizeA4 }) //595.28, 841.89 = A4
+
+    err := pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
+    if err != nil {
+        log.Print(err.Error())
+        return
+    }
+
+    err = pdf.SetFont("LiberationSerif-Regular", "", 14)
+    if err != nil {
+        log.Print(err.Error())
+        return
+    }
+
+    pdf.AddHeader(func() {
+        pdf.SetY(5)
+        pdf.Cell(nil, "header")
+    })
+    pdf.AddFooter(func() {
+        pdf.SetY(825)
+        pdf.Cell(nil, "footer")
+    })
+
+    pdf.AddPage()
+    pdf.SetY(400)
+    pdf.Text("page 1 content")
+    pdf.AddPage()
+    pdf.SetY(400)
+    pdf.Text("page 2 content")
+
+    pdf.WritePdf("header-footer.tmp.pdf")
+
+}
+
+```
+
 ### Draw line
 ```go
 pdf.SetLineWidth(2)

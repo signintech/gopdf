@@ -107,6 +107,7 @@ func (c *ContentObj) AppendStreamText(text string) error {
 	fontCountIndex := c.getRoot().curr.FontFontCount + 1
 	fontSize := c.getRoot().curr.FontSize
 	fontStyle := c.getRoot().curr.FontStyle
+	charSpacing := c.getRoot().curr.CharSpacing
 	x := c.getRoot().curr.X
 	y := c.getRoot().curr.Y
 	setXCount := c.getRoot().curr.setXCount
@@ -122,6 +123,7 @@ func (c *ContentObj) AppendStreamText(text string) error {
 		fontCountIndex: fontCountIndex,
 		fontSize:       fontSize,
 		fontStyle:      fontStyle,
+		charSpacing:    charSpacing,
 		setXCount:      setXCount,
 		x:              x,
 		y:              y,
@@ -149,6 +151,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOp
 	fontCountIndex := c.getRoot().curr.FontFontCount + 1
 	fontSize := c.getRoot().curr.FontSize
 	fontStyle := c.getRoot().curr.FontStyle
+	charSpacing := c.getRoot().curr.CharSpacing
 	x := c.getRoot().curr.X
 	y := c.getRoot().curr.Y
 	setXCount := c.getRoot().curr.setXCount
@@ -162,6 +165,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOp
 		fontCountIndex: fontCountIndex,
 		fontSize:       fontSize,
 		fontStyle:      fontStyle,
+		charSpacing:    charSpacing,
 		setXCount:      setXCount,
 		x:              x,
 		y:              y,

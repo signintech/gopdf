@@ -16,6 +16,8 @@ type Current struct {
 	FontFontCount int
 	FontType      int // CURRENT_FONT_TYPE_IFONT or  CURRENT_FONT_TYPE_SUBSET
 
+	CharSpacing float64
+
 	FontISubset *SubsetFontObj // FontType == CURRENT_FONT_TYPE_SUBSET
 
 	//page

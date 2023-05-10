@@ -940,6 +940,13 @@ func (gp *GoPdf) SetFontSize(fontSize float64) error {
 	return nil
 }
 
+// SetCharSpacing : set the character spacing of the currently active font
+func (gp *GoPdf) SetCharSpacing(charSpacing float64) error {
+	gp.UnitsToPointsVar(&charSpacing)
+	gp.curr.CharSpacing = charSpacing
+	return nil
+}
+
 // WritePdf : write pdf file
 func (gp *GoPdf) WritePdf(pdfPath string) error {
 	return ioutil.WriteFile(pdfPath, gp.GetBytesPdf(), 0644)
@@ -1098,7 +1105,7 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 	if err != nil {
 		return err
 	}
-	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, nil)
+	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.CharSpacing, nil)
 	if err != nil {
 		return err
 	}
@@ -1141,7 +1148,7 @@ func (gp *GoPdf) IsFitMultiCell(rectangle *Rect, text string) (bool, float64, er
 	if err != nil {
 		return false, totalLineHeight, err
 	}
-	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, nil)
+	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.CharSpacing, nil)
 
 	if err != nil {
 		return false, totalLineHeight, err
@@ -1212,7 +1219,7 @@ func (gp *GoPdf) MultiCellWithOption(rectangle *Rect, text string, opt CellOptio
 	if err != nil {
 		return err
 	}
-	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, nil)
+	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.CharSpacing, nil)
 	if err != nil {
 		return err
 	}
@@ -1666,7 +1673,7 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 		return 0, err
 	}
 
-	_, _, textWidthPdfUnit, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, nil)
+	_, _, textWidthPdfUnit, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.CharSpacing, nil)
 	if err != nil {
 		return 0, err
 	}

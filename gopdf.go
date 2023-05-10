@@ -941,8 +941,9 @@ func (gp *GoPdf) SetFontSize(fontSize float64) error {
 }
 
 // SetCharSpacing : set the character spacing of the currently active font
-func (gp *GoPdf) SetCharSpacing(charSpacingInPt float64) error {
-	gp.curr.CharSpacing = charSpacingInPt
+func (gp *GoPdf) SetCharSpacing(charSpacing float64) error {
+	gp.UnitsToPointsVar(&charSpacing)
+	gp.curr.CharSpacing = charSpacing
 	return nil
 }
 

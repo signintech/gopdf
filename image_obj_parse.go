@@ -427,15 +427,16 @@ func parsePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 
 				i++
 			}
-			info.smask, err = compress(alpha)
-			if err != nil {
-				return err
-			}
+		}
 
-			info.data, err = compress(color)
-			if err != nil {
-				return err
-			}
+		info.smask, err = compress(alpha)
+		if err != nil {
+			return err
+		}
+
+		info.data, err = compress(color)
+		if err != nil {
+			return err
 		}
 
 	} else {

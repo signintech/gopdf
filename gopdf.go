@@ -952,13 +952,23 @@ func (gp *GoPdf) WritePdf(pdfPath string) error {
 	return ioutil.WriteFile(pdfPath, gp.GetBytesPdf(), 0644)
 }
 
-func (gp *GoPdf) Write(w io.Writer) error {
+// WriteTo implements the io.WriterTo interface and can
+// be used to stream the PDF as it is compiled to an io.Writer.
+func (gp *GoPdf) WriteTo(w io.Writer) (n int64, err error) {
 	return gp.compilePdf(w)
+}
+
+// Write streams the pdf as it is compiled to an io.Writer
+//
+// Deprecated: use the WriteTo method instead.
+func (gp *GoPdf) Write(w io.Writer) error {
+	_, err := gp.compilePdf(w)
+	return err
 }
 
 func (gp *GoPdf) Read(p []byte) (int, error) {
 	if gp.buf.Len() == 0 && gp.buf.Cap() == 0 {
-		if err := gp.compilePdf(&gp.buf); err != nil {
+		if _, err := gp.compilePdf(&gp.buf); err != nil {
 			return 0, err
 		}
 	}
@@ -971,16 +981,16 @@ func (gp *GoPdf) Close() error {
 	return nil
 }
 
-func (gp *GoPdf) compilePdf(w io.Writer) error {
+func (gp *GoPdf) compilePdf(w io.Writer) (n int64, err error) {
 	gp.prepare()
-	err := gp.Close()
+	err = gp.Close()
 	if err != nil {
-		return err
+		return 0, err
 	}
 	max := len(gp.pdfObjs)
 	writer := newCountingWriter(w)
 	fmt.Fprint(writer, "%PDF-1.7\n%����\n\n")
-	linelens := make([]int, max)
+	linelens := make([]int64, max)
 	i := 0
 
 	for i < max {
@@ -993,12 +1003,12 @@ func (gp *GoPdf) compilePdf(w io.Writer) error {
 		i++
 	}
 	gp.xref(writer, writer.offset, linelens, i)
-	return nil
+	return writer.offset, nil
 }
 
 type (
 	countingWriter struct {
-		offset int
+		offset int64
 		writer io.Writer
 	}
 )
@@ -1009,7 +1019,7 @@ func newCountingWriter(w io.Writer) *countingWriter {
 
 func (cw *countingWriter) Write(b []byte) (int, error) {
 	n, err := cw.writer.Write(b)
-	cw.offset += n
+	cw.offset += int64(n)
 	return n, err
 }
 
@@ -1019,7 +1029,7 @@ func (gp *GoPdf) GetBytesPdfReturnErr() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = gp.compilePdf(&gp.buf)
+	_, err = gp.compilePdf(&gp.buf)
 	return gp.buf.Bytes(), err
 }
 
@@ -1994,7 +2004,7 @@ func (gp *GoPdf) prepare() {
 	}
 }
 
-func (gp *GoPdf) xref(w io.Writer, xrefbyteoffset int, linelens []int, i int) error {
+func (gp *GoPdf) xref(w io.Writer, xrefbyteoffset int64, linelens []int64, i int) error {
 
 	io.WriteString(w, "xref\n")
 	fmt.Fprintf(w, "0 %d\n", i+1)
@@ -2057,8 +2067,8 @@ func (gp *GoPdf) writeInfo(w io.Writer) {
 }
 
 // ปรับ xref ให้เป็น 10 หลัก
-func (gp *GoPdf) formatXrefline(n int) string {
-	str := strconv.Itoa(n)
+func (gp *GoPdf) formatXrefline(n int64) string {
+	str := strconv.FormatInt(n, 10)
 	for len(str) < 10 {
 		str = "0" + str
 	}

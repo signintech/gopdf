@@ -1690,7 +1690,7 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 	return PointsToUnits(gp.config.Unit, textWidthPdfUnit), nil
 }
 
-// MeasureTextHeight : measure Height of cell by text (use current font)
+// MeasureCellHeightByText : measure Height of cell by text (use current font)
 func (gp *GoPdf) MeasureCellHeightByText(text string) (float64, error) {
 
 	text, err := gp.curr.FontISubset.AddChars(text) //AddChars for create CharacterToGlyphIndex

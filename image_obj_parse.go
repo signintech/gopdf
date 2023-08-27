@@ -9,7 +9,7 @@ import (
 	"image"
 	"image/color"
 	"io"
-	"io/ioutil"
+	"os"
 	"strings"
 )
 
@@ -125,7 +125,7 @@ func haveSMask(imginfo imgInfo) bool {
 }
 
 func parseImgByPath(path string) (imgInfo, error) {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return imgInfo{}, err
 	}
@@ -149,7 +149,7 @@ func parseImg(raw *bytes.Reader) (imgInfo, error) {
 			return info, err
 		}
 		raw.Seek(0, 0)
-		info.data, err = ioutil.ReadAll(raw)
+		info.data, err = io.ReadAll(raw)
 		if err != nil {
 			return info, err
 		}
@@ -380,7 +380,7 @@ func parsePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 			return err
 		}
 		defer zipReader.Close()
-		afterZipData, err := ioutil.ReadAll(zipReader)
+		afterZipData, err := io.ReadAll(zipReader)
 		if err != nil {
 			return err
 		}

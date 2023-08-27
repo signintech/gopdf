@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -34,7 +33,7 @@ func main() {
 	}
 
 	//image bytes
-	b, err := ioutil.ReadFile(resourcesPath + "/gopher01.jpg")
+	b, err := os.ReadFile(resourcesPath + "/gopher01.jpg")
 	if err != nil {
 		log.Panic(err.Error())
 	}

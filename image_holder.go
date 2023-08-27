@@ -5,7 +5,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"os"
 )
 
 // ImageHolder hold image data
@@ -50,7 +50,7 @@ func newImageBuff(b []byte) (*imageBuff, error) {
 func newImageBuffByPath(path string) (*imageBuff, error) {
 	var i imageBuff
 	i.id = path
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func newImageBuffByPath(path string) (*imageBuff, error) {
 
 func newImageBuffByReader(r io.Reader) (*imageBuff, error) {
 
-	b, err := ioutil.ReadAll(r)
+	b, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}

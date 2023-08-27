@@ -8,7 +8,6 @@ import (
 	"image"
 	"image/png"
 	"io"
-	"io/ioutil"
 	"log"
 	"math"
 	"os"
@@ -949,7 +948,7 @@ func (gp *GoPdf) SetCharSpacing(charSpacing float64) error {
 
 // WritePdf : write pdf file
 func (gp *GoPdf) WritePdf(pdfPath string) error {
-	return ioutil.WriteFile(pdfPath, gp.GetBytesPdf(), 0644)
+	return os.WriteFile(pdfPath, gp.GetBytesPdf(), 0644)
 }
 
 // WriteTo implements the io.WriterTo interface and can
@@ -1600,7 +1599,7 @@ func (gp *GoPdf) AddTTFFontWithOption(family string, ttfpath string, option TtfO
 	if _, err := os.Stat(ttfpath); os.IsNotExist(err) {
 		return err
 	}
-	data, err := ioutil.ReadFile(ttfpath)
+	data, err := os.ReadFile(ttfpath)
 	if err != nil {
 		return err
 	}

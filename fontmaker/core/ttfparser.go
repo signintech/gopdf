@@ -7,7 +7,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strconv"
@@ -204,7 +203,7 @@ func (t *TTFParser) SetUseKerning(use bool) {
 
 // Parse parse
 func (t *TTFParser) Parse(filepath string) error {
-	data, err := ioutil.ReadFile(filepath)
+	data, err := os.ReadFile(filepath)
 	if err != nil {
 		return err
 	}
@@ -213,7 +212,7 @@ func (t *TTFParser) Parse(filepath string) error {
 
 // ParseByReader parse by io.reader
 func (t *TTFParser) ParseByReader(rd io.Reader) error {
-	fontData, err := ioutil.ReadAll(rd)
+	fontData, err := io.ReadAll(rd)
 	if err != nil {
 		return err
 	}

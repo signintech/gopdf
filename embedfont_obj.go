@@ -3,7 +3,7 @@ package gopdf
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
+	"os"
 )
 
 // EmbedFontObj is an embedded font object.
@@ -23,7 +23,7 @@ func (e *EmbedFontObj) protection() *PDFProtection {
 }
 
 func (e *EmbedFontObj) write(w io.Writer, objID int) error {
-	b, err := ioutil.ReadFile(e.zfontpath)
+	b, err := os.ReadFile(e.zfontpath)
 	if err != nil {
 		return err
 	}

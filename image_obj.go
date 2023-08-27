@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"image"
+
 	// Packages image/jpeg and image/png are not used explicitly in the code below,
 	// but are imported for their initialization side-effect, which allows
 	// image.Decode to understand JPEG formatted images.
 	_ "image/jpeg"
 	_ "image/png"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 )
@@ -135,7 +135,7 @@ func (i *ImageObj) SetImagePath(path string) error {
 // SetImage set image
 func (i *ImageObj) SetImage(r io.Reader) error {
 
-	data, err := ioutil.ReadAll(r)
+	data, err := io.ReadAll(r)
 	if err != nil {
 		return err
 	}

@@ -3,7 +3,7 @@ package gopdf
 import (
 	"bytes"
 	"errors"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"testing"
@@ -32,7 +32,7 @@ func BenchmarkPdfWithImageHolder(b *testing.B) {
 		return
 	}
 
-	bytesOfImg, err := ioutil.ReadFile("./test/res/chilli.jpg")
+	bytesOfImg, err := os.ReadFile("./test/res/chilli.jpg")
 	if err != nil {
 		b.Error(err)
 		return
@@ -63,7 +63,7 @@ func TestPdfWithImageHolder(t *testing.T) {
 	pdf := setupDefaultA4PDF(t)
 	pdf.AddPage()
 
-	bytesOfImg, err := ioutil.ReadFile("./test/res/PNG_transparency_demonstration_1.png")
+	bytesOfImg, err := os.ReadFile("./test/res/PNG_transparency_demonstration_1.png")
 	if err != nil {
 		t.Error(err)
 		return
@@ -101,7 +101,7 @@ func TestRetrievingNumberOfPdfPage(t *testing.T) {
 	}
 	pdf.AddPage()
 
-	bytesOfImg, err := ioutil.ReadFile("./test/res/gopher01.jpg")
+	bytesOfImg, err := os.ReadFile("./test/res/gopher01.jpg")
 	if err != nil {
 		t.Error(err)
 		return
@@ -149,7 +149,7 @@ func TestImageCrop(t *testing.T) {
 
 	pdf.AddPage()
 
-	bytesOfImg, err := ioutil.ReadFile("./test/res/gopher01.jpg")
+	bytesOfImg, err := os.ReadFile("./test/res/gopher01.jpg")
 	if err != nil {
 		t.Error(err)
 		return
@@ -210,7 +210,7 @@ func BenchmarkAddTTFFontByReader(b *testing.B) {
 	}
 	defer ttf.Close()
 
-	fontData, err := ioutil.ReadAll(ttf)
+	fontData, err := io.ReadAll(ttf)
 	if err != nil {
 		b.Error(err)
 		return
@@ -253,7 +253,7 @@ func BenchmarkAddTTFFontData(b *testing.B) {
 	}
 	defer ttf.Close()
 
-	fontData, err := ioutil.ReadAll(ttf)
+	fontData, err := io.ReadAll(ttf)
 	if err != nil {
 		b.Error(err)
 		return
@@ -276,7 +276,7 @@ func TestReuseFontData(t *testing.T) {
 	}
 	defer ttf.Close()
 
-	fontData, err := ioutil.ReadAll(ttf)
+	fontData, err := io.ReadAll(ttf)
 	if err != nil {
 		t.Error(err)
 		return
@@ -543,7 +543,7 @@ func TestClearValue(t *testing.T) {
 		return
 	}
 
-	bytesOfImg, err := ioutil.ReadFile("./test/res/PNG_transparency_demonstration_1.png")
+	bytesOfImg, err := os.ReadFile("./test/res/PNG_transparency_demonstration_1.png")
 	if err != nil {
 		t.Error(err)
 		return

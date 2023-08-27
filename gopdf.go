@@ -1690,6 +1690,21 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 	return PointsToUnits(gp.config.Unit, textWidthPdfUnit), nil
 }
 
+// MeasureCellHeightByText : measure Height of cell by text (use current font)
+func (gp *GoPdf) MeasureCellHeightByText(text string) (float64, error) {
+
+	text, err := gp.curr.FontISubset.AddChars(text) //AddChars for create CharacterToGlyphIndex
+	if err != nil {
+		return 0, err
+	}
+
+	_, cellHeightPdfUnit, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.CharSpacing, nil)
+	if err != nil {
+		return 0, err
+	}
+	return PointsToUnits(gp.config.Unit, cellHeightPdfUnit), nil
+}
+
 // Curve Draws a Bézier curve (the Bézier curve is tangent to the line between the control points at either end of the curve)
 // Parameters:
 // - x0, y0: Start point

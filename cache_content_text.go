@@ -18,7 +18,7 @@ const ContentTypeCell = 0
 // ContentTypeText text
 const ContentTypeText = 1
 
-var ErrContentTypeNotFound = errors.New("ErrContentTypeNotFound")
+var ErrContentTypeNotFound = errors.New("contentType not found")
 
 type cacheContentText struct {
 	//---setup---

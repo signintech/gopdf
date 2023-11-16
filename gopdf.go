@@ -24,6 +24,16 @@ const subsetFont = "SubsetFont"
 // the default margin if no margins are set
 const defaultMargin = 10.0 //for backward compatible
 
+var ErrEmptyString = errors.New("empty string")
+
+var ErrMissingFontFamily = errors.New("font family not found")
+
+var ErrUndefinedCacheContentImage = errors.New("cacheContentImage is undefined")
+
+var ErrInvalidRectangleCoordinates = errors.New("Invalid coordinates for the rectangle")
+
+var ErrInvalidRectangleRadius = errors.New("Radius length cannot exceed rectangle height or width")
+
 // GoPdf : A simple library for generating PDF written in Go lang
 type GoPdf struct {
 
@@ -575,7 +585,7 @@ func (gp *GoPdf) maskHolder(img ImageHolder, opts MaskOptions) (int, error) {
 		return extGStateInd, nil
 	}
 
-	return 0, errors.New("cacheContentImage is undefined")
+	return 0, ErrUndefinedCacheContentImage
 }
 
 func (gp *GoPdf) createTransparencyXObjectGroup(image *cacheContentImage, opts MaskOptions) (int, error) {
@@ -919,7 +929,7 @@ func (gp *GoPdf) SetFontWithStyle(family string, style int, size interface{}) er
 	}
 
 	if !found {
-		return errors.New("not found font family")
+		return ErrMissingFontFamily
 	}
 
 	return nil
@@ -1286,7 +1296,7 @@ func (gp *GoPdf) SplitTextWithOption(text string, width float64, opt *BreakOptio
 	utf8Texts := []rune(text)
 	utf8TextsLen := len(utf8Texts) // utf8 string quantity
 	if utf8TextsLen == 0 {
-		return lineTexts, errors.New("empty string")
+		return lineTexts, ErrEmptyString
 	}
 	separatorWidth, err := gp.MeasureTextWidth(opt.Separator)
 	if err != nil {
@@ -1629,7 +1639,7 @@ func (gp *GoPdf) KernOverride(family string, fn FuncKernOverride) error {
 		}
 		i++
 	}
-	return errors.New("font family not found")
+	return ErrMissingFontFamily
 }
 
 // SetTextColor :  function sets the text color
@@ -1790,7 +1800,7 @@ func (gp *GoPdf) Polygon(points []Point, style string) {
 //		pdf.Rectangle(196.6, 336.8, 398.3, 379.3, "DF", 3, 10)
 func (gp *GoPdf) Rectangle(x0 float64, y0 float64, x1 float64, y1 float64, style string, radius float64, radiusPointNum int) error {
 	if x1 <= x0 || y1 <= y0 {
-		return errors.New("Invalid coordinates for the rectangle")
+		return ErrInvalidRectangleCoordinates
 	}
 	if radiusPointNum <= 0 || radius <= 0 {
 		//draw rectangle without round corner
@@ -1804,7 +1814,7 @@ func (gp *GoPdf) Rectangle(x0 float64, y0 float64, x1 float64, y1 float64, style
 	} else {
 
 		if radius > (x1-x0) || radius > (y1-y0) {
-			return errors.New("Radius length cannot exceed rectangle height or width")
+			return ErrInvalidRectangleCoordinates
 		}
 
 		degrees := []float64{}

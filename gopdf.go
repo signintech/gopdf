@@ -867,6 +867,32 @@ func (gp *GoPdf) Start(config Config) {
 
 }
 
+func (gp *GoPdf) AddPageNumbers(x, y float64) error {
+	pageNum := 0
+
+	max := len(gp.pdfObjs)
+	for i := 0; i < max; i++ {
+		obj := gp.pdfObjs[i]
+
+		switch obj.getType() {
+		case "Page":
+			pageNum++
+		case "Content":
+			text := fmt.Sprintf("%d/%d", pageNum, gp.indexOfPagesObj)
+			gp.curr.X = x
+			gp.curr.Y = y
+			if _, err := gp.curr.FontISubset.AddChars(text); err != nil {
+				return err
+			}
+			if err := obj.(*ContentObj).AppendStreamText(text); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 // convertNumericToFloat64 : accept numeric types, return float64-value
 func convertNumericToFloat64(size interface{}) (fontSize float64, err error) {
 	switch size := size.(type) {

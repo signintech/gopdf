@@ -1739,6 +1739,11 @@ func (gp *GoPdf) SetInfo(info PdfInfo) {
 	gp.isUseInfo = true
 }
 
+// GetInfo get Document Information Dictionary
+func (gp *GoPdf) GetInfo() PdfInfo {
+	return *gp.info
+}
+
 // Rotate rotate text or image
 // angle is angle in degrees.
 // x, y is rotation center

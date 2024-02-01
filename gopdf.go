@@ -732,6 +732,10 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 }
 
 func (gp *GoPdf) ImageFrom(img image.Image, x float64, y float64, rect *Rect) error {
+	if img == nil {
+		return errors.New("Invalid image")
+	}
+
 	gp.UnitsToPointsVar(&x, &y)
 	rect = rect.UnitsToPoints(gp.config.Unit)
 	r, w := io.Pipe()

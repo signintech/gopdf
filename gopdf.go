@@ -838,8 +838,20 @@ func (gp *GoPdf) AddFooter(f func()) {
 // Start : init gopdf
 func (gp *GoPdf) Start(config Config) {
 
+	gp.start(config)
+
+}
+
+func (gp *GoPdf) StartWithImporter(config Config, importer *gofpdi.Importer) {
+
+	gp.start(config, importer)
+
+}
+
+func (gp *GoPdf) start(config Config, importer ...*gofpdi.Importer) {
+
 	gp.config = config
-	gp.init()
+	gp.init(importer...)
 	//สร้าง obj พื้นฐาน
 	catalog := new(CatalogObj)
 	catalog.init(func() *GoPdf {
@@ -1890,7 +1902,7 @@ func (gp *GoPdf) Rectangle(x0 float64, y0 float64, x1 float64, y1 float64, style
 /*---private---*/
 
 // init
-func (gp *GoPdf) init() {
+func (gp *GoPdf) init(importer ...*gofpdi.Importer) {
 	gp.pdfObjs = []IObj{}
 	gp.buf = bytes.Buffer{}
 	gp.indexEncodingObjFonts = []int{}
@@ -1938,8 +1950,15 @@ func (gp *GoPdf) init() {
 	gp.config.TrimBox = *gp.config.TrimBox.UnitsToPoints(gp.config.Unit)
 
 	// init gofpdi free pdf document importer
-	gp.fpdi = gofpdi.NewImporter()
+	gp.fpdi = importerOrDefault(importer...)
 
+}
+
+func importerOrDefault(importer ...*gofpdi.Importer) *gofpdi.Importer {
+	if len(importer) != 0 {
+		return importer[len(importer)-1]
+	}
+	return gofpdi.NewImporter()
 }
 
 func (gp *GoPdf) resetCurrXY() {

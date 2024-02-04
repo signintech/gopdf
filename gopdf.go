@@ -852,7 +852,7 @@ func (gp *GoPdf) start(config Config, importer ...*gofpdi.Importer) {
 
 	gp.config = config
 	gp.init(importer...)
-	//สร้าง obj พื้นฐาน
+	//init all basic obj
 	catalog := new(CatalogObj)
 	catalog.init(func() *GoPdf {
 		return gp
@@ -2018,8 +2018,7 @@ func (gp *GoPdf) prepare() {
 
 	if gp.indexOfPagesObj != -1 {
 		indexCurrPage := -1
-		var pagesObj *PagesObj
-		pagesObj = gp.pdfObjs[gp.indexOfPagesObj].(*PagesObj)
+		pagesObj := gp.pdfObjs[gp.indexOfPagesObj].(*PagesObj)
 		i := 0 //gp.indexOfFirstPageObj
 		max := len(gp.pdfObjs)
 		for i < max {

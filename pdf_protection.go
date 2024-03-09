@@ -34,7 +34,7 @@ type PDFProtection struct {
 	encryptionKey []byte
 }
 
-// SetProtection set protection infomation
+// SetProtection set protection information
 func (p *PDFProtection) SetProtection(permissions int, userPass []byte, ownerPass []byte) error {
 	return p.setProtection(permissions, userPass, ownerPass)
 }

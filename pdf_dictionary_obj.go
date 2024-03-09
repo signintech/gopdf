@@ -19,8 +19,8 @@ var EntrySelectors = []int{
 	4, 4, 4, 4, 4, 4, 4,
 }
 
-// ErrNotSupportShortIndexYet not suport none short index yet
-var ErrNotSupportShortIndexYet = errors.New("not suport none short index yet")
+// ErrNotSupportShortIndexYet not support none short index yet
+var ErrNotSupportShortIndexYet = errors.New("not support none short index yet")
 
 // PdfDictionaryObj pdf dictionary object
 type PdfDictionaryObj struct {

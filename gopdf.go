@@ -6,6 +6,7 @@ import (
 	"compress/zlib" // for constants
 	"fmt"
 	"image"
+	"image/jpeg"
 	"image/png"
 	"io"
 	"log"
@@ -731,7 +732,7 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 	return gp.imageByHolder(imgh, imageOptions)
 }
 
-func (gp *GoPdf) ImageFrom(img image.Image, x float64, y float64, rect *Rect) error {
+func (gp *GoPdf) ImageFrom(img image.Image, x float64, y float64, rect *Rect, format string) error {
 	if img == nil {
 		return errors.New("Invalid image")
 	}
@@ -741,7 +742,15 @@ func (gp *GoPdf) ImageFrom(img image.Image, x float64, y float64, rect *Rect) er
 	r, w := io.Pipe()
 	go func() {
 		bw := bufio.NewWriter(w)
-		err := png.Encode(bw, img)
+		var err error
+		switch format {
+		case "jpeg":
+			err = jpeg.Encode(bw, img, nil)
+		case "png":
+			err = png.Encode(bw, img)
+		default:
+			err = errors.New("Unsupported image format")
+		}
 		bw.Flush()
 		if err != nil {
 			w.CloseWithError(err)

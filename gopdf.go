@@ -6,6 +6,7 @@ import (
 	"compress/zlib" // for constants
 	"fmt"
 	"image"
+	"image/jpeg"
 	"image/png"
 	"io"
 	"log"
@@ -124,6 +125,9 @@ type ImageOptions struct {
 	Transparency   *Transparency
 
 	extGStateIndexes []int
+}
+type ImageFromOption struct {
+	Format string
 }
 
 type MaskOptions struct {
@@ -732,6 +736,10 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 }
 
 func (gp *GoPdf) ImageFrom(img image.Image, x float64, y float64, rect *Rect) error {
+	return gp.ImageFromWithOption(img, x, y, rect, ImageFromOption{Format: "png"})
+}
+
+func (gp *GoPdf) ImageFromWithOption(img image.Image, x float64, y float64, rect *Rect, option ImageFromOption) error {
 	if img == nil {
 		return errors.New("Invalid image")
 	}
@@ -741,7 +749,14 @@ func (gp *GoPdf) ImageFrom(img image.Image, x float64, y float64, rect *Rect) er
 	r, w := io.Pipe()
 	go func() {
 		bw := bufio.NewWriter(w)
-		err := png.Encode(bw, img)
+		var err error
+		switch option.Format {
+		case "png":
+			err = png.Encode(bw, img)
+		case "jpeg":
+			err = jpeg.Encode(bw, img, nil)
+		}
+
 		bw.Flush()
 		if err != nil {
 			w.CloseWithError(err)

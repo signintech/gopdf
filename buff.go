@@ -31,12 +31,12 @@ func (b *Buff) Bytes() []byte {
 	return b.datas
 }
 
-// Position : get current postion
+// Position : get current position
 func (b *Buff) Position() int {
 	return b.position
 }
 
-// SetPosition : set current postion
+// SetPosition : set current position
 func (b *Buff) SetPosition(pos int) {
 	b.position = pos
 }

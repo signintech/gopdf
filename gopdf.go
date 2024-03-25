@@ -127,7 +127,7 @@ type ImageOptions struct {
 	extGStateIndexes []int
 }
 type ImageFromOption struct {
-	Format string
+	Format string //jpeg,png
 	X      float64
 	Y      float64
 	Rect   *Rect

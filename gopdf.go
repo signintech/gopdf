@@ -128,6 +128,9 @@ type ImageOptions struct {
 }
 type ImageFromOption struct {
 	Format string
+	X      float64
+	Y      float64
+	Rect   *Rect
 }
 
 type MaskOptions struct {
@@ -736,21 +739,26 @@ func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 }
 
 func (gp *GoPdf) ImageFrom(img image.Image, x float64, y float64, rect *Rect) error {
-	return gp.ImageFromWithOption(img, x, y, rect, ImageFromOption{Format: "png"})
+	return gp.ImageFromWithOption(img, ImageFromOption{
+		Format: "png",
+		X:      x,
+		Y:      y,
+		Rect:   rect,
+	})
 }
 
-func (gp *GoPdf) ImageFromWithOption(img image.Image, x float64, y float64, rect *Rect, option ImageFromOption) error {
+func (gp *GoPdf) ImageFromWithOption(img image.Image, opts ImageFromOption) error {
 	if img == nil {
 		return errors.New("Invalid image")
 	}
 
-	gp.UnitsToPointsVar(&x, &y)
-	rect = rect.UnitsToPoints(gp.config.Unit)
+	gp.UnitsToPointsVar(&opts.X, &opts.Y)
+	opts.Rect = opts.Rect.UnitsToPoints(gp.config.Unit)
 	r, w := io.Pipe()
 	go func() {
 		bw := bufio.NewWriter(w)
 		var err error
-		switch option.Format {
+		switch opts.Format {
 		case "png":
 			err = png.Encode(bw, img)
 		case "jpeg":
@@ -771,9 +779,9 @@ func (gp *GoPdf) ImageFromWithOption(img image.Image, x float64, y float64, rect
 	}
 
 	imageOptions := ImageOptions{
-		X:    x,
-		Y:    y,
-		Rect: rect,
+		X:    opts.X,
+		Y:    opts.Y,
+		Rect: opts.Rect,
 	}
 
 	return gp.imageByHolder(imgh, imageOptions)

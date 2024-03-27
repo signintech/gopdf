@@ -196,7 +196,7 @@ func (gp *GoPdf) SetLineType(linetype string) {
 //	pdf.SetCustomLineType([]float64{0.8, 0.8}, 0)
 //	pdf.Line(50, 200, 550, 200)
 func (gp *GoPdf) SetCustomLineType(dashArray []float64, dashPhase float64) {
-	for i, _ := range dashArray {
+	for i := range dashArray {
 		gp.UnitsToPointsVar(&dashArray[i])
 	}
 	gp.UnitsToPointsVar(&dashPhase)

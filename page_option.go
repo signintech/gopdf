@@ -7,10 +7,7 @@ type PageOption struct {
 }
 
 func (p PageOption) isEmpty() bool {
-	if p.PageSize == nil {
-		return true
-	}
-	return false
+	return p.PageSize == nil
 }
 
 func (p PageOption) isTrimBoxSet() bool {

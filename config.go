@@ -5,14 +5,16 @@ const (
 	UnitUnset = iota // No units were set, when conversion is called on nothing will happen
 	UnitPT           // Points
 	UnitMM           // Millimeters
-	UnitCM           // centimeters
-	UnitIN           // inches
+	UnitCM           // Centimeters
+	UnitIN           // Inches
+	UnitPX           // Pixels
 
 	// The math needed to convert units to points
 	conversionUnitPT = 1.0
 	conversionUnitMM = 72.0 / 25.4
 	conversionUnitCM = 72.0 / 2.54
 	conversionUnitIN = 72.0
+	conversionUnitPX = 3.0 / 4.0
 )
 
 // The units that can be used in the document (for backward compatibility)
@@ -21,8 +23,9 @@ const (
 	Unit_Unset = UnitUnset // No units were set, when conversion is called on nothing will happen
 	Unit_PT    = UnitPT    // Points
 	Unit_MM    = UnitMM    // Millimeters
-	Unit_CM    = UnitCM    // centimeters
-	Unit_IN    = UnitIN    // inches
+	Unit_CM    = UnitCM    // Centimeters
+	Unit_IN    = UnitIN    // Inches
+	Unit_PX    = UnitPX    // Pixels
 )
 
 // Config static config
@@ -53,6 +56,8 @@ func UnitsToPoints(t int, u float64) float64 {
 		return u * conversionUnitCM
 	case UnitIN:
 		return u * conversionUnitIN
+	case UnitPX:
+		return u * conversionUnitPX
 	default:
 		return u
 	}
@@ -69,6 +74,8 @@ func PointsToUnits(t int, u float64) float64 {
 		return u / conversionUnitCM
 	case UnitIN:
 		return u / conversionUnitIN
+	case UnitPX:
+		return u / conversionUnitPX
 	default:
 		return u
 	}

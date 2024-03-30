@@ -94,6 +94,10 @@ type GoPdf struct {
 
 	// gofpdi free pdf document importer
 	fpdi *gofpdi.Importer
+
+	indexOfLastObjWritten int
+	linelens              []int64
+	currCountingWriter    *countingWriter
 }
 
 type DrawableRectOptions struct {
@@ -903,6 +907,8 @@ func (gp *GoPdf) start(config Config, importer ...*gofpdi.Importer) {
 	if gp.isUseProtection() {
 		gp.pdfProtection = gp.createProtection()
 	}
+
+	gp.indexOfLastObjWritten = -1
 
 }
 
@@ -2269,6 +2275,49 @@ func (gp *GoPdf) IsCurrFontContainGlyph(r rune) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// streamCompilePDF compile only objects not yet compiled into the
+// writer w. endWrite denotes the end of any further writes
+func (gp *GoPdf) streamCompilePDF(w io.Writer, endWrite bool) (n int64, err error) {
+
+	max := len(gp.pdfObjs)
+	if gp.indexOfLastObjWritten == -1 {
+		gp.prepare()
+		err = gp.Close()
+		if err != nil {
+			return 0, err
+		}
+		gp.currCountingWriter = newCountingWriter(w)
+		fmt.Fprint(gp.currCountingWriter, "%PDF-1.7\n%����\n\n")
+		gp.linelens = make([]int64, max)
+		i := 0
+
+		for i < max {
+			objID := i + 1
+			gp.linelens[i] = gp.currCountingWriter.offset
+			pdfObj := gp.pdfObjs[i]
+			fmt.Fprintf(gp.currCountingWriter, "%d 0 obj\n", objID)
+			pdfObj.write(gp.currCountingWriter, objID)
+			io.WriteString(gp.currCountingWriter, "endobj\n\n")
+			i++
+		}
+	} else {
+		for i := gp.indexOfLastObjWritten; i < max; i++ {
+			objID := i + 1
+			gp.linelens[i] = gp.currCountingWriter.offset
+			pdfObj := gp.pdfObjs[i]
+			fmt.Fprintf(gp.currCountingWriter, "%d 0 obj\n", objID)
+			pdfObj.write(gp.currCountingWriter, objID)
+			io.WriteString(gp.currCountingWriter, "endobj\n\n")
+			i++
+		}
+	}
+
+	if endWrite {
+		gp.xref(gp.currCountingWriter, gp.currCountingWriter.offset, gp.linelens, gp.indexOfLastObjWritten)
+	}
+	return gp.currCountingWriter.offset, nil
 }
 
 //tool for validate pdf https://www.pdf-online.com/osa/validate.aspx

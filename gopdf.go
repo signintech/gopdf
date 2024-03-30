@@ -2320,4 +2320,10 @@ func (gp *GoPdf) streamCompilePDF(w io.Writer, endWrite bool) (n int64, err erro
 	return gp.currCountingWriter.offset, nil
 }
 
+// WriteTo implements the io.WriterTo interface and can
+// be used to stream the PDF as it is compiled to an io.Writer.
+func (gp *GoPdf) WriteDataTo(w io.Writer, endWrite bool) (n int64, err error) {
+	return gp.streamCompilePDF(w, endWrite)
+}
+
 //tool for validate pdf https://www.pdf-online.com/osa/validate.aspx

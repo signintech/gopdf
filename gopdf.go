@@ -1735,7 +1735,7 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return PointsToUnits(gp.config.Unit, textWidthPdfUnit), nil
+	return pointsToUnits(gp.config, textWidthPdfUnit), nil
 }
 
 // MeasureCellHeightByText : measure Height of cell by text (use current font)
@@ -1750,7 +1750,7 @@ func (gp *GoPdf) MeasureCellHeightByText(text string) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return PointsToUnits(gp.config.Unit, cellHeightPdfUnit), nil
+	return pointsToUnits(gp.config, cellHeightPdfUnit), nil
 }
 
 // Curve Draws a Bézier curve (the Bézier curve is tangent to the line between the control points at either end of the curve)
@@ -1969,8 +1969,8 @@ func (gp *GoPdf) init(importer ...*gofpdi.Importer) {
 	gp.compressLevel = zlib.DefaultCompression
 
 	// change the unit type
-	gp.config.PageSize = *gp.config.PageSize.UnitsToPoints(gp.config.Unit)
-	gp.config.TrimBox = *gp.config.TrimBox.UnitsToPoints(gp.config.Unit)
+	gp.config.PageSize = *gp.config.PageSize.unitsToPoints(gp.config)
+	gp.config.TrimBox = *gp.config.TrimBox.unitsToPoints(gp.config)
 
 	// init gofpdi free pdf document importer
 	gp.fpdi = importerOrDefault(importer...)
@@ -1991,22 +1991,22 @@ func (gp *GoPdf) resetCurrXY() {
 
 // UnitsToPoints converts the units to the documents unit type
 func (gp *GoPdf) UnitsToPoints(u float64) float64 {
-	return UnitsToPoints(gp.config.Unit, u)
+	return unitsToPoints(gp.config, u)
 }
 
 // UnitsToPointsVar converts the units to the documents unit type for all variables passed in
 func (gp *GoPdf) UnitsToPointsVar(u ...*float64) {
-	UnitsToPointsVar(gp.config.Unit, u...)
+	unitsToPointsVar(gp.config, u...)
 }
 
 // PointsToUnits converts the points to the documents unit type
 func (gp *GoPdf) PointsToUnits(u float64) float64 {
-	return PointsToUnits(gp.config.Unit, u)
+	return pointsToUnits(gp.config, u)
 }
 
 // PointsToUnitsVar converts the points to the documents unit type for all variables passed in
 func (gp *GoPdf) PointsToUnitsVar(u ...*float64) {
-	PointsToUnitsVar(gp.config.Unit, u...)
+	pointsToUnitsVar(gp.config, u...)
 }
 
 func (gp *GoPdf) isUseProtection() bool {

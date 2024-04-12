@@ -41,6 +41,7 @@ type cacheContentText struct {
 	//---result---
 	cellWidthPdfUnit, textWidthPdfUnit float64
 	cellHeightPdfUnit                  float64
+	isPlaceHolder                      bool
 }
 
 func (c *cacheContentText) isSame(cache cacheContentText) bool {
@@ -58,7 +59,8 @@ func (c *cacheContentText) isSame(cache cacheContentText) bool {
 		c.fontStyle == cache.fontStyle &&
 		c.charSpacing == cache.charSpacing &&
 		c.setXCount == cache.setXCount &&
-		c.y == cache.y {
+		c.y == cache.y &&
+		c.isPlaceHolder == cache.isPlaceHolder {
 		return true
 	}
 

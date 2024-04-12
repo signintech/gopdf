@@ -94,6 +94,9 @@ type GoPdf struct {
 
 	// gofpdi free pdf document importer
 	fpdi *gofpdi.Importer
+
+	//placeholder text
+	placeHolderTexts map[string]([]placeHolderTextInfo)
 }
 
 type DrawableRectOptions struct {
@@ -904,6 +907,8 @@ func (gp *GoPdf) start(config Config, importer ...*gofpdi.Importer) {
 		gp.pdfProtection = gp.createProtection()
 	}
 
+	gp.placeHolderTexts = make(map[string][]placeHolderTextInfo)
+
 }
 
 // convertNumericToFloat64 : accept numeric types, return float64-value
@@ -1384,6 +1389,61 @@ func (gp *GoPdf) SplitTextWithOption(text string, width float64, opt *BreakOptio
 		lineText = append(lineText, utf8Texts[i])
 	}
 	return lineTexts, nil
+}
+
+func (gp *GoPdf) PlaceHolderText(placeHolderName string, placeHolderWidth float64) error {
+
+	gp.PointsToUnitsVar(&placeHolderWidth)
+
+	//placeHolderText := fmt.Sprintf("{%s}", placeHolderName)
+	_, err := gp.curr.FontISubset.AddChars("")
+	if err != nil {
+		return err
+	}
+
+	err = gp.getContent().appendStreamPlaceHolderText(placeHolderWidth)
+	if err != nil {
+		return err
+	}
+
+	content := gp.pdfObjs[gp.indexOfContent].(*ContentObj)
+	indexInContent := len(content.listCache.caches) - 1
+	indexOfContent := gp.indexOfContent
+	fontISubset := gp.curr.FontISubset
+
+	gp.placeHolderTexts[placeHolderName] = append(
+		gp.placeHolderTexts[placeHolderName],
+		placeHolderTextInfo{
+			indexOfContent: indexOfContent,
+			indexInContent: indexInContent,
+			fontISubset:    fontISubset,
+		},
+	)
+
+	return nil
+}
+
+func (gp *GoPdf) FillInPlaceHoldText(placeHolderName string, text string) error {
+
+	infos, ok := gp.placeHolderTexts[placeHolderName]
+	if !ok {
+		return errors.New("placeHolderName not found")
+	}
+
+	for _, info := range infos {
+		content, ok := gp.pdfObjs[info.indexOfContent].(*ContentObj)
+		if !ok {
+			return errors.New("gp.pdfObjs is not *ContentObj")
+		}
+		contentText, ok := content.listCache.caches[info.indexInContent].(*cacheContentText)
+		if !ok {
+			return errors.New("listCache.caches is not *cacheContentText")
+		}
+		info.fontISubset.AddChars(text)
+		contentText.text = text
+	}
+
+	return nil
 }
 
 func performIndicatorSensitiveLineBreak(lineTexts *[]string, lineText *[]rune, i *int, opt *BreakOption) bool {

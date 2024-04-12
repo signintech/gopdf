@@ -99,6 +99,54 @@ func (c *ContentObj) getType() string {
 }
 
 // AppendStreamText append text
+func (c *ContentObj) appendStreamPlaceHolderText(placeHolderWidth float64) error {
+
+	//support only CURRENT_FONT_TYPE_SUBSET
+	textColor := c.getRoot().curr.textColor()
+	grayFill := c.getRoot().curr.grayFill
+	fontCountIndex := c.getRoot().curr.FontFontCount + 1
+	fontSize := c.getRoot().curr.FontSize
+	fontStyle := c.getRoot().curr.FontStyle
+	charSpacing := c.getRoot().curr.CharSpacing
+	x := c.getRoot().curr.X
+	y := c.getRoot().curr.Y
+	setXCount := c.getRoot().curr.setXCount
+	fontSubset := c.getRoot().curr.FontISubset
+
+	cellOption := CellOption{Transparency: c.getRoot().curr.transparency}
+
+	cache := cacheContentText{
+		fontSubset:     fontSubset,
+		rectangle:      nil,
+		textColor:      textColor,
+		grayFill:       grayFill,
+		fontCountIndex: fontCountIndex,
+		fontSize:       fontSize,
+		fontStyle:      fontStyle,
+		charSpacing:    charSpacing,
+		setXCount:      setXCount,
+		x:              x,
+		y:              y,
+		cellOpt:        cellOption,
+		pageheight:     c.getRoot().curr.pageSize.H,
+		contentType:    ContentTypeText,
+		lineWidth:      c.getRoot().curr.lineWidth,
+		txtColorMode:   c.getRoot().curr.txtColorMode,
+		isPlaceHolder:  true,
+	}
+
+	//var err error
+	//c.getRoot().curr.X, c.getRoot().curr.Y, err = c.listCache.appendContentText(cache, "")
+	//if err != nil {
+	//	return err
+	//}
+	c.listCache.append(&cache)
+	c.getRoot().curr.X += placeHolderWidth
+
+	return nil
+}
+
+// AppendStreamText append text
 func (c *ContentObj) AppendStreamText(text string) error {
 
 	//support only CURRENT_FONT_TYPE_SUBSET

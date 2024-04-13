@@ -5,7 +5,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/pkg/errors"
+	"errors"
 )
 
 // TODO: add all fields https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/PDF32000_2008.pdf 8.4.5 page 128

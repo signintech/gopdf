@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/pkg/errors"
+	"errors"
 )
 
 type BlendModeType string
@@ -39,7 +39,7 @@ type Transparency struct {
 
 func NewTransparency(alpha float64, blendModeType string) (Transparency, error) {
 	if alpha < 0.0 || alpha > 1.0 {
-		return Transparency{}, errors.Errorf("alpha value is out of range (0.0 - 1.0): %.3f", alpha)
+		return Transparency{}, fmt.Errorf("alpha value is out of range (0.0 - 1.0): %.3f", alpha)
 	}
 
 	bmtType, err := defineBlendModeType(blendModeType)

@@ -1,7 +1,13 @@
 package gopdf
 
+type PlaceHolderTextOption struct {
+	//Left 8 , Right 2 ,Center  16
+	Align int
+}
+
 type placeHolderTextInfo struct {
-	indexOfContent int
-	indexInContent int
-	fontISubset    *SubsetFontObj
+	indexOfContent   int
+	indexInContent   int
+	fontISubset      *SubsetFontObj
+	placeHolderWidth float64
 }

@@ -16,8 +16,9 @@ import (
 	"strings"
 	"time"
 
+	"errors"
+
 	"github.com/phpdave11/gofpdi"
-	"github.com/pkg/errors"
 )
 
 const subsetFont = "SubsetFont"
@@ -939,7 +940,7 @@ func convertNumericToFloat64(size interface{}) (fontSize float64, err error) {
 	case uint8:
 		return float64(size), nil
 	default:
-		return 0.0, errors.Errorf("fontSize must be of type (u)int* or float*, not %T", size)
+		return 0.0, fmt.Errorf("fontSize must be of type (u)int* or float*, not %T", size)
 	}
 }
 
@@ -1414,16 +1415,18 @@ func (gp *GoPdf) PlaceHolderText(placeHolderName string, placeHolderWidth float6
 	gp.placeHolderTexts[placeHolderName] = append(
 		gp.placeHolderTexts[placeHolderName],
 		placeHolderTextInfo{
-			indexOfContent: indexOfContent,
-			indexInContent: indexInContent,
-			fontISubset:    fontISubset,
+			indexOfContent:   indexOfContent,
+			indexInContent:   indexInContent,
+			fontISubset:      fontISubset,
+			placeHolderWidth: placeHolderWidth,
 		},
 	)
 
 	return nil
 }
 
-func (gp *GoPdf) FillInPlaceHoldText(placeHolderName string, text string) error {
+// align: Left,Right,Center
+func (gp *GoPdf) FillInPlaceHoldText(placeHolderName string, text string, align int) error {
 
 	infos, ok := gp.placeHolderTexts[placeHolderName]
 	if !ok {
@@ -1441,6 +1444,20 @@ func (gp *GoPdf) FillInPlaceHoldText(placeHolderName string, text string) error 
 		}
 		info.fontISubset.AddChars(text)
 		contentText.text = text
+
+		//TODO: ยังผิดอยู่นะ ต้องไม่ใช้ MeasureTextWidth
+		width, err := gp.MeasureTextWidth(text)
+		if err != nil {
+			return fmt.Errorf("MeasureTextWidth fail: %w", err)
+		}
+
+		if align == Right {
+			diff := info.placeHolderWidth - width
+			contentText.x = contentText.x + diff
+		} else if align == Center {
+			diff := info.placeHolderWidth - width
+			contentText.x = contentText.x + diff/2
+		}
 	}
 
 	return nil

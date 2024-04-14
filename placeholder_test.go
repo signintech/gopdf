@@ -50,7 +50,7 @@ func TestPlaceHolderText(t *testing.T) {
 		pdf.Text("content content content content content contents...")
 	}
 
-	err = pdf.FillInPlaceHoldText("totalnumber", fmt.Sprintf("%d", 5), Center) //<-- fillin text to PlaceHolder
+	err = pdf.FillInPlaceHoldText("totalnumber", fmt.Sprintf("%d", 5), Left) //<-- fillin text to PlaceHolder
 	if err != nil {
 		log.Print(err.Error())
 		return
@@ -74,48 +74,40 @@ func TestPlaceHolderText2(t *testing.T) {
 		return
 	}
 
-	err = pdf.SetFont("LiberationSerif-Regular", "", 14)
-	if err != nil {
-		log.Print(err.Error())
-		return
-	}
-
 	for i := 0; i < 5; i++ {
 		pdf.AddPage()
-		//err = pdf.SetFont("LiberationSerif-Regular", "", 14)
-		//if err != nil {
-		//	log.Print(err.Error())
-		//	return
-		//}
+		err = pdf.SetFont("LiberationSerif-Regular", "", 14)
+		if err != nil {
+			log.Print(err.Error())
+			return
+		}
 		pdf.Br(10)
 		pdf.SetX(250)
 		pdf.Text("page")
 		pagenumberPH := fmt.Sprintf("pagenumber_%d", i)
-		err = pdf.PlaceHolderText(pagenumberPH,
-			30,
-		) //<-- create PlaceHolder
+		err = pdf.PlaceHolderText(pagenumberPH, 20) //<-- create PlaceHolder
 		if err != nil {
 			log.Print(err.Error())
 			return
 		}
 
-		err := pdf.Text("of ")
+		err := pdf.Text("of")
 		if err != nil {
 			log.Print(err.Error())
 			return
 		}
-		err = pdf.PlaceHolderText("totalnumber", 30) //<-- create PlaceHolder
+		err = pdf.PlaceHolderText("totalnumber", 20) //<-- create PlaceHolder
 		if err != nil {
 			log.Print(err.Error())
 			return
 		}
 		pdf.Br(20)
 
-		//err = pdf.SetFont("LiberationSerif-Regular", "", 11)
-		//if err != nil {
-		//	log.Print(err.Error())
-		//	return
-		//}
+		err = pdf.SetFont("LiberationSerif-Regular", "", 11)
+		if err != nil {
+			log.Print(err.Error())
+			return
+		}
 		pdf.Text("content content content content content contents...")
 
 		err = pdf.FillInPlaceHoldText(pagenumberPH, fmt.Sprintf("%d", i+1), Center) //<-- fillin text to PlaceHolder
@@ -123,9 +115,10 @@ func TestPlaceHolderText2(t *testing.T) {
 			log.Print(err.Error())
 			return
 		}
+
 	}
 
-	err = pdf.FillInPlaceHoldText("totalnumber", fmt.Sprintf("%d", 5), Left) //<-- fillin text to PlaceHolder
+	err = pdf.FillInPlaceHoldText("totalnumber", fmt.Sprintf("%d", 5), Center) //<-- fillin text to PlaceHolder
 	if err != nil {
 		log.Print(err.Error())
 		return

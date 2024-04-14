@@ -10,4 +10,6 @@ type placeHolderTextInfo struct {
 	indexInContent   int
 	fontISubset      *SubsetFontObj
 	placeHolderWidth float64
+	fontSize         float64
+	charSpacing      float64
 }

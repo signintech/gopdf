@@ -1392,9 +1392,8 @@ func (gp *GoPdf) SplitTextWithOption(text string, width float64, opt *BreakOptio
 	return lineTexts, nil
 }
 
+// PlaceHolderText Create a text placehold for fillin text later with function FillInPlaceHoldText.
 func (gp *GoPdf) PlaceHolderText(placeHolderName string, placeHolderWidth float64) error {
-
-	gp.PointsToUnitsVar(&placeHolderWidth)
 
 	//placeHolderText := fmt.Sprintf("{%s}", placeHolderName)
 	_, err := gp.curr.FontISubset.AddChars("")
@@ -1402,6 +1401,7 @@ func (gp *GoPdf) PlaceHolderText(placeHolderName string, placeHolderWidth float6
 		return err
 	}
 
+	gp.PointsToUnitsVar(&placeHolderWidth)
 	err = gp.getContent().appendStreamPlaceHolderText(placeHolderWidth)
 	if err != nil {
 		return err
@@ -1419,12 +1419,15 @@ func (gp *GoPdf) PlaceHolderText(placeHolderName string, placeHolderWidth float6
 			indexInContent:   indexInContent,
 			fontISubset:      fontISubset,
 			placeHolderWidth: placeHolderWidth,
+			fontSize:         gp.curr.FontSize,
+			charSpacing:      gp.curr.CharSpacing,
 		},
 	)
 
 	return nil
 }
 
+// fill in text that created by function PlaceHolderText
 // align: Left,Right,Center
 func (gp *GoPdf) FillInPlaceHoldText(placeHolderName string, text string, align int) error {
 
@@ -1445,11 +1448,12 @@ func (gp *GoPdf) FillInPlaceHoldText(placeHolderName string, text string, align 
 		info.fontISubset.AddChars(text)
 		contentText.text = text
 
-		//TODO: ยังผิดอยู่นะ ต้องไม่ใช้ MeasureTextWidth
-		width, err := gp.MeasureTextWidth(text)
+		//Calculate position
+		_, _, textWidthPdfUnit, err := createContent(gp.curr.FontISubset, text, info.fontSize, info.charSpacing, nil)
 		if err != nil {
-			return fmt.Errorf("MeasureTextWidth fail: %w", err)
+			return err
 		}
+		width := pointsToUnits(gp.config, textWidthPdfUnit)
 
 		if align == Right {
 			diff := info.placeHolderWidth - width

@@ -444,12 +444,12 @@ func main(){
     pdf := GoPdf{}
 	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
 	pdf.AddTTFFont("LiberationSerif-Regular", "LiberationSerif-Regular.ttf")
-    pdf.SetFont("LiberationSerif-Regular", "", 14) }
+	pdf.SetFont("LiberationSerif-Regular", "", 14) }
 
 	for i := 0; i < 5; i++ {
 		pdf.AddPage()
-        pdf.Br(20)
-        //create PlaceHolder
+        	pdf.Br(20)
+        	//create PlaceHolder
 		err = pdf.PlaceHolderText("totalnumber", 30)
 		if err != nil {
 			log.Print(err.Error())
@@ -458,7 +458,7 @@ func main(){
 
 	}
 
-    //fillin text to PlaceHolder
+    	//fillin text to PlaceHolder
 	err = pdf.FillInPlaceHoldText("totalnumber",fmt.Sprintf("%d", 5), Left)
 	if err != nil {
 		log.Print(err.Error())

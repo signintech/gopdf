@@ -430,14 +430,15 @@ func main() {
 
 ```
 
-### Create a placehold so that data can be filled in later.
+### Create placehold.
+We use this placehold as the position. Then the text can be fill in later. USe case: when we want to print the total number of pages in every page of pdf, but we don't know until we render every page of the pdf.
 
 There are 2 related functions:
 
 - PlaceHolderText(...) used for create a placehole to fill in text later.
 - FillInPlaceHoldText(...) for filling in text into the placeholde that created from PlaceHolderText.
 
-> this function(s) made for experimentation. There may be changes in the future.
+> this function(s) made for experimental. There may be changes in the future.
 
 ```go
 func main(){

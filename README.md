@@ -430,8 +430,8 @@ func main() {
 
 ```
 
-### Create placehold.
-We use this placehold as the position. Then the text can be fill in later. USe case: when we want to print the total number of pages in every page of pdf, but we don't know until we render every page of the pdf.
+### Placeholder.
+We use this placehold as the position. Then the text can be fill in later. Use case: when we want to print the total number of pages in every page of pdf, but we don't know until we render every page of the pdf.
 
 There are 2 related functions:
 

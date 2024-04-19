@@ -1,5 +1,4 @@
-gopdf
-====
+# gopdf
 
 gopdf is a simple library for generating PDF document written in Go lang.
 
@@ -14,17 +13,16 @@ A minimum version of Go 1.13 is required.
 - Password protection
 - Font [kerning](https://en.wikipedia.org/wiki/Kerning)
 
-
 ## Installation
- ```
- go get -u github.com/signintech/gopdf
- ```
 
+```
+go get -u github.com/signintech/gopdf
+```
 
-### Print text 
+### Print text
 
 ```go
-  
+
 package main
 import (
 	"log"
@@ -34,7 +32,7 @@ import (
 func main() {
 
 	pdf := gopdf.GoPdf{}
-	pdf.Start(gopdf.Config{ PageSize: *gopdf.PageSizeA4 })  
+	pdf.Start(gopdf.Config{ PageSize: *gopdf.PageSizeA4 })
 	pdf.AddPage()
 	err := pdf.AddTTFFont("wts11", "../ttf/wts11.ttf")
 	if err != nil {
@@ -67,9 +65,9 @@ pdf.Cell(nil, "您好")
 pdf.SetTextColorCMYK(0, 6, 14, 0)
 pdf.Cell
 ```
-  
+
 ### Image
-  
+
 ```go
 
 package main
@@ -80,7 +78,7 @@ import (
 
 func main() {
 	pdf := gopdf.GoPdf{}
-	pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4 })  
+	pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4 })
 	pdf.AddPage()
 	var err error
 	err = pdf.AddTTFFont("loma", "../ttf/Loma.ttf")
@@ -88,7 +86,7 @@ func main() {
 		log.Print(err.Error())
 		return
 	}
-	
+
 	pdf.Image("../imgs/gopher.jpg", 200, 50, nil) //print image
 	err = pdf.SetFont("loma", "", 14)
 	if err != nil {
@@ -100,7 +98,7 @@ func main() {
 
 	pdf.WritePdf("image.pdf")
 }
-``` 
+```
 
 ### Links
 
@@ -197,6 +195,7 @@ func main() {
 ```
 
 ### Draw line
+
 ```go
 pdf.SetLineWidth(2)
 pdf.SetLineType("dashed")
@@ -204,12 +203,14 @@ pdf.Line(10, 30, 585, 30)
 ```
 
 ### Draw oval
+
 ```go
 pdf.SetLineWidth(1)
 pdf.Oval(100, 200, 500, 500)
 ```
 
 ### Draw polygon
+
 ```go
 pdf.SetStrokeColor(255, 0, 0)
 pdf.SetLineWidth(2)
@@ -218,6 +219,7 @@ pdf.Polygon([]gopdf.Point{{X: 10, Y: 30}, {X: 585, Y: 200}, {X: 585, Y: 250}}, "
 ```
 
 ### Draw rectangle with round corner
+
 ```go
 pdf.SetStrokeColor(255, 0, 0)
 pdf.SetLineWidth(2)
@@ -229,6 +231,7 @@ if err != nil {
 ```
 
 ### Draw rectangle with round corner using CMYK color model
+
 ```go
 pdf.SetStrokeColorCMYK(88, 49, 0, 0)
 pdf.SetLineWidth(2)
@@ -240,6 +243,7 @@ if err != nil {
 ```
 
 ### Rotation text or image
+
 ```go
 pdf.SetXY(100, 100)
 pdf.Rotate(270.0, 100.0, 100.0)
@@ -248,7 +252,9 @@ pdf.RotateReset() //reset
 ```
 
 ### Set transparency
+
 Read about [transparency in pdf](https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/PDF32000_2008.pdf) `(page 320, section 11)`
+
 ```go
 // alpha - value of transparency, can be between `0` and `1`
 // blendMode - default value is `/Normal` - read about [blendMode and kinds of its](https://www.adobe.com/content/dam/acom/en/devnet/acrobat/pdfs/PDF32000_2008.pdf) `(page 325, section 11.3.5)`
@@ -261,6 +267,7 @@ pdf.SetTransparency(transparency Transparency)
 ```
 
 ### Password protection
+
 ```go
 package main
 
@@ -290,8 +297,11 @@ func main() {
 }
 
 ```
-### Import existing PDF 
+
+### Import existing PDF
+
 Import existing PDF power by package [gofpdi](https://github.com/phpdave11/gofpdi) created by @phpdave11 (thank you :smile:)
+
 ```go
 package main
 
@@ -387,10 +397,10 @@ import (
 )
 
 func main() {
-	
+
     pdf := gopdf.GoPdf{}
     mm6ToPx := 22.68
-    
+
     // Base trim-box
     pdf.Start(gopdf.Config{
         PageSize: *gopdf.PageSizeA4, //595.28, 841.89 = A4
@@ -408,7 +418,7 @@ func main() {
         log.Print(err.Error())
         return
     }
-    
+
     if err := pdf.SetFont("wts11", "", 14); err != nil {
         log.Print(err.Error())
         return
@@ -418,6 +428,45 @@ func main() {
     pdf.WritePdf("hello.pdf")
 }
 
+```
+
+### Create a placehold so that data can be filled in later.
+
+There are 2 related functions:
+
+- PlaceHolderText(...) used for create a placehole to fill in text later.
+- FillInPlaceHoldText(...) for filling in text into the placeholde that created from PlaceHolderText.
+
+> this function(s) made for experimentation. There may be changes in the future.
+
+```go
+func main(){
+    pdf := GoPdf{}
+	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf.AddTTFFont("LiberationSerif-Regular", "LiberationSerif-Regular.ttf")
+    pdf.SetFont("LiberationSerif-Regular", "", 14) }
+
+	for i := 0; i < 5; i++ {
+		pdf.AddPage()
+        pdf.Br(20)
+        //create PlaceHolder
+		err = pdf.PlaceHolderText("totalnumber", 30)
+		if err != nil {
+			log.Print(err.Error())
+			return
+		}
+
+	}
+
+    //fillin text to PlaceHolder
+	err = pdf.FillInPlaceHoldText("totalnumber",fmt.Sprintf("%d", 5), Left)
+	if err != nil {
+		log.Print(err.Error())
+		return
+	}
+
+	pdf.WritePdf("placeholder_text.pdf")
+}
 ```
 
 visit https://github.com/oneplus1000/gopdfsample for more samples.

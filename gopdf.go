@@ -1392,6 +1392,7 @@ func (gp *GoPdf) SplitTextWithOption(text string, width float64, opt *BreakOptio
 	return lineTexts, nil
 }
 
+// [experimental]
 // PlaceHolderText Create a text placehold for fillin text later with function FillInPlaceHoldText.
 func (gp *GoPdf) PlaceHolderText(placeHolderName string, placeHolderWidth float64) error {
 
@@ -1427,6 +1428,7 @@ func (gp *GoPdf) PlaceHolderText(placeHolderName string, placeHolderWidth float6
 	return nil
 }
 
+// [experimental]
 // fill in text that created by function PlaceHolderText
 // align: Left,Right,Center
 func (gp *GoPdf) FillInPlaceHoldText(placeHolderName string, text string, align int) error {

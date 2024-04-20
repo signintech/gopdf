@@ -433,10 +433,10 @@ func main() {
 ### Placeholder.
 With the placeholder function(s), you can create a placeholder to define a position. To make room for text to be add later.
 
-There are 2 related functions:
+There are 2 related function(s):
 
-- PlaceHolderText(...) used for create a placehole to fill in text later.
-- FillInPlaceHoldText(...) for filling in text into the placeholde that created from PlaceHolderText.
+- **PlaceHolderText(...)** used to create a placeholder to fill in text later.
+- **FillInPlaceHoldText(...)** used for filling in text into the placeholder that was created with **PlaceHolderText**.
 
 > this function(s) made for experimental. There may be changes in the future.
 

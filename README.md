@@ -443,7 +443,7 @@ There are 2 related function(s):
 ```go
 func main(){
     	pdf := GoPdf{}
-	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) 
 	pdf.AddTTFFont("LiberationSerif-Regular", "LiberationSerif-Regular.ttf")
 	pdf.SetFont("LiberationSerif-Regular", "", 14) }
 

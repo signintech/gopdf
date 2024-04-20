@@ -441,7 +441,7 @@ There are 2 related function(s):
 - **FillInPlaceHoldText(...)** used for filling in text into the placeholder that was created with **PlaceHolderText**.
 
 Use case: For example, when you want to print the "total number of pages" on every page in pdf file, but you don't know the "total number of pages" until you have created all the pages.
-You can use **func PlaceHolderText** to create the point where you want "total number of pages" to be printed. And then when you have created all the pages so you know the "total number of pages", you call **FillInPlaceHoldText(...)**. This function will take the text (in this case, text is "total number of pages") replace at the point. That been created since **func PlaceHolderText**.
+You can use **func PlaceHolderText** to create the point where you want "total number of pages" to be printed. And then when you have created all the pages so you know the "total number of pages", you call **FillInPlaceHoldText(...)**. This function will take the text (in this case, text is "total number of pages") replace at the point that been created since **func PlaceHolderText**.
 
 
 

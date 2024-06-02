@@ -237,7 +237,11 @@ func (t *TTFParser) ParseFontData(fontData []byte) error {
 	if err != nil {
 		return err
 	}
-	t.Skip(fd, 3*2) //searchRange, entrySelector, rangeShift
+	err = t.Skip(fd, 3*2) //searchRange, entrySelector, rangeShift
+	if err != nil {
+		return err
+	}
+
 	t.tables = make(map[string]TableDirectoryEntry)
 	for i < numTables {
 
@@ -587,8 +591,14 @@ func (t *TTFParser) PregReplace(pattern string, replacement string, subject stri
 
 // ParseCmap parse cmap table format 4 https://www.microsoft.com/typography/otspec/cmap.htm
 func (t *TTFParser) ParseCmap(fd *bytes.Reader) error {
-	t.Seek(fd, "cmap")
-	t.Skip(fd, 2) // version
+	err := t.Seek(fd, "cmap")
+	if err != nil {
+		return err
+	}
+	err = t.Skip(fd, 2) // version
+	if err != nil {
+		return err
+	}
 	numTables, err := t.ReadUShort(fd)
 	if err != nil {
 		return err
@@ -765,14 +775,17 @@ func (t *TTFParser) ParseCmap(fd *bytes.Reader) error {
 }
 
 func (t *TTFParser) FTell(fd *bytes.Reader) (uint, error) {
-	offset, err := fd.Seek(0, os.SEEK_CUR)
+	offset, err := fd.Seek(0, io.SeekCurrent)
 	return uint(offset), err
 }
 
 // ParseHmtx parse hmtx table  https://www.microsoft.com/typography/otspec/hmtx.htm
 func (t *TTFParser) ParseHmtx(fd *bytes.Reader) error {
+	err := t.Seek(fd, "hmtx")
+	if err != nil {
+		return err
+	}
 
-	t.Seek(fd, "hmtx")
 	i := uint(0)
 	for i < t.numberOfHMetrics {
 		advanceWidth, err := t.ReadUShort(fd)
@@ -787,7 +800,6 @@ func (t *TTFParser) ParseHmtx(fd *bytes.Reader) error {
 		i++
 	}
 	if t.numberOfHMetrics < t.numGlyphs {
-		var err error
 		lastWidth := t.widths[t.numberOfHMetrics-1]
 		t.widths, err = t.ArrayPadUint(t.widths, t.numGlyphs, lastWidth)
 		if err != nil {

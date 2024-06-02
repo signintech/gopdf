@@ -8,8 +8,14 @@ import (
 // ParseCmapFormat12 parse cmap table format 12 https://www.microsoft.com/typography/otspec/cmap.htm
 func (t *TTFParser) ParseCmapFormat12(fd *bytes.Reader) (bool, error) {
 
-	t.Seek(fd, "cmap")
-	t.Skip(fd, 2) //skip version
+	err := t.Seek(fd, "cmap")
+	if err != nil {
+		return false, err
+	}
+	err = t.Skip(fd, 2) //skip version
+	if err != nil {
+		return false, err
+	}
 	numTables, err := t.ReadUShort(fd)
 	if err != nil {
 		return false, err

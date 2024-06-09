@@ -2,17 +2,12 @@ package pagination
 
 import (
 	"fmt"
-	"image"
-	"image/color"
-	"image/draw"
 	"log"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/go-text/render"
-	"github.com/go-text/typesetting/font"
 	"github.com/signintech/gopdf"
 )
 
@@ -242,69 +237,4 @@ func TestLineBreak(t *testing.T) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-}
-	
-func TestHindiRendering(t *testing.T) {
-	var err error
-	pdf := &gopdf.GoPdf{}
-	pageSize := *gopdf.PageSizeA4
-	pdf.Start(gopdf.Config{PageSize: pageSize})
-	pdf.AddPage()
-
-	err = pdf.AddTTFFont("mangal", "../res/MangalRegular.ttf")
-	if err != nil {
-		log.Print(err.Error())
-		return
-	}
-
-	err = pdf.SetFont("mangal", "", 150)
-	if err != nil {
-		log.Print(err.Error())
-		return
-	}
-
-	r := &render.Renderer{
-		FontSize: 30,
-		Color:    color.Black,
-	}
-
-	text := "नमस्ते"
-
-	tw, err := pdf.MeasureTextWidth(text)
-	if err != nil {
-		log.Print(err.Error())
-		return
-	}
-
-	th, err := pdf.MeasureCellHeightByText(text)
-	if err != nil {
-		log.Print(err.Error())
-		return
-	}
-
-	img := image.NewNRGBA(image.Rect(0, 0, int(tw), int(th)))
-	draw.Draw(img, img.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
-	data, _ := os.Open("../res/MangalRegular.ttf")
-	face, _ := font.ParseTTF(data)
-
-	r.FontSize = 150
-	r.DrawString(text, img, face)
-
-	mid := pageSize.H/2 - th/2
-
-	var x float64 = 100
-	var y = mid - 100.0
-	imgRect := &gopdf.Rect{
-		W: tw,
-		H: th,
-	}
-	err = pdf.ImageFrom(img, x, y, imgRect)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	pdf.SetX(pageSize.W/2 - tw/2)
-	pdf.SetY(mid + 100.0)
-	pdf.Cell(nil, text)
-	pdf.WritePdf("page_hindi_rendering.pdf")
 }

@@ -195,7 +195,7 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 		log.Printf("Glyph ID: %d", gid)
 
 		fmt.Fprintf(w, "%04X", glyphindex)
-		leftRune = r 
+		leftRune = r
 		leftRuneIndex = glyphindex
 	}
 

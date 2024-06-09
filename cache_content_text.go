@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"strconv"
 )
@@ -133,6 +134,8 @@ func FormatFloatTrim(floatval float64) (formatted string) {
 	return strconv.FormatFloat(roundedFontSize, 'f', -1, 64)
 }
 
+var ErrGlyphNotFoundInFace = errors.New("glyph missing from go-text typesetting font face for rune")
+
 func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	x, err := c.calX()
 	if err != nil {
@@ -162,6 +165,8 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	}
 	io.WriteString(w, "[<")
 
+	var face = *(*c.fontSubset).ttfFontOption.Face
+
 	unitsPerEm := int(c.fontSubset.ttfp.UnitsPerEm())
 	var leftRune rune
 	var leftRuneIndex uint
@@ -183,8 +188,14 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 			}
 		}
 
+		gid, foundRune := face.Cmap.Lookup(r)
+		if !foundRune {
+			return ErrGlyphNotFoundInFace
+		}
+		log.Printf("Glyph ID: %d", gid)
+
 		fmt.Fprintf(w, "%04X", glyphindex)
-		leftRune = r
+		leftRune = r 
 		leftRuneIndex = glyphindex
 	}
 

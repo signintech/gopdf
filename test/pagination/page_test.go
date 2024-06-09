@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -189,5 +190,51 @@ func TestSetNewYCheckHeight(t *testing.T) {
 	pdf.SetNewY(y, 0)
 	if y != pdf.GetY() {
 		log.Fatalln(" y != pdf.GetY()")
+	}
+}
+
+func TestLineBreak(t *testing.T) {
+	var err error
+	pdf := &gopdf.GoPdf{}
+	pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4})
+	err = GetFont(pdf, "../res/LiberationSerif-Regular.ttf")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	err = pdf.SetFont("Ubuntu-L", "", 28)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	pdf.SetMargins(0, 20, 0, 10)
+	pdf.AddPage()
+
+	w := 500.0
+
+	var breakOptionTests = []*gopdf.BreakOption{
+		&gopdf.DefaultBreakOption,
+		{
+			Mode:           gopdf.BreakModeIndicatorSensitive,
+			BreakIndicator: ' ',
+		},
+	}
+
+	y := (gopdf.PageSizeA4.H/2 + 100.0*float64(len(breakOptionTests))) / 2
+	linebreakText := strings.Repeat("MultiCell* methods don't respect linebreaking rules.", 2)
+	for i, opt := range breakOptionTests {
+		pdf.SetXY(gopdf.PageSizeA4.W/2-w/2, y+100.0*float64(i))
+		err = pdf.MultiCellWithOption(&gopdf.Rect{
+			W: w,
+			H: 1000,
+		}, linebreakText, gopdf.CellOption{
+			BreakOption: opt,
+		})
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
+
+	err = pdf.WritePdf("page_linebreak.pdf")
+	if err != nil {
+		log.Fatalln(err)
 	}
 }

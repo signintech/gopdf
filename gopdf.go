@@ -18,6 +18,7 @@ import (
 
 	"errors"
 
+	"github.com/go-text/typesetting/font"
 	"github.com/phpdave11/gofpdi"
 )
 
@@ -1721,11 +1722,26 @@ func (gp *GoPdf) AddTTFFontWithOption(family string, ttfpath string, option TtfO
 	if _, err := os.Stat(ttfpath); os.IsNotExist(err) {
 		return err
 	}
-	data, err := os.ReadFile(ttfpath)
+	data, err := os.Open(ttfpath)
 	if err != nil {
 		return err
 	}
-	rd := bytes.NewReader(data)
+
+	if option.Face == nil {
+		face, err := font.ParseTTF(data)
+		if err != nil {
+			return err
+		}
+
+		option.Face = face
+	}
+
+	byteData, err := io.ReadAll(data)
+	if err != nil {
+		return err
+	}
+
+	rd := bytes.NewReader(byteData)
 	return gp.AddTTFFontByReaderWithOption(family, rd, option)
 }
 

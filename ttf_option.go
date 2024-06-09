@@ -1,11 +1,14 @@
 package gopdf
 
+import "github.com/go-text/typesetting/font"
+
 // TtfOption  font option
 type TtfOption struct {
 	UseKerning                bool
 	Style                     int               //Regular|Bold|Italic
 	OnGlyphNotFound           func(r rune)      //Called when a glyph cannot be found, just for debugging
 	OnGlyphNotFoundSubstitute func(r rune) rune //Called when a glyph cannot be found, we can return a new rune to replace it.
+	Face					  font.Face         //Used for alternative text rendering
 }
 
 func defaultTtfFontOption() TtfOption {

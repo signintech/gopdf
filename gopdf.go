@@ -1264,6 +1264,10 @@ func (gp *GoPdf) IsFitMultiCellWithNewline(rectangle *Rect, text string) (bool, 
 
 // MultiCellWithOption create of text with line breaks ( use current x,y is upper-left corner of cell)
 func (gp *GoPdf) MultiCellWithOption(rectangle *Rect, text string, opt CellOption) error {
+	if opt.BreakOption == nil {
+		opt.BreakOption = &DefaultBreakOption
+	}
+
 	transparency, err := gp.getCachedTransparency(opt.Transparency)
 	if err != nil {
 		return err
@@ -1273,10 +1277,7 @@ func (gp *GoPdf) MultiCellWithOption(rectangle *Rect, text string, opt CellOptio
 		opt.extGStateIndexes = append(opt.extGStateIndexes, transparency.extGStateIndex)
 	}
 
-	var line []rune
 	x := gp.GetX()
-	var totalLineHeight float64
-	length := len([]rune(text))
 
 	// get lineHeight
 	text, err = gp.curr.FontISubset.AddChars(text)
@@ -1289,29 +1290,17 @@ func (gp *GoPdf) MultiCellWithOption(rectangle *Rect, text string, opt CellOptio
 	}
 	gp.PointsToUnitsVar(&lineHeight)
 
-	for i, v := range []rune(text) {
-		if totalLineHeight+lineHeight > rectangle.H {
-			break
-		}
-		lineWidth, _ := gp.MeasureTextWidth(string(line))
-		runeWidth, _ := gp.MeasureTextWidth(string(v))
-
-		if lineWidth+runeWidth > rectangle.W {
-			gp.CellWithOption(&Rect{W: rectangle.W, H: lineHeight}, string(line), opt)
-			gp.Br(lineHeight)
-			gp.SetX(x)
-			totalLineHeight = totalLineHeight + lineHeight
-			line = nil
-		}
-
-		line = append(line, v)
-
-		if i == length-1 {
-			gp.CellWithOption(&Rect{W: rectangle.W, H: lineHeight}, string(line), opt)
-			gp.Br(lineHeight)
-			gp.SetX(x)
-		}
+	textSplits, err := gp.SplitTextWithOption(text, rectangle.W, opt.BreakOption)
+	if err != nil {
+		return err
 	}
+
+	for _, text := range textSplits {
+		gp.CellWithOption(&Rect{W: rectangle.W, H: lineHeight}, string(text), opt)
+		gp.Br(lineHeight)
+		gp.SetX(x)
+	}
+
 	return nil
 }
 

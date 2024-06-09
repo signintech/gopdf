@@ -43,6 +43,7 @@ type GoPdf struct {
 	//leftMargin float64
 	//topMargin  float64
 	margins Margins
+	textRenderer string
 
 	pdfObjs []IObj
 	config  Config
@@ -2013,6 +2014,9 @@ func (gp *GoPdf) init(importer ...*gofpdi.Importer) {
 		Right:  defaultMargin,
 		Bottom: defaultMargin,
 	}
+
+	//default text renderer
+	gp.textRenderer = "gopdf"
 
 	//init curr
 	gp.resetCurrXY()

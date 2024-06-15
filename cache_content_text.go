@@ -149,25 +149,6 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 		return err
 	}
 
-	face := *(*c.fontSubset).ttfFontOption.face
-
-	var output shaping.Output
-
-	text := []rune(c.text)
-
-	shaper := shaping.HarfbuzzShaper{}
-
-	output = shaper.Shape(
-		shaping.Input{
-			Text:     text,
-			RunStart: 0,
-			RunEnd:   len(text),
-			Face:     face,
-			Size:     fixed.Int26_6(c.fontSize),
-			Script:   language.LookupScript(text[0]),
-		},
-	)
-
 	for _, extGStateIndex := range c.cellOpt.extGStateIndexes {
 		linkToGSObj := fmt.Sprintf("/GS%d gs\n", extGStateIndex)
 		if _, err := io.WriteString(w, linkToGSObj); err != nil {
@@ -186,6 +167,25 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 		c.textColor.write(w, protection)
 	}
 	io.WriteString(w, "[")
+
+	face := *(*c.fontSubset).ttfFontOption.face
+
+	var output shaping.Output
+
+	text := []rune(c.text)
+
+	shaper := shaping.HarfbuzzShaper{}
+
+	output = shaper.Shape(
+		shaping.Input{
+			Text:     text,
+			RunStart: 0,
+			RunEnd:   len(text),
+			Face:     face,
+			Size:     fixed.Int26_6(c.fontSize),
+			Script:   language.LookupScript(text[0]),
+		},
+	)
 
 	for _, glyph := range output.Glyphs {
 		if c.fontSubset.ttfFontOption.UseKerning { //kerning

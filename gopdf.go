@@ -1731,7 +1731,7 @@ func (gp *GoPdf) AddTTFFontWithOption(family string, ttfpath string, option TtfO
 		return err
 	}
 
-	option.face = &face
+	option.face = face
 
 	return gp.AddTTFFontByReaderWithOption(family, bytes.NewReader(data), option)
 }

@@ -168,26 +168,7 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	}
 	io.WriteString(w, "[")
 
-	face := *(*c.fontSubset).ttfFontOption.face
-
-	var output shaping.Output
-
-	text := []rune(c.text)
-
-	shaper := shaping.HarfbuzzShaper{}
-
-	output = shaper.Shape(
-		shaping.Input{
-			Text:     text,
-			RunStart: 0,
-			RunEnd:   len(text),
-			Face:     face,
-			Size:     fixed.Int26_6(c.fontSize),
-			Script:   language.LookupScript(text[0]),
-		},
-	)
-
-	for _, glyph := range output.Glyphs {
+	for _, glyph := range getGlyphs(c.fontSubset, c.text, c.fontSize) {
 		if c.fontSubset.ttfFontOption.UseKerning { //kerning
 			fmt.Fprintf(w, "%d", glyph.XAdvance)
 		}
@@ -315,31 +296,10 @@ func (c *cacheContentText) createContent() (float64, float64, error) {
 }
 
 func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing float64, rectangle *Rect) (float64, float64, float64, error) {
-	face := *f.ttfFontOption.face
-
-	var output shaping.Output
-
-	runeText := []rune(text)
-
-	if face != nil {
-		shaper := shaping.HarfbuzzShaper{}
-
-		output = shaper.Shape(
-			shaping.Input{
-				Text:     runeText,
-				RunStart: 0,
-				RunEnd:   len(text),
-				Face:     face,
-				Size:     fixed.Int26_6(fontSize),
-				Script:   language.LookupScript(runeText[0]),
-			},
-		)
-	}
-
 	unitsPerEm := int(f.ttfp.UnitsPerEm())
 	sumWidth := int(0)
 	//fmt.Printf("unitsPerEm = %d", unitsPerEm)
-	for _, glyph := range output.Glyphs {
+	for _, glyph := range getGlyphs(f, text, fontSize) {
 		unitsPerPt := float64(unitsPerEm) / fontSize
 		spaceWidthInPt := unitsPerPt * charSpacing
 		spaceWidthPdfUnit := convertTTFUnit2PDFUnit(int(spaceWidthInPt), unitsPerEm)
@@ -360,6 +320,24 @@ func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing 
 	}
 	textWidthPdfUnit := float64(sumWidth) * (float64(fontSize) / 1000.0)
 	return cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, nil
+}
+
+func getGlyphs(f *SubsetFontObj, text string, fontSize float64) []shaping.Glyph {
+	face := f.ttfFontOption.face
+	runeText := []rune(text)
+	shaper := shaping.HarfbuzzShaper{}
+	output := shaper.Shape(
+		shaping.Input{
+			Text:     runeText,
+			RunStart: 0,
+			RunEnd:   len(runeText),
+			Face:     face,
+			Size:     fixed.Int26_6(fontSize),
+			Script:   language.LookupScript(runeText[0]),
+		},
+	)
+
+	return output.Glyphs
 }
 
 // CacheContent Export cacheContent

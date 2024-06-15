@@ -166,9 +166,14 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	if c.txtColorMode == "color" {
 		c.textColor.write(w, protection)
 	}
-	io.WriteString(w, "[")
 
 	shouldKern := c.fontSubset.ttfFontOption.UseKerning
+
+	io.WriteString(w, "[")
+
+	if !shouldKern {
+		io.WriteString(w, "<")
+	}
 
 	for _, glyph := range getGlyphs(c.fontSubset, c.text, c.fontSize) {
 		if shouldKern {
@@ -181,6 +186,10 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 		if shouldKern {
 			io.WriteString(w, ">")
 		}
+	}
+
+	if !shouldKern {
+		io.WriteString(w, ">")
 	}
 
 	io.WriteString(w, "] TJ\n")

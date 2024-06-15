@@ -238,7 +238,7 @@ func TestLineBreak(t *testing.T) {
 		log.Fatalln(err)
 	}
 }
-	
+
 func TestHindiRendering(t *testing.T) {
 	var err error
 	pdf := &gopdf.GoPdf{}
@@ -246,7 +246,11 @@ func TestHindiRendering(t *testing.T) {
 	pdf.Start(gopdf.Config{PageSize: pageSize})
 	pdf.AddPage()
 
-	err = pdf.AddTTFFont("mangal", "../res/MangalRegular.ttf")
+	err = pdf.AddTTFFontWithOption(
+		"mangal",
+		"../res/MangalRegular.ttf",
+		gopdf.TtfOption{UseKerning: true},
+	)
 	if err != nil {
 		log.Print(err.Error())
 		return

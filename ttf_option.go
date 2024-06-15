@@ -4,7 +4,7 @@ import "github.com/go-text/typesetting/font"
 
 // TtfOption  font option
 type TtfOption struct {
-	Face                      *font.Face
+	face                      *font.Face
 	UseKerning                bool
 	Style                     int               //Regular|Bold|Italic
 	OnGlyphNotFound           func(r rune)      //Called when a glyph cannot be found, just for debugging

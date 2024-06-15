@@ -1726,14 +1726,12 @@ func (gp *GoPdf) AddTTFFontWithOption(family string, ttfpath string, option TtfO
 		return err
 	}
 
-	if option.Face == nil {
-		face, err := font.ParseTTF(bytes.NewReader(data))
-		if err != nil {
-			return err
-		}
-
-		option.Face = &face
+	face, err := font.ParseTTF(bytes.NewReader(data))
+	if err != nil {
+		return err
 	}
+
+	option.face = &face
 
 	return gp.AddTTFFontByReaderWithOption(family, bytes.NewReader(data), option)
 }

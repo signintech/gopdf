@@ -138,6 +138,8 @@ func FormatFloatTrim(floatval float64) (formatted string) {
 }
 
 func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
+	// w = io.MultiWriter(w, os.Stdout)
+
 	x, err := c.calX()
 	if err != nil {
 		return err

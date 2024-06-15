@@ -185,17 +185,17 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	if c.txtColorMode == "color" {
 		c.textColor.write(w, protection)
 	}
-	io.WriteString(w, "[<")
+	io.WriteString(w, "[")
 
 	for _, glyph := range output.Glyphs {
 		if c.fontSubset.ttfFontOption.UseKerning { //kerning
-			fmt.Fprintf(w, ">%d<", glyph.XAdvance)
+			fmt.Fprintf(w, "%d", glyph.XAdvance)
 		}
 
-		fmt.Fprintf(w, "%04X", glyph.GlyphID)
+		fmt.Fprintf(w, "<%04X>", glyph.GlyphID)
 	}
 
-	io.WriteString(w, ">] TJ\n")
+	io.WriteString(w, "] TJ\n")
 	io.WriteString(w, "ET\n")
 
 	if c.fontStyle&Underline == Underline {

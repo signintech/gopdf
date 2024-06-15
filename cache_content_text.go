@@ -168,12 +168,19 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	}
 	io.WriteString(w, "[")
 
+	shouldKern := c.fontSubset.ttfFontOption.UseKerning
+
 	for _, glyph := range getGlyphs(c.fontSubset, c.text, c.fontSize) {
-		if c.fontSubset.ttfFontOption.UseKerning { //kerning
+		if shouldKern {
 			fmt.Fprintf(w, "%d", glyph.XAdvance)
+			io.WriteString(w, "<")
 		}
 
-		fmt.Fprintf(w, "<%04X>", glyph.GlyphID)
+		fmt.Fprintf(w, "%04X", glyph.GlyphID)
+
+		if shouldKern {
+			io.WriteString(w, ">")
+		}
 	}
 
 	io.WriteString(w, "] TJ\n")

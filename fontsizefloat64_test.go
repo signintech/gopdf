@@ -26,7 +26,7 @@ func TestSetFontCheckGetX(t *testing.T) {
 	prefix := "Afont"
 	font := "test/res/LiberationSerif-Regular.ttf"
 	pdf := GoPdf{}
-	pdf.Start(Config{Unit: UnitPT, PageSize: Rect{W: 595.28, H: 841.89}})
+	pdf.Start(Config{Unit: UnitPT, PageSize: *PageSizeA4})
 	pdf.AddPage()
 	if err := pdf.AddTTFFontWithOption(prefix, font, TtfOption{UseKerning: true}); err != nil {
 		t.Error(err)
@@ -59,7 +59,7 @@ func setup(t *testing.T) (string, *GoPdf, float64, float64) {
 	prefix := "Afont"
 	font := "test/res/LiberationSerif-Regular.ttf"
 	pdf := GoPdf{}
-	pdf.Start(Config{Unit: UnitPT, PageSize: Rect{W: 595.28, H: 841.89}})
+	pdf.Start(Config{Unit: UnitPT, PageSize: *PageSizeA4})
 	pdf.AddPage()
 	if err := pdf.AddTTFFontWithOption(prefix, font, TtfOption{UseKerning: true}); err != nil {
 		t.Error(err)

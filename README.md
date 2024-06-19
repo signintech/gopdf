@@ -63,7 +63,7 @@ pdf.Cell(nil, "您好")
 
 ```go
 pdf.SetTextColorCMYK(0, 6, 14, 0)
-pdf.Cell
+pdf.Cell(nil, "Hello")
 ```
 
 ### Image
@@ -431,6 +431,7 @@ func main() {
 ```
 
 ### Placeholder.
+
 > this function(s) made for experimental. There may be changes in the future.
 
 With the placeholder function(s), you can create a placeholder to define a position. To make room for text to be add later.
@@ -443,12 +444,10 @@ There are 2 related function(s):
 Use case: For example, when you want to print the "total number of pages" on every page in pdf file, but you don't know the "total number of pages" until you have created all the pages.
 You can use **func PlaceHolderText** to create the point where you want "total number of pages" to be printed. And then when you have created all the pages so you know the "total number of pages", you call **FillInPlaceHoldText(...)**. This function will take the text (in this case, text is "total number of pages") replace at the point that been created since **func PlaceHolderText**.
 
-
-
 ```go
 func main(){
     	pdf := GoPdf{}
-	pdf.Start(Config{PageSize: *PageSizeA4}) 
+	pdf.Start(Config{PageSize: *PageSizeA4})
 	pdf.AddTTFFont("LiberationSerif-Regular", "LiberationSerif-Regular.ttf")
 	pdf.SetFont("LiberationSerif-Regular", "", 14) }
 

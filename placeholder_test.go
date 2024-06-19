@@ -14,7 +14,7 @@ func TestPlaceHolderText(t *testing.T) {
 	}
 
 	pdf := GoPdf{}
-	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf.Start(Config{PageSize: *PageSizeA4})
 	err = pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
 	if err != nil {
 		t.Error(err)
@@ -67,7 +67,7 @@ func TestPlaceHolderText2(t *testing.T) {
 	}
 
 	pdf := GoPdf{}
-	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf.Start(Config{PageSize: *PageSizeA4})
 	err = pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
 	if err != nil {
 		t.Error(err)

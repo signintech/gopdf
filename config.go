@@ -17,7 +17,7 @@ const (
 	//We use a dpi of 96 dpi as the default, so we get a conversionUnitPX = 3.0 / 4.0, which comes from 72.0 / 96.0.
 	//If you want to change this value, you can change it at Config.ConversionForUnit
 	//example: If you use dpi at 300.0
-	//pdf.Start(gopdf.Config{PageSize: gopdf.Rect{W: 595.28, H: 841.89}, ConversionForUnit: 72.0 / 300.0 })
+	//pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4, ConversionForUnit: 72.0 / 300.0 })
 	conversionUnitPX = 3.0 / 4.0
 )
 

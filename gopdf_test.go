@@ -18,7 +18,7 @@ func BenchmarkPdfWithImageHolder(b *testing.B) {
 	}
 
 	pdf := GoPdf{}
-	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf.Start(Config{PageSize: *PageSizeA4})
 	pdf.AddPage()
 	err = pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
 	if err != nil {
@@ -218,7 +218,7 @@ func BenchmarkAddTTFFontByReader(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		pdf := &GoPdf{}
-		pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+		pdf.Start(Config{PageSize: *PageSizeA4})
 		if err := pdf.AddTTFFontByReader("LiberationSerif-Regular", bytes.NewReader(fontData)); err != nil {
 			return
 		}
@@ -261,7 +261,7 @@ func BenchmarkAddTTFFontData(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		pdf := &GoPdf{}
-		pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+		pdf.Start(Config{PageSize: *PageSizeA4})
 		if err := pdf.AddTTFFontData("LiberationSerif-Regular", fontData); err != nil {
 			return
 		}
@@ -325,7 +325,7 @@ func writeFile(name string, data []byte, perm os.FileMode) error {
 }
 
 func generatePDFBytesByAddTTFFontData(pdf *GoPdf, fontData []byte) ([]byte, error) {
-	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf.Start(Config{PageSize: *PageSizeA4})
 	if pdf.GetNumberOfPages() != 0 {
 		return nil, errors.New("Invalid starting number of pages, should be 0")
 	}
@@ -525,11 +525,11 @@ func TestClearValue(t *testing.T) {
 	}
 
 	pdf := GoPdf{}
-	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}, Protection: PDFProtectionConfig{
+	pdf.Start(Config{PageSize: *PageSizeA4, Protection: PDFProtectionConfig{
 		UseProtection: true,
 		OwnerPass:     []byte("123456"),
 		UserPass:      []byte("123456"),
-	}}) //595.28, 841.89 = A4
+	}})
 	pdf.AddPage()
 	err = pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
 	if err != nil {
@@ -569,10 +569,10 @@ func TestClearValue(t *testing.T) {
 	pdf.WritePdf("./test/out/test_clear_value.pdf")
 
 	//reset
-	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf.Start(Config{PageSize: *PageSizeA4})
 
 	pdf2 := GoPdf{}
-	pdf2.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf2.Start(Config{PageSize: *PageSizeA4})
 
 	//check
 	if pdf.margins != pdf2.margins {
@@ -790,7 +790,7 @@ func initTesting() error {
 // further processing. Tests will fail in case adding or setting the font fails.
 func setupDefaultA4PDF(t *testing.T) *GoPdf {
 	pdf := GoPdf{}
-	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+	pdf.Start(Config{PageSize: *PageSizeA4})
 	err := pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
 	if err != nil {
 		t.Fatal(err)

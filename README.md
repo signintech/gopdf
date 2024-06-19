@@ -113,7 +113,7 @@ import (
 
 func main()  {
 	pdf := gopdf.GoPdf{}
-	pdf.Start(gopdf.Config{ PageSize: *gopdf.PageSizeA4 }) //595.28, 841.89 = A4
+	pdf.Start(gopdf.Config{ PageSize: *gopdf.PageSizeA4 })
 	pdf.AddPage()
 	err := pdf.AddTTFFont("times", "./test/res/times.ttf")
 	if err != nil {
@@ -158,7 +158,7 @@ import (
 
 func main() {
     pdf := gopdf.GoPdf{}
-    pdf.Start(gopdf.Config{ PageSize: *gopdf.PageSizeA4 }) //595.28, 841.89 = A4
+    pdf.Start(gopdf.Config{ PageSize: *gopdf.PageSizeA4 })
 
     err := pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
     if err != nil {
@@ -282,7 +282,7 @@ func main() {
 
 	pdf := gopdf.GoPdf{}
 	pdf.Start(gopdf.Config{
-		PageSize: *gopdf.PageSizeA4, //595.28, 841.89 = A4
+		PageSize: *gopdf.PageSizeA4,
 		Protection: gopdf.PDFProtectionConfig{
 			UseProtection: true,
 			Permissions: gopdf.PermissionsPrint | gopdf.PermissionsCopy | gopdf.PermissionsModify,
@@ -328,7 +328,7 @@ func main() {
         }
 
         pdf := gopdf.GoPdf{}
-        pdf.Start(gopdf.Config{PageSize: gopdf.Rect{W: 595.28, H: 841.89}}) //595.28, 841.89 = A4
+        pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4})
 
         pdf.AddPage()
 
@@ -403,14 +403,14 @@ func main() {
 
     // Base trim-box
     pdf.Start(gopdf.Config{
-        PageSize: *gopdf.PageSizeA4, //595.28, 841.89 = A4
-        TrimBox: gopdf.Box{Left: mm6ToPx, Top: mm6ToPx, Right: 595 - mm6ToPx, Bottom: 842 - mm6ToPx},
+        PageSize: *gopdf.PageSizeA4,
+        TrimBox: gopdf.Box{Left: mm6ToPx, Top: mm6ToPx, Right: gopdf.PageSizeA4.W - mm6ToPx, Bottom: gopdf.PageSizeA4.H - mm6ToPx},
     })
 
     // Page trim-box
     opt := gopdf.PageOption{
-        PageSize: gopdf.PageSizeA4, //595.28, 841.89 = A4
-        TrimBox: &gopdf.Box{Left: mm6ToPx, Top: mm6ToPx, Right: 595 - mm6ToPx, Bottom: 842 - mm6ToPx},
+        PageSize: *gopdf.PageSizeA4,
+        TrimBox: &gopdf.Box{Left: mm6ToPx, Top: mm6ToPx, Right: gopdf.PageSizeA4.W - mm6ToPx, Bottom: gopdf.PageSizeA4.H - mm6ToPx},
     }
     pdf.AddPageWithOption(opt)
 
@@ -448,7 +448,7 @@ You can use **func PlaceHolderText** to create the point where you want "total n
 ```go
 func main(){
     	pdf := GoPdf{}
-	pdf.Start(Config{PageSize: Rect{W: 595.28, H: 841.89}}) 
+	pdf.Start(Config{PageSize: *PageSizeA4}) 
 	pdf.AddTTFFont("LiberationSerif-Regular", "LiberationSerif-Regular.ttf")
 	pdf.SetFont("LiberationSerif-Regular", "", 14) }
 

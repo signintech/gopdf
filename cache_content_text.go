@@ -6,6 +6,10 @@ import (
 	"io"
 	"math"
 	"strconv"
+
+	"github.com/go-text/typesetting/language"
+	"github.com/go-text/typesetting/shaping"
+	"golang.org/x/image/math/fixed"
 )
 
 const defaultCoefLineHeight = float64(1)
@@ -134,6 +138,8 @@ func FormatFloatTrim(floatval float64) (formatted string) {
 }
 
 func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
+	// w = io.MultiWriter(w, os.Stdout)
+
 	x, err := c.calX()
 	if err != nil {
 		return err
@@ -160,35 +166,33 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	if c.txtColorMode == "color" {
 		c.textColor.write(w, protection)
 	}
-	io.WriteString(w, "[<")
 
-	unitsPerEm := int(c.fontSubset.ttfp.UnitsPerEm())
-	var leftRune rune
-	var leftRuneIndex uint
-	for i, r := range c.text {
+	shouldKern := c.fontSubset.ttfFontOption.UseKerning
 
-		glyphindex, err := c.fontSubset.CharIndex(r)
-		if err == ErrCharNotFound {
-			continue
-		} else if err != nil {
-			return err
-		}
+	io.WriteString(w, "[")
 
-		pairvalPdfUnit := 0
-		if i > 0 && c.fontSubset.ttfFontOption.UseKerning { //kerning
-			pairval := kern(c.fontSubset, leftRune, r, leftRuneIndex, glyphindex)
-			pairvalPdfUnit = convertTTFUnit2PDFUnit(int(pairval), unitsPerEm)
-			if pairvalPdfUnit != 0 {
-				fmt.Fprintf(w, ">%d<", (-1)*pairvalPdfUnit)
-			}
-		}
-
-		fmt.Fprintf(w, "%04X", glyphindex)
-		leftRune = r
-		leftRuneIndex = glyphindex
+	if !shouldKern {
+		io.WriteString(w, "<")
 	}
 
-	io.WriteString(w, ">] TJ\n")
+	for _, glyph := range getGlyphs(c.fontSubset, c.text, c.fontSize) {
+		if shouldKern {
+			fmt.Fprintf(w, "%d", glyph.XAdvance)
+			io.WriteString(w, "<")
+		}
+
+		fmt.Fprintf(w, "%04X", glyph.GlyphID)
+
+		if shouldKern {
+			io.WriteString(w, ">")
+		}
+	}
+
+	if !shouldKern {
+		io.WriteString(w, ">")
+	}
+
+	io.WriteString(w, "] TJ\n")
 	io.WriteString(w, "ET\n")
 
 	if c.fontStyle&Underline == Underline {
@@ -308,39 +312,15 @@ func (c *cacheContentText) createContent() (float64, float64, error) {
 }
 
 func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing float64, rectangle *Rect) (float64, float64, float64, error) {
-
 	unitsPerEm := int(f.ttfp.UnitsPerEm())
-	var leftRune rune
-	var leftRuneIndex uint
 	sumWidth := int(0)
 	//fmt.Printf("unitsPerEm = %d", unitsPerEm)
-	for i, r := range text {
-
-		glyphindex, err := f.CharIndex(r)
-		if err == ErrCharNotFound {
-			continue
-		} else if err != nil {
-			return 0, 0, 0, err
-		}
-
-		pairvalPdfUnit := 0
-		if i > 0 && f.ttfFontOption.UseKerning { //kerning
-			pairval := kern(f, leftRune, r, leftRuneIndex, glyphindex)
-			pairvalPdfUnit = convertTTFUnit2PDFUnit(int(pairval), unitsPerEm)
-		}
-
-		width, err := f.CharWidth(r)
-		if err != nil {
-			return 0, 0, 0, err
-		}
-
+	for _, glyph := range getGlyphs(f, text, fontSize) {
 		unitsPerPt := float64(unitsPerEm) / fontSize
 		spaceWidthInPt := unitsPerPt * charSpacing
 		spaceWidthPdfUnit := convertTTFUnit2PDFUnit(int(spaceWidthInPt), unitsPerEm)
 
-		sumWidth += int(width) + int(pairvalPdfUnit) + spaceWidthPdfUnit
-		leftRune = r
-		leftRuneIndex = glyphindex
+		sumWidth += int(glyph.Width) + spaceWidthPdfUnit
 	}
 
 	cellWidthPdfUnit := float64(0)
@@ -358,25 +338,22 @@ func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing 
 	return cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, nil
 }
 
-func kern(f *SubsetFontObj, leftRune rune, rightRune rune, leftIndex uint, rightIndex uint) int16 {
+func getGlyphs(f *SubsetFontObj, text string, fontSize float64) []shaping.Glyph {
+	face := f.ttfFontOption.face
+	runeText := []rune(text)
+	shaper := shaping.HarfbuzzShaper{}
+	output := shaper.Shape(
+		shaping.Input{
+			Text:     runeText,
+			RunStart: 0,
+			RunEnd:   len(runeText),
+			Face:     face,
+			Size:     fixed.Int26_6(fontSize),
+			Script:   language.LookupScript(runeText[0]),
+		},
+	)
 
-	pairVal := int16(0)
-	if haveKerning, kval := f.KernValueByLeft(leftIndex); haveKerning {
-		if ok, v := kval.ValueByRight(rightIndex); ok {
-			pairVal = v
-		}
-	}
-
-	if f.funcKernOverride != nil {
-		pairVal = f.funcKernOverride(
-			leftRune,
-			rightRune,
-			leftIndex,
-			rightIndex,
-			pairVal,
-		)
-	}
-	return pairVal
+	return output.Glyphs
 }
 
 // CacheContent Export cacheContent

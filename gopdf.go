@@ -1208,11 +1208,11 @@ func (gp *GoPdf) MultiCellWithOption(rectangle *Rect, text string, opt CellOptio
 	length := len([]rune(text))
 
 	// get lineHeight
-	text, err = gp.curr.FontISubset.AddChars(text)
+	itext, err := gp.curr.FontISubset.AddChars(text)
 	if err != nil {
 		return err
 	}
-	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, nil)
+	_, lineHeight, _, err := createContent(gp.curr.FontISubset, itext, gp.curr.FontSize, nil)
 	if err != nil {
 		return err
 	}

@@ -160,13 +160,13 @@ func main() {
     pdf := gopdf.GoPdf{}
     pdf.Start(gopdf.Config{ PageSize: *gopdf.PageSizeA4 })
 
-    err := pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
+    err := pdf.AddTTFFont("font1", "./test/res/font1.ttf")
     if err != nil {
         log.Print(err.Error())
         return
     }
 
-    err = pdf.SetFont("LiberationSerif-Regular", "", 14)
+    err = pdf.SetFont("font1", "", 14)
     if err != nil {
         log.Print(err.Error())
         return
@@ -448,8 +448,8 @@ You can use **func PlaceHolderText** to create the point where you want "total n
 func main(){
     	pdf := GoPdf{}
 	pdf.Start(Config{PageSize: *PageSizeA4})
-	pdf.AddTTFFont("LiberationSerif-Regular", "LiberationSerif-Regular.ttf")
-	pdf.SetFont("LiberationSerif-Regular", "", 14) }
+	pdf.AddTTFFont("font1", "font1.ttf")
+	pdf.SetFont("font1", "", 14) }
 
 	for i := 0; i < 5; i++ {
 		pdf.AddPage()
@@ -473,5 +473,107 @@ func main(){
 	pdf.WritePdf("placeholder_text.pdf")
 }
 ```
+
+### Table Create
+```go
+package main
+
+import (
+    "fmt"
+
+    "github.com/signintech/gopdf"
+)
+
+func main() {
+
+	// Create a new PDF document
+	pdf := &gopdf.GoPdf{}
+	// Start the PDF with a custom page size (we'll adjust it later)
+	pdf.Start(gopdf.Config{PageSize: gopdf.Rect{W: 430, H: 200}})
+	// Add a new page to the document
+	pdf.AddPage()
+
+	 pdf.AddTTFFont("font1", "./font1.ttf")
+	pdf.SetFont("font1", "", 11)
+	
+	pdf.AddTTFFont("font2", "./font2.ttf")
+	pdf.SetFont("font2", "", 11)
+	
+	// Set the starting Y position for the table
+	tableStartY := 10.0
+	// Set the left margin for the table
+	marginLeft := 10.0
+
+	// Create a new table layout
+	table := pdf.NewTableLayout(marginLeft, tableStartY, 25, 5)
+
+	// Add columns to the table
+	table.AddColumn("CODE", 50, "left")
+	table.AddColumn("DESCRIPTION", 200, "left")
+	table.AddColumn("QTY.", 40, "right")
+	table.AddColumn("PRICE", 60, "right")
+	table.AddColumn("TOTAL", 60, "right")
+
+	// Add rows to the table
+	table.AddRow([]string{"001", "Product A", "2", "10.00", "20.00"})
+	table.AddRow([]string{"002", "Product B", "1", "15.00", "15.00"})
+	table.AddRow([]string{"003", "Product C", "3", "5.00", "15.00"})
+
+	// Set the style for table cells
+	table.SetTableStyle(gopdf.CellStyle{
+		BorderStyle: gopdf.BorderStyle{
+			Top:    true,
+			Left:   true,
+			Bottom: true,
+			Right:  true,
+			Width:  1.0,
+		},
+		FillColor: gopdf.RGBColor{R: 255, G: 255, B: 255},
+		TextColor: gopdf.RGBColor{R: 0, G: 0, B: 0},
+		FontSize:  10,
+	})
+
+	// Set the style for table header
+	table.SetHeaderStyle(gopdf.CellStyle{
+		BorderStyle: gopdf.BorderStyle{
+			Top:      true,
+			Left:     true,
+			Bottom:   true,
+			Right:    true,
+			Width:    2.0,
+			RGBColor: gopdf.RGBColor{R: 100, G: 150, B: 255},
+		},
+		FillColor: gopdf.RGBColor{R: 255, G: 200, B: 200},
+		TextColor: gopdf.RGBColor{R: 255, G: 100, B: 100},
+		Font:      "font2",
+		FontSize:  12,
+	})
+
+	table.SetCellStyle(gopdf.CellStyle{
+		BorderStyle: gopdf.BorderStyle{
+			Right:    true,
+			Bottom:   true,
+			Width:    0.5,
+			RGBColor: gopdf.RGBColor{R: 0, G: 0, B: 0},
+		},
+		FillColor: gopdf.RGBColor{R: 255, G: 255, B: 255},
+		TextColor: gopdf.RGBColor{R: 0, G: 0, B: 0},
+		Font:      "font1",
+		FontSize:  10,
+	})
+
+	// Draw the table
+	table.DrawTable()
+
+
+	// Save the PDF to the specified path
+     pdf.WritePdf("table.pdf")
+
+}
+```
+
+result:
+![table](./examples/table/table_example.jpg)
+
 
 visit https://github.com/oneplus1000/gopdfsample for more samples.

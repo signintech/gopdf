@@ -238,3 +238,30 @@ func TestLineBreak(t *testing.T) {
 		log.Fatalln(err)
 	}
 }
+
+func TestHindiRendering(t *testing.T) {
+	var err error
+	pdf := &gopdf.GoPdf{}
+	pageSize := *gopdf.PageSizeA4
+	pdf.Start(gopdf.Config{PageSize: pageSize})
+	pdf.AddPage()
+
+	err = pdf.AddTTFFontWithOption(
+		"mangal",
+		"../res/MangalRegular.ttf",
+		gopdf.TtfOption{UseKerning: true},
+	)
+	if err != nil {
+		log.Print(err.Error())
+		return
+	}
+
+	err = pdf.SetFont("mangal", "", 14)
+	if err != nil {
+		log.Print(err.Error())
+		return
+	}
+
+	pdf.Cell(nil, "नमस्ते")
+	pdf.WritePdf("page_hindi_rendering.pdf")
+}

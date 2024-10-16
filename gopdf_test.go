@@ -802,3 +802,26 @@ func setupDefaultA4PDF(t *testing.T) *GoPdf {
 	}
 	return &pdf
 }
+
+func TestImportPagesFromFile(t *testing.T) {
+	err := os.MkdirAll("./test/out", 0777)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	pdf := GoPdf{}
+	pdf.Start(Config{PageSize: *PageSizeA4})
+
+	err = pdf.ImportPagesFromFile("./examples/outline_example/outline_demo.pdf", "/MediaBox")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = pdf.WritePdf("./test/out/open-existing-pdf.pdf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+}

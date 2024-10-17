@@ -819,6 +819,47 @@ func TestImportPagesFromFile(t *testing.T) {
 		return
 	}
 
+	err = pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = pdf.SetFont("LiberationSerif-Regular", "", 14)
+
+	err = pdf.SetPage(1)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	pdf.SetXY(350, 50)
+	err = pdf.Cell(&Rect{W: 20, H: 30}, "Hello World")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = pdf.SetPage(2)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	pdf.SetXY(350, 50)
+	err = pdf.Cell(&Rect{W: 20, H: 30}, "Hello World")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = pdf.SetPage(3)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	pdf.SetXY(350, 50)
+	err = pdf.Cell(&Rect{W: 20, H: 30}, "Hello World")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
 	err = pdf.WritePdf("./test/out/open-existing-pdf.pdf")
 	if err != nil {
 		t.Error(err)

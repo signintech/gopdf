@@ -2396,4 +2396,21 @@ func (gp *GoPdf) IsCurrFontContainGlyph(r rune) (bool, error) {
 	return true, nil
 }
 
+// SetPage set current page
+func (gp *GoPdf) SetPage(pageno int) error {
+	var pageIndex int
+	for i := 0; i < len(gp.pdfObjs); i++ {
+		switch gp.pdfObjs[i].(type) {
+		case *ContentObj:
+			pageIndex += 1
+			if pageIndex == pageno {
+				gp.indexOfContent = i
+				return nil
+			}
+		}
+	}
+
+	return errors.New("invalid page number")
+}
+
 //tool for validate pdf https://www.pdf-online.com/osa/validate.aspx

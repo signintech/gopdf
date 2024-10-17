@@ -813,7 +813,7 @@ func TestImportPagesFromFile(t *testing.T) {
 	pdf := GoPdf{}
 	pdf.Start(Config{PageSize: *PageSizeA4})
 
-	err = pdf.ImportPagesFromFile("./examples/outline_example/outline_demo.pdf", "/MediaBox")
+	err = pdf.ImportPagesFromSource("./examples/outline_example/outline_demo.pdf", "/MediaBox")
 	if err != nil {
 		t.Error(err)
 		return

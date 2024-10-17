@@ -1574,11 +1574,79 @@ func (gp *GoPdf) UseImportedTemplate(tplid int, x float64, y float64, w float64,
 	gp.getContent().AppendStreamImportedTemplate(tplName, scaleX, scaleY, tX, tY)
 }
 
-
 // ImportPagesFromFile imports pages from a source file.
 func (gp *GoPdf) ImportPagesFromFile(sourceFile string, box string) error {
 	// Set source file for fpdi
 	gp.fpdi.SetSourceFile(sourceFile)
+
+	// Get number of pages from source file
+	pages := gp.fpdi.GetNumPages()
+
+	// Get page sizes from source file
+	sizes := gp.fpdi.GetPageSizes()
+
+	for i := 0; i < pages; i++ {
+		pageno := i + 1
+
+		// Get the size of the page
+		size, ok := sizes[pageno][box]
+		if !ok {
+			return errors.New("can not get page size")
+		}
+
+		// Add a new page to the document
+		gp.AddPage()
+
+		// gofpdi needs to know where to start the object id at.
+		// By default, it starts at 1, but gopdf adds a few objects initially.
+		startObjID := gp.GetNextObjectID()
+
+		// Set gofpdi next object ID to  whatever the value of startObjID is
+		gp.fpdi.SetNextObjectID(startObjID)
+
+		// Import page
+		tpl := gp.fpdi.ImportPage(pageno, box)
+
+		// Import objects into current pdf document
+		tplObjIDs := gp.fpdi.PutFormXobjects()
+
+		// Set template names and ids in gopdf
+		gp.ImportTemplates(tplObjIDs)
+
+		// Get a map[int]string of the imported objects.
+		// The map keys will be the ID of each object.
+		imported := gp.fpdi.GetImportedObjects()
+
+		// Import gofpdi objects into gopdf, starting at whatever the value of startObjID is
+		gp.ImportObjects(imported, startObjID)
+
+		// Draws the imported template on the current page
+		gp.UseImportedTemplate(tpl, 0, 0, size["w"], size["h"])
+	}
+
+	return nil
+}
+
+// ImportPagesFromSource imports pages from a source pdf.
+// The source can be a file path, byte slice, or (*)io.ReadSeeker.
+func (gp *GoPdf) ImportPagesFromSource(source interface{}, box string) error {
+	switch v := source.(type) {
+	case string:
+		// Set source file for fpdi
+		gp.fpdi.SetSourceFile(v)
+	case []byte:
+		// Set source stream for fpdi
+		rs := io.ReadSeeker(bytes.NewReader(v))
+		gp.fpdi.SetSourceStream(&rs)
+	case io.ReadSeeker:
+		// Set source stream for fpdi
+		gp.fpdi.SetSourceStream(&v)
+	case *io.ReadSeeker:
+		// Set source stream for fpdi
+		gp.fpdi.SetSourceStream(v)
+	default:
+		return errors.New("source type not supported")
+	}
 
 	// Get number of pages from source file
 	pages := gp.fpdi.GetNumPages()

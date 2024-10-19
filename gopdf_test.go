@@ -802,3 +802,67 @@ func setupDefaultA4PDF(t *testing.T) *GoPdf {
 	}
 	return &pdf
 }
+
+func TestImportPagesFromFile(t *testing.T) {
+	err := os.MkdirAll("./test/out", 0777)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	pdf := GoPdf{}
+	pdf.Start(Config{PageSize: *PageSizeA4})
+
+	err = pdf.ImportPagesFromSource("./examples/outline_example/outline_demo.pdf", "/MediaBox")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = pdf.SetFont("LiberationSerif-Regular", "", 14)
+
+	err = pdf.SetPage(1)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	pdf.SetXY(350, 50)
+	err = pdf.Cell(&Rect{W: 20, H: 30}, "Hello World")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = pdf.SetPage(2)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	pdf.SetXY(350, 50)
+	err = pdf.Cell(&Rect{W: 20, H: 30}, "Hello World")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = pdf.SetPage(3)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	pdf.SetXY(350, 50)
+	err = pdf.Cell(&Rect{W: 20, H: 30}, "Hello World")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = pdf.WritePdf("./test/out/open-existing-pdf.pdf")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+}

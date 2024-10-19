@@ -240,19 +240,20 @@ func (t *tableLayout) drawCell(x, y, width, height float64, content, align strin
 func (t *tableLayout) drawBorder(x1, y1, x2, y2 float64, borderStyle BorderStyle) error {
 	t.pdf.SetLineWidth(borderStyle.Width)
 	t.pdf.SetStrokeColor(borderStyle.RGBColor.R, borderStyle.RGBColor.G, borderStyle.RGBColor.B)
+	half := borderStyle.Width / 2
 
 	// Draw each side of the border if specified
 	if borderStyle.Top {
-		t.pdf.Line(x1, y1, x2, y1)
+		t.pdf.Line(x1-half, y1, x2+half, y1)
 	}
 	if borderStyle.Bottom {
-		t.pdf.Line(x1, y2, x2, y2)
+		t.pdf.Line(x1-half, y2, x2+half, y2)
 	}
 	if borderStyle.Left {
-		t.pdf.Line(x1, y1, x1, y2)
+		t.pdf.Line(x1, y1-half, x1, y2+half)
 	}
 	if borderStyle.Right {
-		t.pdf.Line(x2, y1, x2, y2)
+		t.pdf.Line(x2, y1-half, x2, y2+half)
 	}
 
 	return nil

@@ -162,7 +162,7 @@ func parseImg(raw *bytes.Reader) (imgInfo, error) {
 			return info, err
 		}
 	} else if formatname == "gif" {
-		// parsegif extracts info from a GIF data (via PNG conversion)
+		// Convert to png
 		raw.Seek(0, 0)
 		var img image.Image
 		img, _, err = image.Decode(raw)
@@ -174,7 +174,6 @@ func parseImg(raw *bytes.Reader) (imgInfo, error) {
 		if err != nil {
 			return info, err
 		}
-		//err = parsePng(bytes.NewReader(pngBuf.Bytes()), &info, imgConfig)
 		info, err = parseImg(bytes.NewReader(pngBuf.Bytes()))
 		if err != nil {
 			return info, err

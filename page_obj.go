@@ -11,13 +11,13 @@ type PageObj struct { //impl IObj
 	Contents        string
 	ResourcesRelate string
 	pageOption      PageOption
-	Links           []linkOption
+	LinkObjIds      []int
 	getRoot         func() *GoPdf
 }
 
 func (p *PageObj) init(funcGetRoot func() *GoPdf) {
 	p.getRoot = funcGetRoot
-	p.Links = make([]linkOption, 0)
+	p.LinkObjIds = make([]int, 0)
 }
 
 func (p *PageObj) setOption(opt PageOption) {
@@ -31,15 +31,10 @@ func (p *PageObj) write(w io.Writer, objID int) error {
 	fmt.Fprintf(w, "  /Resources %s\n", p.ResourcesRelate)
 
 	var err error
-	gp := p.getRoot()
-	if len(p.Links) > 0 {
+	if len(p.LinkObjIds) > 0 {
 		io.WriteString(w, "  /Annots [")
-		for _, l := range p.Links {
-			if l.url != "" {
-				err = p.writeExternalLink(w, l, objID)
-			} else {
-				err = p.writeInternalLink(w, l, gp.anchors)
-			}
+		for _, l := range p.LinkObjIds {
+			_, err = fmt.Fprintf(w, "%d 0 R ", l)
 			if err != nil {
 				return err
 			}

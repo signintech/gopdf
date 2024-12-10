@@ -1673,15 +1673,25 @@ func (gp *GoPdf) ImportTemplates(tpls map[string]int) {
 // AddExternalLink adds a new external link.
 func (gp *GoPdf) AddExternalLink(url string, x, y, w, h float64) {
 	gp.UnitsToPointsVar(&x, &y, &w, &h)
-	page := gp.pdfObjs[gp.curr.IndexOfPageObj].(*PageObj)
-	page.Links = append(page.Links, linkOption{x, gp.config.PageSize.H - y, w, h, url, ""})
+
+	linkOpt := linkOption{x, gp.config.PageSize.H - y, w, h, url, ""}
+	gp.addLink(linkOpt)
 }
 
 // AddInternalLink adds a new internal link.
 func (gp *GoPdf) AddInternalLink(anchor string, x, y, w, h float64) {
 	gp.UnitsToPointsVar(&x, &y, &w, &h)
+
+	linkOpt := linkOption{x, gp.config.PageSize.H - y, w, h, "", anchor}
+	gp.addLink(linkOpt)
+}
+
+func (gp *GoPdf) addLink(option linkOption) {
 	page := gp.pdfObjs[gp.curr.IndexOfPageObj].(*PageObj)
-	page.Links = append(page.Links, linkOption{x, gp.config.PageSize.H - y, w, h, "", anchor})
+	linkObj := gp.addObj(annotObj{option, func() *GoPdf {
+		return gp
+	}})
+	page.LinkObjIds = append(page.LinkObjIds, linkObj+1)
 }
 
 // SetAnchor creates a new anchor.
@@ -2274,7 +2284,7 @@ func (gp *GoPdf) writeInfo(w io.Writer) {
 	}
 
 	if !zerotime.Equal(gp.info.CreationDate) {
-		fmt.Fprintf(w, "/CreationDate(D:%s)>>\n", infodate(gp.info.CreationDate))
+		fmt.Fprintf(w, "/CreationDate(D:%s)\n", infodate(gp.info.CreationDate))
 	}
 
 	io.WriteString(w, " >>\n")

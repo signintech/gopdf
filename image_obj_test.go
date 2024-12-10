@@ -44,6 +44,18 @@ func TestImagePares(t *testing.T) {
 		return
 	}
 
+	_, err = parseImgByPath("test/res/gopher03.gif")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	_, err = parseImgByPath("test/res/gopher03_color.gif")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
 }
 
 func TestImage02Pares(t *testing.T) {

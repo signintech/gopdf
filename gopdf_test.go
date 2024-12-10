@@ -93,6 +93,46 @@ func TestPdfWithImageHolder(t *testing.T) {
 	pdf.WritePdf("./test/out/image_test.pdf")
 }
 
+func TestPdfWithImageHolderGif(t *testing.T) {
+	err := initTesting()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	pdf := setupDefaultA4PDF(t)
+	pdf.AddPage()
+
+	bytesOfImg, err := os.ReadFile("./test/res/gopher03.gif")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	imgH, err := ImageHolderByBytes(bytesOfImg)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = pdf.ImageByHolder(imgH, 20.0, 20, nil)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	err = pdf.ImageByHolder(imgH, 20.0, 200, nil)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	pdf.SetXY(250, 200)
+	pdf.Cell(nil, "gopher and gopher")
+
+	pdf.WritePdf("./test/out/image_test_gif.pdf")
+}
+
 func TestRetrievingNumberOfPdfPage(t *testing.T) {
 	pdf := setupDefaultA4PDF(t)
 	if pdf.GetNumberOfPages() != 0 {

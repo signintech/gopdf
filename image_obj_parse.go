@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	_ "image/gif"
+	"image/png"
 	"io"
 	"os"
 	"strings"
@@ -159,6 +161,25 @@ func parseImg(raw *bytes.Reader) (imgInfo, error) {
 		if err != nil {
 			return info, err
 		}
+	} else if formatname == "gif" {
+		// Convert to png
+		raw.Seek(0, 0)
+		var img image.Image
+		img, _, err = image.Decode(raw)
+		if err != nil {
+			return info, err
+		}
+		pngBuf := new(bytes.Buffer)
+		err = png.Encode(pngBuf, img)
+		if err != nil {
+			return info, err
+		}
+		info, err = parseImg(bytes.NewReader(pngBuf.Bytes()))
+		if err != nil {
+			return info, err
+		}
+	} else {
+		return info, fmt.Errorf("Image format %v is not supported", formatname)
 	}
 
 	// fmt.Printf("%#v\n", info)

@@ -92,7 +92,7 @@ func PointsToUnits(t int, u float64) float64 {
 
 func pointsToUnits(unitCfg unitConfigurator, u float64) float64 {
 	if unitCfg.getConversionForUnit() != 0 {
-		return u * unitCfg.getConversionForUnit()
+		return u / unitCfg.getConversionForUnit()
 	}
 	switch unitCfg.getUnit() {
 	case UnitPT:

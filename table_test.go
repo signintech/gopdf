@@ -258,7 +258,7 @@ func TestTableWithStyledRows(t *testing.T) {
 
 	// Create a new table layout
 	table := pdf.NewTableLayout(marginLeft, tableStartY, 25, 5)
-	table.SetUseStyledRow(true)
+	//table.SetUseStyledRow(true)
 
 	// Add columns to the table
 	table.AddColumn("CODE", 50, "left")
@@ -319,6 +319,8 @@ func TestTableWithStyledRows(t *testing.T) {
 			TextColor: gopdf.RGBColor{R: 0, G: 255, B: 0},
 		}),
 	})
+
+	table.AddRow([]string{"004", "Product D", "7", "51.00", "1.00"})
 
 	// Set the style for table cells
 	table.SetTableStyle(gopdf.CellStyle{

@@ -258,7 +258,6 @@ func TestTableWithStyledRows(t *testing.T) {
 
 	// Create a new table layout
 	table := pdf.NewTableLayout(marginLeft, tableStartY, 25, 5)
-	//table.SetUseStyledRow(true)
 
 	// Add columns to the table
 	table.AddColumn("CODE", 50, "left")

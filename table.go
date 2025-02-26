@@ -45,6 +45,16 @@ func newStyledRowCell(content string, useCellStyle bool, cellStyle CellStyle) Ro
 	}
 }
 
+type TableLayout interface {
+	AddColumn(header string, width float64, align string)
+	AddRow(row []string)
+	AddStyledRow(row []RowCell)
+	SetTableStyle(style CellStyle)
+	SetHeaderStyle(style CellStyle)
+	SetCellStyle(style CellStyle)
+	DrawTable() error
+}
+
 // Represents the layout of a table
 type tableLayout struct {
 	pdf       *GoPdf      // Reference to the GoPdf instance
@@ -63,6 +73,8 @@ type tableLayout struct {
 	useStyledRow bool       // If true, use styledRows instead of rows
 }
 
+var _ TableLayout = (*tableLayout)(nil)
+
 // Represents a column in the table
 type column struct {
 	header string  // Header text for the column
@@ -71,7 +83,7 @@ type column struct {
 }
 
 // Creates a new table layout with the given parameters
-func (gp *GoPdf) NewTableLayout(startX, startY, rowHeight float64, maxRows int) *tableLayout {
+func (gp *GoPdf) NewTableLayout(startX, startY, rowHeight float64, maxRows int) TableLayout {
 	return &tableLayout{
 		pdf:       gp,
 		startX:    startX,
@@ -146,13 +158,6 @@ func (t *tableLayout) SetHeaderStyle(style CellStyle) {
 func (t *tableLayout) SetCellStyle(style CellStyle) {
 	t.cellStyle = style
 }
-
-// If set to true, styled rows will be used instead of regular []string rows.
-// Useful for styling individual cells in a row.
-// Example use case: style the 3rd cell in the 2nd row with a different font size (possibly, conditionally).
-//func (t *tableLayout) SetUseStyledRow(useStyledRow bool) {
-//	t.useStyledRow = useStyledRow
-//}
 
 // DrawTable the entire table on the PDF
 func (t *tableLayout) DrawTable() error {

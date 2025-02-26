@@ -64,13 +64,12 @@ type tableLayout struct {
 	columns   []column    // Slice of column definitions
 	rows      [][]RowCell // Slice of rows, each containing cell contents
 	//styledRows   [][]RowCell // Slice of rows, each containing cell contents and styles.
-	maxRows      int        // Maximum number of rows in the table
-	padding      float64    // Padding inside each cell
-	cellOption   CellOption // Options for cell content rendering
-	tableStyle   CellStyle  // Style for the entire table
-	headerStyle  CellStyle  // Style for the header row
-	cellStyle    CellStyle  // Style for regular cells
-	useStyledRow bool       // If true, use styledRows instead of rows
+	maxRows     int        // Maximum number of rows in the table
+	padding     float64    // Padding inside each cell
+	cellOption  CellOption // Options for cell content rendering
+	tableStyle  CellStyle  // Style for the entire table
+	headerStyle CellStyle  // Style for the header row
+	cellStyle   CellStyle  // Style for regular cells
 }
 
 var _ TableLayout = (*tableLayout)(nil)

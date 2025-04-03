@@ -22,12 +22,16 @@ import (
 
 const subsetFont = "SubsetFont"
 
+const colorSpace = "ColorSpace"
+
 // the default margin if no margins are set
 const defaultMargin = 10.0 //for backward compatible
 
 var ErrEmptyString = errors.New("empty string")
 
 var ErrMissingFontFamily = errors.New("font family not found")
+
+var ErrMissingColorSpace = errors.New("color space not found")
 
 var ErrUndefinedCacheContentImage = errors.New("cacheContentImage is undefined")
 
@@ -943,6 +947,51 @@ func convertNumericToFloat64(size interface{}) (fontSize float64, err error) {
 	}
 }
 
+func (gp *GoPdf) SetColorSpace(name string) error {
+	found := false
+	i := 0
+	max := len(gp.pdfObjs)
+	for i < max {
+		if gp.pdfObjs[i].getType() == colorSpace {
+			obj := gp.pdfObjs[i]
+			sub, ok := obj.(*ColorSpaceObj)
+			if ok {
+				if sub.Name == name {
+					gp.curr.IndexOfColorSpaceObj = i
+					gp.getContent().appendColorSpace(sub.CountOfSpaceColor)
+					found = true
+					break
+				}
+			}
+		}
+		i++
+	}
+
+	if !found {
+		return ErrMissingColorSpace
+	}
+
+	return nil
+}
+
+func (gp *GoPdf) AddColorSpace(name string, r, g, b uint8, contour bool) error {
+	colorSpace := ColorSpaceObj{}
+	colorSpace.SetColor(r, g, b)
+	colorSpace.Name = name
+	colorSpace.Contour = contour
+
+	index := gp.addObj(&colorSpace)
+
+	if gp.indexOfProcSet != -1 {
+		procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
+		procset.RelateColorSpaces = append(procset.RelateColorSpaces, RelateColorSpace{Name: name, IndexOfObj: index, CountOfColorSpace: gp.curr.CountOfColorSpace})
+		colorSpace.CountOfSpaceColor = gp.curr.CountOfColorSpace
+		gp.curr.CountOfFont++
+	}
+
+	return nil
+}
+
 // SetFontWithStyle : set font style support Regular or Underline
 // for Bold|Italic should be loaded appropriate fonts with same styles defined
 // size MUST be uint*, int* or float64*
@@ -1578,15 +1627,15 @@ func (gp *GoPdf) ImportPageStream(sourceStream *io.ReadSeeker, pageno int, box s
 // GetStreamPageSizes gets the sizes of the pages using a stream
 // Returns a map of available pages and its box sizes starting with the first page at index 1 containing a map of boxes containing a map of size values
 func (gp *GoPdf) GetStreamPageSizes(sourceStream *io.ReadSeeker) map[int]map[string]map[string]float64 {
-        gp.fpdi.SetSourceStream(sourceStream)
-        return gp.fpdi.GetPageSizes()
+	gp.fpdi.SetSourceStream(sourceStream)
+	return gp.fpdi.GetPageSizes()
 }
 
 // GetPageSizes gets the sizes of the pages of a pdf file1
 // Returns a map of available pages and its box sizes starting with the first page at index 1 containing a map of boxes containing a map of size values
 func (gp *GoPdf) GetPageSizes(sourceFile string) map[int]map[string]map[string]float64 {
-        gp.fpdi.SetSourceFile(sourceFile)
-        return gp.fpdi.GetPageSizes()
+	gp.fpdi.SetSourceFile(sourceFile)
+	return gp.fpdi.GetPageSizes()
 }
 
 // UseImportedTemplate draws an imported PDF page.

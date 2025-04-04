@@ -8,31 +8,26 @@ import (
 type ColorSpaceObj struct {
 	CountOfSpaceColor int
 	Name              string
-	Contour           bool
-	r                 float64
-	g                 float64
-	b                 float64
+	spaceName         string
+	colorString0      string
+	colorString1      string
+	space             string
 }
 
-func (c *ColorSpaceObj) init(func() *GoPdf) {}
+func (cs *ColorSpaceObj) init(func() *GoPdf) {}
 
-func (c *ColorSpaceObj) getType() string {
+func (cs *ColorSpaceObj) getType() string {
 	return "ColorSpace"
 }
 
-func (c *ColorSpaceObj) write(w io.Writer, objID int) error {
+func (cs *ColorSpaceObj) write(w io.Writer, objID int) error {
 
-	if c.Contour {
-		io.WriteString(w, "[ /Separation /CutContour /DeviceRGB\n")
-	} else {
-		io.WriteString(w, "[ /Separation /DeviceRGB\n")
-	}
-
+	fmt.Fprintf(w, "[ /Separation %s %s\n", cs.spaceName, cs.space)
 	io.WriteString(w, "		<< \n")
 	io.WriteString(w, "			/FunctionType 2\n")
 	io.WriteString(w, "			/Domain [0 1]\n")
-	io.WriteString(w, "			/C0 [0.0 0.0 0.0]\n")
-	fmt.Fprintf(w, "			/C1 [%.3f %.3f %.3f]\n", c.r, c.g, c.b)
+	fmt.Fprintf(w, "			/C0 [%s]\n", cs.colorString0)
+	fmt.Fprintf(w, "			/C1 [%s]\n", cs.colorString1)
 	io.WriteString(w, "			/N 1\n")
 	io.WriteString(w, "		>>\n")
 	io.WriteString(w, "]\n")
@@ -40,8 +35,16 @@ func (c *ColorSpaceObj) write(w io.Writer, objID int) error {
 	return nil
 }
 
-func (c *ColorSpaceObj) SetColor(r, g, b uint8) {
-	c.r = float64(r) / 255.0
-	c.g = float64(g) / 255.0
-	c.b = float64(b) / 255.0
+func (cs *ColorSpaceObj) SetColorRBG(r, g, b uint8) {
+	cs.colorString0 = "0.0 0.0 0.0"
+	cs.colorString1 = fmt.Sprintf("%.3f %.3f %.3f", float64(r)/255.0, float64(g)/255.0, float64(b)/255.0)
+	cs.space = "/DeviceRGB"
+	cs.spaceName = fmt.Sprintf("/%s", cs.Name)
+}
+
+func (cs *ColorSpaceObj) SetColorCMYK(c, m, y, k uint8) {
+	cs.colorString0 = "0.0 0.0 0.0 0.0"
+	cs.colorString1 = fmt.Sprintf("%.3f %.3f %.3f %.3f", float64(c)/100.0, float64(m)/100.0, float64(y)/100.0, float64(k)/100.0)
+	cs.space = "/DeviceCMYK"
+	cs.spaceName = fmt.Sprintf("/%s", cs.Name)
 }

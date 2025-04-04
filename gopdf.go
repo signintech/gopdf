@@ -33,6 +33,8 @@ var ErrMissingFontFamily = errors.New("font family not found")
 
 var ErrMissingColorSpace = errors.New("color space not found")
 
+var ErrExistsColorSpace = errors.New("color space already exists")
+
 var ErrUndefinedCacheContentImage = errors.New("cacheContentImage is undefined")
 
 var ErrInvalidRectangleCoordinates = errors.New("Invalid coordinates for the rectangle")
@@ -945,51 +947,6 @@ func convertNumericToFloat64(size interface{}) (fontSize float64, err error) {
 	default:
 		return 0.0, fmt.Errorf("fontSize must be of type (u)int* or float*, not %T", size)
 	}
-}
-
-func (gp *GoPdf) SetColorSpace(name string) error {
-	found := false
-	i := 0
-	max := len(gp.pdfObjs)
-	for i < max {
-		if gp.pdfObjs[i].getType() == colorSpace {
-			obj := gp.pdfObjs[i]
-			sub, ok := obj.(*ColorSpaceObj)
-			if ok {
-				if sub.Name == name {
-					gp.curr.IndexOfColorSpaceObj = i
-					gp.getContent().appendColorSpace(sub.CountOfSpaceColor)
-					found = true
-					break
-				}
-			}
-		}
-		i++
-	}
-
-	if !found {
-		return ErrMissingColorSpace
-	}
-
-	return nil
-}
-
-func (gp *GoPdf) AddColorSpace(name string, r, g, b uint8, contour bool) error {
-	colorSpace := ColorSpaceObj{}
-	colorSpace.SetColor(r, g, b)
-	colorSpace.Name = name
-	colorSpace.Contour = contour
-
-	index := gp.addObj(&colorSpace)
-
-	if gp.indexOfProcSet != -1 {
-		procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
-		procset.RelateColorSpaces = append(procset.RelateColorSpaces, RelateColorSpace{Name: name, IndexOfObj: index, CountOfColorSpace: gp.curr.CountOfColorSpace})
-		colorSpace.CountOfSpaceColor = gp.curr.CountOfColorSpace
-		gp.curr.CountOfFont++
-	}
-
-	return nil
 }
 
 // SetFontWithStyle : set font style support Regular or Underline
@@ -2508,6 +2465,71 @@ func (gp *GoPdf) SetPage(pageno int) error {
 	}
 
 	return errors.New("invalid page number")
+}
+
+func (gp *GoPdf) SetColorSpace(name string) error {
+	found := false
+	i := 0
+	max := len(gp.pdfObjs)
+	for i < max {
+		if gp.pdfObjs[i].getType() == colorSpace {
+			obj := gp.pdfObjs[i]
+			sub, ok := obj.(*ColorSpaceObj)
+			if ok {
+				if sub.Name == name {
+					gp.curr.IndexOfColorSpaceObj = i
+					gp.getContent().appendColorSpace(sub.CountOfSpaceColor)
+					found = true
+					break
+				}
+			}
+		}
+		i++
+	}
+
+	if !found {
+		return ErrMissingColorSpace
+	}
+
+	return nil
+}
+
+func (gp *GoPdf) AddColorSpaceRGB(name string, r, g, b uint8) error {
+	colorSpace := ColorSpaceObj{}
+	colorSpace.Name = name
+
+	colorSpace.SetColorRBG(r, g, b)
+
+	return gp.addColorSpace(&colorSpace)
+}
+
+func (gp *GoPdf) AddColorSpaceCMYK(name string, c, m, y, k uint8) error {
+	colorSpace := ColorSpaceObj{}
+	colorSpace.Name = name
+
+	colorSpace.SetColorCMYK(c, m, y, k)
+
+	return gp.addColorSpace(&colorSpace)
+}
+
+func (gp *GoPdf) addColorSpace(colorSpace *ColorSpaceObj) error {
+	index := gp.addObj(colorSpace)
+
+	if gp.indexOfProcSet != -1 {
+		procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
+
+		for _, relate := range procset.RelateColorSpaces {
+			if relate.Name == colorSpace.Name {
+				return ErrExistsColorSpace
+			}
+		}
+
+		procset.RelateColorSpaces = append(procset.RelateColorSpaces, RelateColorSpace{Name: colorSpace.Name, IndexOfObj: index, CountOfColorSpace: gp.curr.CountOfColorSpace})
+		colorSpace.CountOfSpaceColor = gp.curr.CountOfColorSpace
+		gp.curr.CountOfColorSpace++
+	}
+
+	return nil
 }
 
 //tool for validate pdf https://www.pdf-online.com/osa/validate.aspx

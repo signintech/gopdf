@@ -9,6 +9,7 @@ import (
 type ProcSetObj struct {
 	//Font
 	Relates             RelateFonts
+	RelateColorSpaces   RelateColorSpaces
 	RelateXobjs         RelateXobjects
 	ExtGStates          []ExtGS
 	ImportedTemplateIds map[string]int
@@ -32,6 +33,14 @@ func (pr *ProcSetObj) write(w io.Writer, objID int) error {
 	fonts += "\t>>\n"
 
 	content += fonts
+
+	colorSpaces := "\t/ColorSpace <<\n"
+	for _, relate := range pr.RelateColorSpaces {
+		colorSpaces += fmt.Sprintf("\t\t/CS%d %d 0 R\n", relate.CountOfColorSpace+1, relate.IndexOfObj+1)
+	}
+	colorSpaces += "\t>>\n"
+
+	content += colorSpaces
 
 	xobjects := "\t/XObject <<\n"
 	for _, XObject := range pr.RelateXobjs {
@@ -97,6 +106,16 @@ type RelateFont struct {
 	//etc  5 0 R
 	IndexOfObj int
 	Style      int // Regular|Bold|Italic
+}
+
+type RelateColorSpaces []RelateColorSpace
+
+type RelateColorSpace struct {
+	Name string
+	//etc /CS1
+	CountOfColorSpace int
+	//etc  5 0 R
+	IndexOfObj int
 }
 
 // RelateXobjects is a slice of RelateXobject.

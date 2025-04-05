@@ -438,6 +438,12 @@ func (c *ContentObj) appendRotateReset() {
 	c.listCache.append(&cache)
 }
 
+func (c *ContentObj) appendColorSpace(countOfSpaceColor int) {
+	var cache cacheColorSpace
+	cache.countOfSpaceColor = countOfSpaceColor
+	c.listCache.append(&cache)
+}
+
 // ContentObjCalTextHeight : calculates height of text.
 func ContentObjCalTextHeight(fontsize int) float64 {
 	return ContentObjCalTextHeightPrecise(float64(fontsize))

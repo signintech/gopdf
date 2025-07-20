@@ -126,3 +126,20 @@ func ExampleFontContainer_AddTTFFontDataWithOption() {
 		// handle error
 	}
 }
+
+func ExampleGoPdf_AddTTFFontFromFontContainer() {
+	fontContainer := &gopdf.FontContainer{}
+	err := fontContainer.AddTTFFontWithOption(
+		"LiberationSerif-Regular",
+		"path/to/LiberationSerif-Regular.ttf",
+		gopdf.TtfOption{})
+	if err != nil {
+		// handle error
+	}
+	pdf := &gopdf.GoPdf{}
+	pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4})
+	err = pdf.AddTTFFontFromFontContainer("LiberationSerif-Regular", fontContainer)
+	if err != nil {
+		// handle error
+	}
+}

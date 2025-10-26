@@ -160,52 +160,158 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	if c.txtColorMode == "color" {
 		c.textColor.write(w, protection)
 	}
-	io.WriteString(w, "[")
-
-    // shape the text and emit glyph ids with spacing adjustments (use advances only)
-    glyphs, adv, _, err := c.fontSubset.shapeTextMetrics(c.text, c.fontSize, c.charSpacing)
-    if err != nil {
-        return err
-    }
-    upem := int(c.fontSubset.ttfp.UnitsPerEm())
-    // Calibrate shaped advances to base widths so totals match even if font scale differs
-    ttfp := c.fontSubset.GetTTFParser()
-    widths := ttfp.Widths()
-    sumAdv := 0
-    sumBase := 0
-    for i := 0; i < len(glyphs); i++ {
-        gi := int(glyphs[i])
-        base := 0
-        if gi < len(widths) {
-            base = int(widths[gi])
-        } else if len(widths) > 0 {
-            base = int(widths[len(widths)-1])
-        }
-        sumBase += base
-        sumAdv += adv[i]
-    }
-    alpha := 1.0
-    if sumAdv != 0 {
-        alpha = float64(sumBase) / float64(sumAdv)
-    }
+    // shape the text and collect glyphs with advances and offsets
+    glyphs, adv, xoffs, yoffs, err := c.fontSubset.shapeTextMetrics(c.text, c.fontSize, c.charSpacing)
+	if err != nil {
+		return err
+	}
+	upem := int(c.fontSubset.ttfp.UnitsPerEm())
+	// Calibrate shaped advances to base widths so totals match even if font scale differs
+	sumAdv := 0
+	sumBase := 0
+	widths := c.fontSubset.ttfp.Widths()
+	for i := range glyphs {
+		sumAdv += adv[i]
+		gi := int(glyphs[i])
+		if gi < len(widths) {
+			sumBase += int(widths[gi])
+		} else if len(widths) > 0 {
+			sumBase += int(widths[len(widths)-1])
+		}
+	}
+	alpha := 1.0
+	if sumAdv != 0 {
+		alpha = float64(sumBase) / float64(sumAdv)
+	}
+    // Strategy: write normal glyphs in a single TJ segment using shaped advances only (no offsets),
+    // and isolate zero-advance marks to apply X/Y offsets locally with Ts/Td while cancelling width.
     n := len(glyphs)
-    for i := 0; i < n; i++ {
-        fmt.Fprintf(w, "<%04X>", glyphs[i])
-        if i < n-1 {
-            base := int(c.fontSubset.GlyphIndexToPdfWidth(uint(glyphs[i])))
-            // scale shaped advance into TTF space compatible with base widths
-            advScaledTTF := int(math.Round(float64(adv[i]) * alpha))
-            advPdf := convertTTFUnit2PDFUnit(advScaledTTF, upem)
-            adjust := advPdf - base
-            if adjust != 0 {
-                fmt.Fprintf(w, " %d ", (-1)*adjust)
-            } else {
-                io.WriteString(w, " ")
+    // precompute charSpacing contribution in PDF 1000 units
+    charPdf := 0
+    if c.charSpacing != 0 {
+        unitsPerPt := float64(upem) / float64(c.fontSize)
+        spaceWidthInTtf := int(math.Round(unitsPerPt * c.charSpacing))
+        charPdf = convertTTFUnit2PDFUnit(spaceWidthInTtf, upem)
+    }
+
+    // absolute per-glyph placement (robust for complex scripts; keeps text selectable)
+    {
+        xaccTTF := 0 // accumulate in TTF units
+        pairs := 0
+        for i := 0; i < n; i++ {
+            xAll := xaccTTF + xoffs[i]
+            xpts := x + float64(convertTTFUnit2PDFUnit(xAll, upem)) * (c.fontSize / 1000.0) + float64(pairs)*c.charSpacing
+            ypts := y + float64(convertTTFUnit2PDFUnit(yoffs[i], upem)) * (c.fontSize / 1000.0)
+            fmt.Fprintf(w, "1 0 0 1 %s %s Tm <%04X> Tj\n", FormatFloatTrim(xpts), FormatFloatTrim(ypts), glyphs[i])
+            // accumulate raw advance in TTF units
+            xaccTTF += adv[i]
+            if i+1 < n { pairs++ }
+        }
+        io.WriteString(w, "ET\n")
+        if c.fontStyle&Underline == Underline {
+            if err := c.underline(w); err != nil { return err }
+        }
+        c.drawBorder(w)
+        return nil
+    }
+
+    // helper: emit normal run s..e inclusive (constant Ts is assumed already set by caller)
+    writeNormal := func(s, e int, bridgeNext bool, next int) {
+        if s > e { return }
+        io.WriteString(w, "[")
+        for i := s; i <= e; i++ {
+            // Apply delta XOffset as a pre-number: pre_i = -(xoff[i]-xoff[i-1]), first uses prev=0
+            prePdf := 0.0
+            prevX := 0
+            if i > s { prevX = xoffs[i-1] }
+            dx := xoffs[i] - prevX
+            if dx != 0 {
+                prePdf = -1000.0 * float64(dx) / (64.0 * float64(upem))
+                fmt.Fprintf(w, " %s ", FormatFloatTrim(prePdf))
+            }
+            fmt.Fprintf(w, "<%04X>", glyphs[i])
+            if i < e {
+                advScaledTTF := int(math.Round(float64(adv[i]) * alpha))
+                advPdfF := 1000.0 * float64(advScaledTTF) / float64(upem)
+                baseF := float64(int(c.fontSubset.GlyphIndexToPdfWidth(glyphs[i])))
+                // Inter-glyph spacing with delta-pre: a = base + char - adv
+                aF := baseF + float64(charPdf) - advPdfF
+                if aF != 0 {
+                    fmt.Fprintf(w, " %s ", FormatFloatTrim(aF))
+                } else {
+                    io.WriteString(w, " ")
+                }
             }
         }
+        // bridging adjustment to align to the next glyph origin (e.g., when the next glyph is a mark)
+        if bridgeNext && e >= s && next >= 0 && next < n {
+            advScaledTTF := int(math.Round(float64(adv[e]) * alpha))
+            advPdfF := 1000.0 * float64(advScaledTTF) / float64(upem)
+            baseF := float64(int(c.fontSubset.GlyphIndexToPdfWidth(glyphs[e])))
+            // bridge to mark: a = base + char - adv (mark will apply its own delta pre)
+            aF := baseF + float64(charPdf) - advPdfF
+            if aF != 0 {
+                fmt.Fprintf(w, " %s ", FormatFloatTrim(aF))
+            }
+        }
+        // tail adjustment when no bridge: ensure last glyph uses shaped advance without char spacing
+        if !bridgeNext && e >= s {
+            advScaledTTF := int(math.Round(float64(adv[e]) * alpha))
+            advPdfF := 1000.0 * float64(advScaledTTF) / float64(upem)
+            baseF := float64(int(c.fontSubset.GlyphIndexToPdfWidth(glyphs[e])))
+            // tail (no next glyph in this run): a = base - adv
+            aF := baseF - advPdfF
+            if aF != 0 {
+                fmt.Fprintf(w, " %s ", FormatFloatTrim(aF))
+            }
+        }
+        io.WriteString(w, "] TJ\n")
     }
 
-	io.WriteString(w, "] TJ\n")
+    segStart := 0
+    for i := 0; i < n; i++ {
+        if adv[i] == 0 { // combining mark
+            // flush normals before the mark, and add a bridge to align to this mark's shaped origin
+            writeNormal(segStart, i-1, true, i)
+
+            // apply Y offset (rise) for the mark using precise 26.6 -> points conversion
+            risePts := (float64(yoffs[i]) * c.fontSize) / (64.0 * float64(upem))
+            if risePts != 0 { fmt.Fprintf(w, "%s Ts\n", FormatFloatTrim(risePts)) } else { io.WriteString(w, "0 Ts\n") }
+
+            // draw mark using pre-number for XOffset and cancel width so net advance equals shaped advance
+            io.WriteString(w, "[")
+            // delta pre for mark from previous glyph's offset
+            prePdf := 0.0
+            if i > 0 {
+                dmx := xoffs[i] - xoffs[i-1]
+                if dmx != 0 {
+                    prePdf = -1000.0 * float64(dmx) / (64.0 * float64(upem))
+                    fmt.Fprintf(w, " %s ", FormatFloatTrim(prePdf))
+                }
+            } else if xoffs[i] != 0 {
+                prePdf = -1000.0 * float64(xoffs[i]) / (64.0 * float64(upem))
+                fmt.Fprintf(w, " %s ", FormatFloatTrim(prePdf))
+            }
+            fmt.Fprintf(w, "<%04X>", glyphs[i])
+            baseF := float64(int(c.fontSubset.GlyphIndexToPdfWidth(glyphs[i])))
+            advScaledTTF := int(math.Round(float64(adv[i]) * alpha))
+            advPdfF := 1000.0 * float64(advScaledTTF) / float64(upem)
+            // For mark: include char spacing only if there is a following glyph in the same line
+            nextChar := 0.0
+            if i+1 < n { nextChar = float64(charPdf) }
+            // mark advance is zero: a = base + nextChar - adv
+            aF := baseF + nextChar - advPdfF
+            fmt.Fprintf(w, " %s ] TJ\n", FormatFloatTrim(aF))
+
+            // reset rise back to zero for following normals
+            io.WriteString(w, "0 Ts\n")
+
+            segStart = i + 1
+        }
+    }
+    // tail normals
+    writeNormal(segStart, n-1, false, -1)
+
 	io.WriteString(w, "ET\n")
 
 	if c.fontStyle&Underline == Underline {
@@ -325,8 +431,8 @@ func (c *cacheContentText) createContent() (float64, float64, error) {
 }
 
 func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing float64, rectangle *Rect) (float64, float64, float64, error) {
-    // Use shaping to compute precise width (including GPOS kerning). XOffset does not affect advance width.
-    glyphs, adv, _, err := f.shapeTextMetrics(text, fontSize, charSpacing)
+    // Use shaping to compute precise width (including GPOS kerning). Offsets do not affect advance width.
+    glyphs, adv, _, _, err := f.shapeTextMetrics(text, fontSize, charSpacing)
     if err != nil {
         return 0, 0, 0, err
     }

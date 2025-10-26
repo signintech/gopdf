@@ -18,6 +18,7 @@ func (s *SubsetFontObj) ensureHB() error {
 	}
 	s.hbFace = face
 	s.hbFont = hb.NewFont(face)
+	// Use default HarfBuzz scaling (matches face units)
 	return nil
 }
 
@@ -37,32 +38,28 @@ func (s *SubsetFontObj) ExtraGlyphs() map[uint]rune { return s.extraGlyphs }
 
 // shapeTextMetrics shapes the provided text and returns:
 // - glyph ids
-// - per-glyph X advances in TTF units (units-per-EM)
-// - per-glyph X offsets in TTF units (units-per-EM)
-func (s *SubsetFontObj) shapeTextMetrics(text string, fontSize float64, charSpacing float64) ([]uint, []int, []int, error) {
+// - per-glyph X advances in HarfBuzz scaled font units (same units as XOffset/YOffset)
+// - per-glyph X offsets in HarfBuzz 26.6 fixed-point units (NOT shifted)
+// - per-glyph Y offsets in HarfBuzz 26.6 fixed-point units (NOT shifted)
+func (s *SubsetFontObj) shapeTextMetrics(text string, fontSize float64, charSpacing float64) ([]uint, []int, []int, []int, error) {
 	if err := s.ensureHB(); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	runes := []rune(text)
 	buf := hb.NewBuffer()
 	buf.AddRunes(runes, 0, -1)
 	buf.GuessSegmentProperties()
 
-	// Disable discretionary/common ligatures to preserve 1:1 mapping for ToUnicode.
-	var feats []hb.Feature
-	if f, err := hb.ParseFeature("liga=0"); err == nil {
-		feats = append(feats, f)
-	}
-	if f, err := hb.ParseFeature("clig=0"); err == nil {
-		feats = append(feats, f)
-	}
-	buf.Shape(s.hbFont, feats)
+	// Let HarfBuzz choose all default features for the script/language.
+	// This preserves correct mark positioning and reordering for complex scripts.
+	buf.Shape(s.hbFont, nil)
 
 	info := buf.Info
 	pos := buf.Pos
 	glyphs := make([]uint, len(info))
 	adv := make([]int, len(info))
 	xoffs := make([]int, len(info))
+	yoffs := make([]int, len(info))
 
 	for i := range info {
 		gid := uint(info[i].Glyph)
@@ -75,9 +72,11 @@ func (s *SubsetFontObj) shapeTextMetrics(text string, fontSize float64, charSpac
 		}
 		s.AddShapedGlyph(gid, rr)
 
-		// Convert from 26.6 fixed-point to TTF units by >> 6
-		adv[i] = int(pos[i].XAdvance >> 6)
-		xoffs[i] = int(pos[i].XOffset >> 6)
+		// Preserve XAdvance as returned by HarfBuzz (same units as XOffset/YOffset)
+		adv[i] = int(pos[i].XAdvance)
+		// Preserve offsets in raw 26.6 fixed-point for higher precision downstream
+		xoffs[i] = int(pos[i].XOffset)
+		yoffs[i] = int(pos[i].YOffset)
 	}
-	return glyphs, adv, xoffs, nil
+	return glyphs, adv, xoffs, yoffs, nil
 }

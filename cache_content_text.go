@@ -183,47 +183,27 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	// Strategy: write normal glyphs in a single TJ segment using shaped advances only (no offsets),
 	// and isolate zero-advance marks to apply X/Y offsets locally with Ts/Td while cancelling width.
 	n := len(glyphs)
-	// precompute charSpacing contribution in PDF 1000 units
 
-	if c.charSpacing != 0 {
-
-	}
-
-	// absolute per-glyph placement (robust for complex scripts; keeps text selectable)
-	{
-		xaccTTF := 0 // accumulate in TTF units
-		pairs := 0
-		for i := 0; i < n; i++ {
-			xAll := xaccTTF + xoffs[i]
-			xpts := x + float64(convertTTFUnit2PDFUnit(xAll, upem))*(c.fontSize/1000.0) + float64(pairs)*c.charSpacing
-			ypts := y + float64(convertTTFUnit2PDFUnit(yoffs[i], upem))*(c.fontSize/1000.0)
-			fmt.Fprintf(w, "1 0 0 1 %s %s Tm <%04X> Tj\n", FormatFloatTrim(xpts), FormatFloatTrim(ypts), glyphs[i])
-			// accumulate raw advance in TTF units
-			xaccTTF += adv[i]
-			if i+1 < n {
-				pairs++
-			}
+	xaccTTF := 0 // accumulate in TTF units
+	pairs := 0
+	for i := 0; i < n; i++ {
+		xAll := xaccTTF + xoffs[i]
+		xpts := x + float64(convertTTFUnit2PDFUnit(xAll, upem))*(c.fontSize/1000.0) + float64(pairs)*c.charSpacing
+		ypts := y + float64(convertTTFUnit2PDFUnit(yoffs[i], upem))*(c.fontSize/1000.0)
+		fmt.Fprintf(w, "1 0 0 1 %s %s Tm <%04X> Tj\n", FormatFloatTrim(xpts), FormatFloatTrim(ypts), glyphs[i])
+		// accumulate raw advance in TTF units
+		xaccTTF += adv[i]
+		if i+1 < n {
+			pairs++
 		}
-		io.WriteString(w, "ET\n")
-		if c.fontStyle&Underline == Underline {
-			if err := c.underline(w); err != nil {
-				return err
-			}
-		}
-		c.drawBorder(w)
-		return nil
 	}
-
 	io.WriteString(w, "ET\n")
-
 	if c.fontStyle&Underline == Underline {
 		if err := c.underline(w); err != nil {
 			return err
 		}
 	}
-
 	c.drawBorder(w)
-
 	return nil
 }
 
@@ -389,27 +369,6 @@ func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing 
 	}
 	textWidthPdfUnit := float64(sumWidth) * (float64(fontSize) / 1000.0)
 	return cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, nil
-}
-
-func kern(f *SubsetFontObj, leftRune rune, rightRune rune, leftIndex uint, rightIndex uint) int16 {
-
-	pairVal := int16(0)
-	if haveKerning, kval := f.KernValueByLeft(leftIndex); haveKerning {
-		if ok, v := kval.ValueByRight(rightIndex); ok {
-			pairVal = v
-		}
-	}
-
-	if f.funcKernOverride != nil {
-		pairVal = f.funcKernOverride(
-			leftRune,
-			rightRune,
-			leftIndex,
-			rightIndex,
-			pairVal,
-		)
-	}
-	return pairVal
 }
 
 // CacheContent Export cacheContent

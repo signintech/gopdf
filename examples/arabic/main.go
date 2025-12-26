@@ -21,8 +21,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	pdf.Cell(nil, "السلام عليكم ورحمة الله وبركاته")
+	pdf.Cell(nil, gopdf.ToArabic("ولكن لا السلام عليكم ورحمة الله وبركاته"))
 
 	pdf.WritePdf("arabic.pdf")
 }

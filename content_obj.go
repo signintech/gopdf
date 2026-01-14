@@ -422,6 +422,14 @@ func (c *ContentObj) AppendStreamPolygon(points []Point, style string, opts poly
 	c.listCache.append(&cache)
 }
 
+// AppendStreamClipPolygon sets a clipping path from polygon points.
+func (c *ContentObj) AppendStreamClipPolygon(points []Point) {
+	var cache cacheContentClipPolygon
+	cache.points = points
+	cache.pageHeight = c.getRoot().curr.pageSize.H
+	c.listCache.append(&cache)
+}
+
 func (c *ContentObj) appendRotate(angle, x, y float64) {
 	var cache cacheContentRotate
 	cache.isReset = false

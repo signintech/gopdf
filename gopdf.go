@@ -2009,6 +2009,18 @@ func (gp *GoPdf) Polygon(points []Point, style string) {
 	gp.getContent().AppendStreamPolygon(pointReals, style, opts)
 }
 
+// ClipPolygon sets a clipping path from polygon points.
+func (gp *GoPdf) ClipPolygon(points []Point) {
+	var pointReals []Point
+	for _, p := range points {
+		x := p.X
+		y := p.Y
+		gp.UnitsToPointsVar(&x, &y)
+		pointReals = append(pointReals, Point{X: x, Y: y})
+	}
+	gp.getContent().AppendStreamClipPolygon(pointReals)
+}
+
 // Rectangle : draw rectangle, and add radius input to make a round corner, it helps to calculate the round corner coordinates and use Polygon functions to draw rectangle
 //   - style: Style of Rectangle (draw and/or fill: D, F, DF, FD)
 //     D or empty string: draw. This is the default value.

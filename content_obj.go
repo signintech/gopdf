@@ -422,6 +422,24 @@ func (c *ContentObj) AppendStreamPolygon(points []Point, style string, opts poly
 	c.listCache.append(&cache)
 }
 
+// AppendStreamClipPolygon sets a clipping path from polygon points.
+func (c *ContentObj) AppendStreamClipPolygon(points []Point) {
+	var cache cacheContentClipPolygon
+	cache.points = points
+	cache.pageHeight = c.getRoot().curr.pageSize.H
+	c.listCache.append(&cache)
+}
+
+// AppendStreamSaveGraphicsState saves the current graphics state (q operator).
+func (c *ContentObj) AppendStreamSaveGraphicsState() {
+	c.listCache.append(&cacheContentSaveGraphicsState{})
+}
+
+// AppendStreamRestoreGraphicsState restores the graphics state (Q operator).
+func (c *ContentObj) AppendStreamRestoreGraphicsState() {
+	c.listCache.append(&cacheContentRestoreGraphicsState{})
+}
+
 func (c *ContentObj) appendRotate(angle, x, y float64) {
 	var cache cacheContentRotate
 	cache.isReset = false

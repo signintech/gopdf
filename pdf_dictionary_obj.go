@@ -109,6 +109,12 @@ func (p *PdfDictionaryObj) makeGlyfAndLocaTable() ([]byte, []int, error) {
 	numGlyphs := int(ttfp.NumGlyphs())
 
 	glyphArray := p.completeGlyphClosure(p.PtrToSubsetFontObj.CharacterToGlyphIndex)
+	// also include any shaped-only glyphs collected during layout
+	if extra := p.PtrToSubsetFontObj.ExtraGlyphs(); extra != nil {
+		for gid := range extra {
+			glyphArray = append(glyphArray, int(gid))
+		}
+	}
 	sort.Ints(glyphArray)
 	glyphArray = p.distinctInts(glyphArray)
 	glyphCount := len(glyphArray)

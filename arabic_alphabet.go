@@ -5,6 +5,67 @@ type Harf struct {
 	Unicode, Isolated, Beginning, Middle, Final rune
 }
 
+const (
+	FATHA  rune = '\u064E' // َ (short a)
+	DAMMA  rune = '\u064F' // ُ (short u)
+	KASRA  rune = '\u0650' // ِ (short i)
+	SUKUN  rune = '\u0652' // ْ (no vowel)
+	SHADDA rune = '\u0651' // ّ (gemination/doubling)
+
+	// Tanween (nutation)
+	TANWEEN_FATH rune = '\u064B' // ً (an)
+	TANWEEN_DAMM rune = '\u064C' // ٌ (un)
+	TANWEEN_KASR rune = '\u064D' // ٍ (in)
+
+	// Quranic / Extended marks
+	SUPERSCRIPT_ALEF rune = '\u0670' // ٰ (dagger alef)
+	MADDAH_ABOVE     rune = '\u0653' // ٓ (maddah)
+	HAMZA_ABOVE      rune = '\u0654' // ٔ (hamza above)
+	HAMZA_BELOW      rune = '\u0655' // ٕ (hamza below)
+	SUBSCRIPT_ALEF   rune = '\u0656' // ٖ (subscript alef)
+	INVERTED_DAMMA   rune = '\u0657' // ٗ (inverted damma)
+	MARK_NOON_GHUNNA rune = '\u0658' // ٘ (noon ghunna)
+
+	// Shadda + Vowel Ligatures (Arabic Presentation Forms-B)
+	SHADDA_FATHA          rune = '\uFC60' // ﱠ
+	SHADDA_DAMMA          rune = '\uFC61' // ﱡ
+	SHADDA_KASRA          rune = '\uFC62' // ﱢ
+	SHADDA_DAMMATAN       rune = '\uFC5E' // ﱞ (Shadda + Tanween Damm)
+	SHADDA_KASRATAN       rune = '\uFC5F' // ﱟ (Shadda + Tanween Kasr)
+	SHADDA_SUPERSCRIPT_ALEF rune = '\uFC63' // ﱣ
+)
+
+var tashkeelMarks = map[rune]bool{
+	// Basic
+	FATHA: true, DAMMA: true, KASRA: true,
+	SHADDA: true, SUKUN: true,
+
+	// Tanween
+	TANWEEN_DAMM: true, TANWEEN_FATH: true, TANWEEN_KASR: true,
+
+	// Quranic/Extended
+	SUPERSCRIPT_ALEF: true, MADDAH_ABOVE: true,
+	HAMZA_ABOVE: true, HAMZA_BELOW: true,
+	SUBSCRIPT_ALEF: true, INVERTED_DAMMA: true,
+	MARK_NOON_GHUNNA: true,
+}
+
+// shaddaLigatures maps vowels to their combined Shadda+Vowel ligature form
+var shaddaLigatures = map[rune]rune{
+	FATHA:            SHADDA_FATHA,
+	DAMMA:            SHADDA_DAMMA,
+	KASRA:            SHADDA_KASRA,
+	TANWEEN_DAMM:     SHADDA_DAMMATAN,
+	TANWEEN_KASR:     SHADDA_KASRATAN,
+	SUPERSCRIPT_ALEF: SHADDA_SUPERSCRIPT_ALEF,
+}
+
+// GetShaddaLigature returns the combined Shadda+Vowel ligature for a given vowel.
+// Returns 0 if no ligature exists for the vowel.
+func GetShaddaLigature(vowel rune) rune {
+	return shaddaLigatures[vowel]
+}
+
 // Arabic Alphabet using the new Harf type.
 var (
 	ALEF_HAMZA_ABOVE = Harf{ // أ
@@ -325,7 +386,7 @@ var (
 		Final:     '\ufef8'}
 )
 
-var arabic_alphabet = map[rune]Harf{}
+var arabicAlphabet = map[rune]Harf{}
 
 var arabicAlphabetCollection = []Harf{
 	ALEF_HAMZA_ABOVE,
@@ -378,11 +439,11 @@ var arabicAlphabetCollection = []Harf{
 func init() {
 	for _, harf := range arabicAlphabetCollection {
 		// Map all forms to the Harf struct
-		arabic_alphabet[harf.Unicode] = harf
-		arabic_alphabet[harf.Isolated] = harf
-		arabic_alphabet[harf.Beginning] = harf
-		arabic_alphabet[harf.Middle] = harf
-		arabic_alphabet[harf.Final] = harf
+		arabicAlphabet[harf.Unicode] = harf
+		arabicAlphabet[harf.Isolated] = harf
+		arabicAlphabet[harf.Beginning] = harf
+		arabicAlphabet[harf.Middle] = harf
+		arabicAlphabet[harf.Final] = harf
 	}
 }
 

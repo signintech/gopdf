@@ -594,7 +594,7 @@ Your support mainly goes toward:
 
 - ☕ coffee
 - 🍜 snacks
-- and the **"open source is important, I promise"** fund
+- and the **"open source is important, I promise"**
 
 👉 Sponsor here:  
 https://github.com/sponsors/oneplus1000

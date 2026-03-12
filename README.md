@@ -4,7 +4,7 @@ gopdf is a simple library for generating PDF document written in Go.
 
 A minimum version of Go 1.13 is required.
 
-<sub><em>If gopdf helps your project, you can [support the project](#support-gopdf).</em></sub>
+<sub><em>If gopdf made your day a little easier, feel free to [support the project](#support-gopdf).</em></sub>
 
 ## Features
 

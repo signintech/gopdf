@@ -1,10 +1,34 @@
 # gopdf
 
-gopdf is a simple library for generating PDF document written in Go lang.
+gopdf is a simple library for generating PDF document written in Go.
 
 A minimum version of Go 1.13 is required.
 
-#### Features
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-pink)](https://github.com/sponsors/oneplus1000)
+
+---
+
+### ❤️ Support gopdf
+
+If [gopdf](https://github.com/signintech/gopdf) saved you some time, that's awesome.
+
+If you'd like to sponsor the project, think of it as helping me justify to my wife why I'm still staring at PDF specs at midnight.
+
+Your support mainly goes toward:
+
+- ☕ coffee
+- 🍜 snacks
+- and the **"open source is important, I promise"** fund
+
+👉 Sponsor here:  
+https://github.com/sponsors/oneplus1000
+
+If not, that's totally fine too.  
+Enjoy the library and go build cool stuff.
+
+---
+
+## Features
 
 - Unicode subfont embedding. (Chinese, Japanese, Korean, etc.)
 - Draw line, oval, rect, curve
@@ -475,6 +499,7 @@ func main(){
 ```
 
 ### Table Create
+
 ```go
 package main
 
@@ -495,10 +520,10 @@ func main() {
 
 	 pdf.AddTTFFont("font1", "./font1.ttf")
 	pdf.SetFont("font1", "", 11)
-	
+
 	pdf.AddTTFFont("font2", "./font2.ttf")
 	pdf.SetFont("font2", "", 11)
-	
+
 	// Set the starting Y position for the table
 	tableStartY := 10.0
 	// Set the left margin for the table
@@ -574,6 +599,5 @@ func main() {
 
 result:
 ![table](./examples/table/table_example.jpg)
-
 
 visit https://github.com/oneplus1000/gopdfsample for more samples.

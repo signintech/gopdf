@@ -818,6 +818,45 @@ func TestAddHeaderFooter(t *testing.T) {
 	}
 }
 
+// TestPdfBinaryHeader verifies that the compiled PDF starts with the correct
+// "%PDF-1.7" version header followed by the 4-byte binary marker
+// (0xE2 0xE3 0xCF 0xD3). Per the PDF spec, this binary marker must contain
+// at least four bytes >= 128 so that file-transfer tools treat the file as
+// binary instead of text.
+func TestPdfBinaryHeader(t *testing.T) {
+	if err := initTesting(); err != nil {
+		t.Fatal(err)
+	}
+
+	pdf := GoPdf{}
+	pdf.Start(Config{PageSize: *PageSizeA4})
+	pdf.AddPage()
+
+	got, err := pdf.GetBytesPdfReturnErr()
+	if err != nil {
+		t.Fatalf("GetBytesPdfReturnErr() error = %v", err)
+	}
+
+	want := []byte("%PDF-1.7\n%\xe2\xe3\xcf\xd3\n\n")
+	if len(got) < len(want) {
+		t.Fatalf("compiled pdf too short: got %d bytes, want at least %d", len(got), len(want))
+	}
+	if !bytes.Equal(got[:len(want)], want) {
+		t.Fatalf("pdf header mismatch:\n got: % x\nwant: % x", got[:len(want)], want)
+	}
+
+	binaryMarker := got[10:14]
+	expectedMarker := []byte{0xE2, 0xE3, 0xCF, 0xD3}
+	if !bytes.Equal(binaryMarker, expectedMarker) {
+		t.Fatalf("binary marker mismatch:\n got: % x\nwant: % x", binaryMarker, expectedMarker)
+	}
+	for i, b := range binaryMarker {
+		if b < 128 {
+			t.Fatalf("binary marker byte %d (0x%02x) must be >= 128 to satisfy PDF spec", i, b)
+		}
+	}
+}
+
 func initTesting() error {
 	err := os.MkdirAll("./test/out", 0777)
 	if err != nil {

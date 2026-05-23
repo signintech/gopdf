@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-text/typesetting/font"
+	"github.com/go-text/typesetting/harfbuzz"
 	"github.com/signintech/gopdf/fontmaker/core"
 )
 
@@ -26,6 +28,10 @@ type SubsetFontObj struct {
 	funcKernOverride      FuncKernOverride
 	funcGetRoot           func() *GoPdf
 	addCharsBuff          []rune
+	// harfbuzz/typesetting integration
+	hbFace                *font.Face
+	hbFont                *harfbuzz.Font
+	extraGlyphs           map[uint]rune
 }
 
 func (s *SubsetFontObj) init(funcGetRoot func() *GoPdf) {

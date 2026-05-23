@@ -48,6 +48,7 @@ func (u *UnicodeMap) write(w io.Writer, objID int) error {
 	lowIndex := 65536
 	hiIndex := -1
 
+	// include direct character-to-glyph mapping
 	keys := u.PtrToSubsetFontObj.CharacterToGlyphIndex.AllKeys()
 	for _, k := range keys {
 		v, _ := u.PtrToSubsetFontObj.CharacterToGlyphIndex.Val(k)
@@ -58,8 +59,21 @@ func (u *UnicodeMap) write(w io.Writer, objID int) error {
 		if index > hiIndex {
 			hiIndex = index
 		}
-		//glyphIndexToCharacter[index] = k
 		glyphIndexToCharacter.set(index, k)
+	}
+
+	// include shaped-only glyphs mapping back to a representative rune
+	if extra := u.PtrToSubsetFontObj.ExtraGlyphs(); extra != nil {
+		for gid, r := range extra {
+			index := int(gid)
+			if index < lowIndex {
+				lowIndex = index
+			}
+			if index > hiIndex {
+				hiIndex = index
+			}
+			glyphIndexToCharacter.set(index, r)
+		}
 	}
 
 	buff := GetBuffer()

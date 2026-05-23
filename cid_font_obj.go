@@ -36,9 +36,22 @@ func (ci *CIDFontObj) write(w io.Writer, objID int) error {
 	fmt.Fprintf(w, "/FontDescriptor %d 0 R\n", ci.indexObjSubfontDescriptor+1) //TODO fix
 	io.WriteString(w, "/Subtype /CIDFontType2\n")
 	io.WriteString(w, "/Type /Font\n")
+	// Build width list including shaped-only glyphs
 	glyphIndexs := ci.PtrToSubsetFontObj.CharacterToGlyphIndex.AllVals()
+	if extra := ci.PtrToSubsetFontObj.ExtraGlyphs(); extra != nil {
+		for gid := range extra {
+			glyphIndexs = append(glyphIndexs, gid)
+		}
+	}
+	// de-duplicate while preserving order (small lists)
+	seen := make(map[uint]bool)
+	io.WriteString(w, "/DW 0\n")
 	io.WriteString(w, "/W [")
 	for _, v := range glyphIndexs {
+		if seen[v] {
+			continue
+		}
+		seen[v] = true
 		width := ci.PtrToSubsetFontObj.GlyphIndexToPdfWidth(v)
 		fmt.Fprintf(w, "%d[%d]", v, width)
 	}

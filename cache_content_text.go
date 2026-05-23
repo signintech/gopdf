@@ -160,45 +160,50 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	if c.txtColorMode == "color" {
 		c.textColor.write(w, protection)
 	}
-	io.WriteString(w, "[<")
-
-	unitsPerEm := int(c.fontSubset.ttfp.UnitsPerEm())
-	var leftRune rune
-	var leftRuneIndex uint
-	for i, r := range c.text {
-
-		glyphindex, err := c.fontSubset.CharIndex(r)
-		if err == ErrCharNotFound {
-			continue
-		} else if err != nil {
-			return err
+	// shape the text and collect glyphs with advances and offsets
+	glyphs, adv, xoffs, yoffs, err := c.fontSubset.shapeTextMetrics(c.text, c.fontSize, c.charSpacing)
+	if err != nil {
+		return err
+	}
+	upem := int(c.fontSubset.ttfp.UnitsPerEm())
+	// Calibrate shaped advances to base widths so totals match even if font scale differs
+	sumAdv := 0
+	sumBase := 0
+	widths := c.fontSubset.ttfp.Widths()
+	for i := range glyphs {
+		sumAdv += adv[i]
+		gi := int(glyphs[i])
+		if gi < len(widths) {
+			sumBase += int(widths[gi])
+		} else if len(widths) > 0 {
+			sumBase += int(widths[len(widths)-1])
 		}
-
-		pairvalPdfUnit := 0
-		if i > 0 && c.fontSubset.ttfFontOption.UseKerning { //kerning
-			pairval := kern(c.fontSubset, leftRune, r, leftRuneIndex, glyphindex)
-			pairvalPdfUnit = convertTTFUnit2PDFUnit(int(pairval), unitsPerEm)
-			if pairvalPdfUnit != 0 {
-				fmt.Fprintf(w, ">%d<", (-1)*pairvalPdfUnit)
-			}
-		}
-
-		fmt.Fprintf(w, "%04X", glyphindex)
-		leftRune = r
-		leftRuneIndex = glyphindex
 	}
 
-	io.WriteString(w, ">] TJ\n")
-	io.WriteString(w, "ET\n")
+	// Strategy: write normal glyphs in a single TJ segment using shaped advances only (no offsets),
+	// and isolate zero-advance marks to apply X/Y offsets locally with Ts/Td while cancelling width.
+	n := len(glyphs)
 
+	xaccTTF := 0 // accumulate in TTF units
+	pairs := 0
+	for i := 0; i < n; i++ {
+		xAll := xaccTTF + xoffs[i]
+		xpts := x + float64(convertTTFUnit2PDFUnit(xAll, upem))*(c.fontSize/1000.0) + float64(pairs)*c.charSpacing
+		ypts := y + float64(convertTTFUnit2PDFUnit(yoffs[i], upem))*(c.fontSize/1000.0)
+		fmt.Fprintf(w, "1 0 0 1 %s %s Tm <%04X> Tj\n", FormatFloatTrim(xpts), FormatFloatTrim(ypts), glyphs[i])
+		// accumulate raw advance in TTF units
+		xaccTTF += adv[i]
+		if i+1 < n {
+			pairs++
+		}
+	}
+	io.WriteString(w, "ET\n")
 	if c.fontStyle&Underline == Underline {
 		if err := c.underline(w); err != nil {
 			return err
 		}
 	}
-
 	c.drawBorder(w)
-
 	return nil
 }
 
@@ -308,39 +313,47 @@ func (c *cacheContentText) createContent() (float64, float64, error) {
 }
 
 func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing float64, rectangle *Rect) (float64, float64, float64, error) {
-
+	// Use shaping to compute precise width (including GPOS kerning). Offsets do not affect advance width.
+	glyphs, adv, _, _, err := f.shapeTextMetrics(text, fontSize, charSpacing)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	// Calibrate shaped advances to base widths to keep placement and width consistent
+	sumAdv := 0
+	sumBase := 0
+	widths := f.ttfp.Widths()
+	for i := range glyphs {
+		sumAdv += adv[i]
+		gi := int(glyphs[i])
+		if gi < len(widths) {
+			sumBase += int(widths[gi])
+		} else if len(widths) > 0 {
+			sumBase += int(widths[len(widths)-1])
+		}
+	}
+	alpha := 1.0
+	if sumAdv != 0 {
+		alpha = float64(sumBase) / float64(sumAdv)
+	}
+	// Sum width in PDF units using: sum(adv[0..n-2]) + base[n-1]
 	unitsPerEm := int(f.ttfp.UnitsPerEm())
-	var leftRune rune
-	var leftRuneIndex uint
-	sumWidth := int(0)
-	//fmt.Printf("unitsPerEm = %d", unitsPerEm)
-	for i, r := range text {
-
-		glyphindex, err := f.CharIndex(r)
-		if err == ErrCharNotFound {
-			continue
-		} else if err != nil {
-			return 0, 0, 0, err
-		}
-
-		pairvalPdfUnit := 0
-		if i > 0 && f.ttfFontOption.UseKerning { //kerning
-			pairval := kern(f, leftRune, r, leftRuneIndex, glyphindex)
-			pairvalPdfUnit = convertTTFUnit2PDFUnit(int(pairval), unitsPerEm)
-		}
-
-		width, err := f.CharWidth(r)
-		if err != nil {
-			return 0, 0, 0, err
-		}
-
+	advSumPdf := 0
+	n := len(glyphs)
+	for i := 0; i < n-1; i++ {
+		advScaledTTF := int(math.Round(float64(adv[i]) * alpha))
+		advSumPdf += convertTTFUnit2PDFUnit(advScaledTTF, unitsPerEm)
+	}
+	lastBasePdf := 0
+	if n > 0 {
+		lastBasePdf = int(f.GlyphIndexToPdfWidth(glyphs[n-1]))
+	}
+	sumWidth := advSumPdf + lastBasePdf
+	// Add charSpacing between glyphs (N-1 times), as applied by the PDF Tc operator
+	if n > 1 && charSpacing != 0 {
 		unitsPerPt := float64(unitsPerEm) / fontSize
-		spaceWidthInPt := unitsPerPt * charSpacing
-		spaceWidthPdfUnit := convertTTFUnit2PDFUnit(int(spaceWidthInPt), unitsPerEm)
-
-		sumWidth += int(width) + int(pairvalPdfUnit) + spaceWidthPdfUnit
-		leftRune = r
-		leftRuneIndex = glyphindex
+		spaceWidthInTtf := unitsPerPt * charSpacing
+		spaceWidthPdfUnit := convertTTFUnit2PDFUnit(int(spaceWidthInTtf), unitsPerEm)
+		sumWidth += (n - 1) * spaceWidthPdfUnit
 	}
 
 	cellWidthPdfUnit := float64(0)
@@ -356,27 +369,6 @@ func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing 
 	}
 	textWidthPdfUnit := float64(sumWidth) * (float64(fontSize) / 1000.0)
 	return cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, nil
-}
-
-func kern(f *SubsetFontObj, leftRune rune, rightRune rune, leftIndex uint, rightIndex uint) int16 {
-
-	pairVal := int16(0)
-	if haveKerning, kval := f.KernValueByLeft(leftIndex); haveKerning {
-		if ok, v := kval.ValueByRight(rightIndex); ok {
-			pairVal = v
-		}
-	}
-
-	if f.funcKernOverride != nil {
-		pairVal = f.funcKernOverride(
-			leftRune,
-			rightRune,
-			leftIndex,
-			rightIndex,
-			pairVal,
-		)
-	}
-	return pairVal
 }
 
 // CacheContent Export cacheContent

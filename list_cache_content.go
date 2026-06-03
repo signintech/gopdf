@@ -18,7 +18,7 @@ func (l *listCacheContent) append(cache ICacheContent) {
 	l.caches = append(l.caches, cache)
 }
 
-func (l *listCacheContent) appendContentText(cache cacheContentText, text string) (float64, float64, error) {
+func (l *listCacheContent) appendContentTextWithLayout(cache cacheContentText, layout textLayout) (float64, float64, error) {
 
 	x := cache.x
 	y := cache.y
@@ -40,8 +40,12 @@ func (l *listCacheContent) appendContentText(cache cacheContentText, text string
 		cacheFont = &cache
 	}
 
-	//start add text
-	cacheFont.text += text
+	if len(layout.runs) == 1 && len(cacheFont.runs) == 0 {
+		cacheFont.text += layout.runs[0].text
+	} else {
+		cacheFont.runs = append(cacheFont.runs, layout.runs...)
+		cacheFont.text += layout.plainText()
+	}
 
 	//re-create content
 	textWidthPdfUnit, textHeightPdfUnit, err := cacheFont.createContent()

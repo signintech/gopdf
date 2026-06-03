@@ -156,6 +156,26 @@ func (s *SubsetFontObj) SetTTFData(data []byte) error {
 	return nil
 }
 
+// AvailableGlyphIndex returns a visible glyph index for a rune.
+func (s *SubsetFontObj) AvailableGlyphIndex(r rune) (uint, error) {
+	glyphIndex, err := s.CharCodeToGlyphIndex(r)
+	if err != nil {
+		return 0, err
+	}
+	if glyphIndex == 0 {
+		return 0, ErrGlyphNotFound
+	}
+	return glyphIndex, nil
+}
+
+// AddRune adds a rune to CharacterToGlyphIndex if needed.
+func (s *SubsetFontObj) AddRune(r rune, glyphIndex uint) {
+	if s.CharacterToGlyphIndex.KeyExists(r) {
+		return
+	}
+	s.CharacterToGlyphIndex.Set(r, glyphIndex)
+}
+
 // AddChars add char to map CharacterToGlyphIndex
 func (s *SubsetFontObj) AddChars(txt string) (string, error) {
 	s.addCharsBuff = s.addCharsBuff[:0]

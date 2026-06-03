@@ -27,6 +27,16 @@ func (o ContentObj) clone(f func() *GoPdf) IObj {
 	return &cl
 }
 
+func (c *ContentObj) rewireSubsetFonts(subFontByCount map[int]*SubsetFontObj) {
+	for _, item := range c.listCache.caches {
+		cacheText, ok := item.(*cacheContentText)
+		if !ok {
+			continue
+		}
+		cacheText.rewireSubsetFonts(subFontByCount)
+	}
+}
+
 func (c *ContentObj) protection() *PDFProtection {
 	return c.getRoot().protection()
 }
@@ -161,6 +171,11 @@ func (c *ContentObj) appendStreamPlaceHolderText(placeHolderWidth float64) error
 
 // AppendStreamText append text
 func (c *ContentObj) AppendStreamText(text string) error {
+	return c.AppendStreamTextLayout(textLayout{runs: []textRun{{text: text, fontSubset: c.getRoot().curr.FontISubset, fontCountIndex: c.getRoot().curr.FontFontCount + 1}}})
+}
+
+// AppendStreamTextLayout append laid out text.
+func (c *ContentObj) AppendStreamTextLayout(layout textLayout) error {
 
 	//support only CURRENT_FONT_TYPE_SUBSET
 	textColor := c.getRoot().curr.textColor()
@@ -196,7 +211,7 @@ func (c *ContentObj) AppendStreamText(text string) error {
 	}
 
 	var err error
-	c.getRoot().curr.X, c.getRoot().curr.Y, err = c.listCache.appendContentText(cache, text)
+	c.getRoot().curr.X, c.getRoot().curr.Y, err = c.listCache.appendContentTextWithLayout(cache, layout)
 	if err != nil {
 		return err
 	}
@@ -206,6 +221,11 @@ func (c *ContentObj) AppendStreamText(text string) error {
 
 // AppendStreamSubsetFont add stream of text
 func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOpt CellOption) error {
+	return c.AppendStreamSubsetFontLayout(rectangle, textLayout{runs: []textRun{{text: text, fontSubset: c.getRoot().curr.FontISubset, fontCountIndex: c.getRoot().curr.FontFontCount + 1}}}, cellOpt)
+}
+
+// AppendStreamSubsetFontLayout add stream of laid out text.
+func (c *ContentObj) AppendStreamSubsetFontLayout(rectangle *Rect, layout textLayout, cellOpt CellOption) error {
 
 	textColor := c.getRoot().curr.textColor()
 	grayFill := c.getRoot().curr.grayFill
@@ -237,7 +257,7 @@ func (c *ContentObj) AppendStreamSubsetFont(rectangle *Rect, text string, cellOp
 		txtColorMode:   c.getRoot().curr.txtColorMode,
 	}
 	var err error
-	c.getRoot().curr.X, c.getRoot().curr.Y, err = c.listCache.appendContentText(cache, text)
+	c.getRoot().curr.X, c.getRoot().curr.Y, err = c.listCache.appendContentTextWithLayout(cache, layout)
 	if err != nil {
 		return err
 	}
@@ -433,6 +453,25 @@ func (c *ContentObj) AppendStreamPolygon(points []Point, style string, opts poly
 	cache.pageHeight = c.getRoot().curr.pageSize.H
 	cache.opts = opts
 	c.listCache.append(&cache)
+}
+
+// AppendStreamClipPolygon append polygon clipping path.
+func (c *ContentObj) AppendStreamClipPolygon(points []Point) {
+	cache := cacheContentClipPolygon{
+		pageHeight: c.getRoot().curr.pageSize.H,
+		points:     points,
+	}
+	c.listCache.append(&cache)
+}
+
+// AppendStreamSaveGraphicsState appends q operator.
+func (c *ContentObj) AppendStreamSaveGraphicsState() {
+	c.listCache.append(&cacheContentSaveGraphicsState{})
+}
+
+// AppendStreamRestoreGraphicsState appends Q operator.
+func (c *ContentObj) AppendStreamRestoreGraphicsState() {
+	c.listCache.append(&cacheContentRestoreGraphicsState{})
 }
 
 func (c *ContentObj) appendRotate(angle, x, y float64) {

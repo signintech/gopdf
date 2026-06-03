@@ -103,6 +103,8 @@ type GoPdf struct {
 
 	//placeholder text
 	placeHolderTexts map[string]([]placeHolderTextInfo)
+
+	fontFallbacks map[fontKey][]fontKey
 }
 
 type DrawableRectOptions struct {
@@ -192,7 +194,36 @@ func (gp *GoPdf) Clone() *GoPdf {
 	gpCl.numOfPagesObj = gp.numOfPagesObj
 	gpCl.indexOfFirstPageObj = gp.indexOfFirstPageObj
 	curr := gp.curr.Clone(f)
-	gpCl.curr = *curr
+	gpCl.curr = Current{
+		setXCount:            curr.setXCount,
+		X:                    curr.X,
+		Y:                    curr.Y,
+		IndexOfFontObj:       curr.IndexOfFontObj,
+		CountOfFont:          curr.CountOfFont,
+		CountOfL:             curr.CountOfL,
+		FontSize:             curr.FontSize,
+		FontStyle:            curr.FontStyle,
+		FontFontCount:        curr.FontFontCount,
+		FontType:             curr.FontType,
+		IndexOfColorSpaceObj: curr.IndexOfColorSpaceObj,
+		CountOfColorSpace:    curr.CountOfColorSpace,
+		CharSpacing:          curr.CharSpacing,
+		FontISubset:          curr.FontISubset,
+		IndexOfPageObj:       curr.IndexOfPageObj,
+		CountOfImg:           curr.CountOfImg,
+		ImgCaches:            curr.ImgCaches,
+		txtColorMode:         curr.txtColorMode,
+		txtColor:             curr.txtColor,
+		grayFill:             curr.grayFill,
+		grayStroke:           curr.grayStroke,
+		lineWidth:            curr.lineWidth,
+		pageSize:             curr.pageSize,
+		trimBox:              curr.trimBox,
+		transparency:         curr.transparency,
+	}
+	gpCl.curr.sMasksMap = *curr.sMasksMap.Clone(f)
+	gpCl.curr.extGStatesMap = *curr.extGStatesMap.Clone(f)
+	gpCl.curr.transparencyMap = *curr.transparencyMap.Clone(f)
 	gpCl.indexEncodingObjFonts = make([]int, len(gp.indexEncodingObjFonts))
 	copy(gpCl.indexEncodingObjFonts, gp.indexEncodingObjFonts)
 	// After cloning, restore *SubsetFontObj sharing across each font group.
@@ -216,14 +247,22 @@ func (gp *GoPdf) Clone() *GoPdf {
 			unicodeMap.PtrToSubsetFontObj = subFont
 		}
 	}
-	// Rewire curr.FontISubset to the canonical SubsetFontObj in pdfObjs.
+	// Rewire curr.FontISubset and cached text fonts to the canonical SubsetFontObj in pdfObjs.
 	if gpCl.curr.FontISubset != nil {
 		if subFont, ok := subFontByCount[gpCl.curr.FontISubset.CountOfFont]; ok {
 			gpCl.curr.FontISubset = subFont
 		}
 	}
+	for _, obj := range gpCl.pdfObjs {
+		content, ok := obj.(*ContentObj)
+		if !ok {
+			continue
+		}
+		content.rewireSubsetFonts(subFontByCount)
+	}
 	gpCl.indexOfContent = gp.indexOfContent
 	gpCl.indexOfProcSet = gp.indexOfProcSet
+	gpCl.fontFallbacks = gp.cloneFontFallbacks()
 	// 仅复制未读部分
 	gpCl.buf.Write(gp.buf.Bytes())
 	if gp.pdfProtection != nil {
@@ -1209,12 +1248,12 @@ func (gp *GoPdf) GetBytesPdf() []byte {
 // Text write text start at current x,y ( current y is the baseline of text )
 func (gp *GoPdf) Text(text string) error {
 
-	text, err := gp.curr.FontISubset.AddChars(text)
+	layout, err := gp.resolveTextLayout(text)
 	if err != nil {
 		return err
 	}
 
-	err = gp.getContent().AppendStreamText(text)
+	err = gp.getContent().AppendStreamTextLayout(layout)
 	if err != nil {
 		return err
 	}
@@ -1234,11 +1273,11 @@ func (gp *GoPdf) CellWithOption(rectangle *Rect, text string, opt CellOption) er
 	}
 
 	rectangle = rectangle.UnitsToPoints(gp.config.Unit)
-	text, err = gp.curr.FontISubset.AddChars(text)
+	layout, err := gp.resolveTextLayout(text)
 	if err != nil {
 		return err
 	}
-	if err := gp.getContent().AppendStreamSubsetFont(rectangle, text, opt); err != nil {
+	if err := gp.getContent().AppendStreamSubsetFontLayout(rectangle, layout, opt); err != nil {
 		return err
 	}
 
@@ -1255,11 +1294,11 @@ func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
 		Float:  Right,
 	}
 
-	text, err := gp.curr.FontISubset.AddChars(text)
+	layout, err := gp.resolveTextLayout(text)
 	if err != nil {
 		return err
 	}
-	err = gp.getContent().AppendStreamSubsetFont(rectangle, text, defaultopt)
+	err = gp.getContent().AppendStreamSubsetFontLayout(rectangle, layout, defaultopt)
 	if err != nil {
 		return err
 	}
@@ -1275,15 +1314,10 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 	length := len([]rune(text))
 
 	// get lineHeight
-	text, err := gp.curr.FontISubset.AddChars(text)
+	lineHeight, err := gp.MeasureCellHeightByText(text)
 	if err != nil {
 		return err
 	}
-	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.CharSpacing, nil)
-	if err != nil {
-		return err
-	}
-	gp.PointsToUnitsVar(&lineHeight)
 
 	for i, v := range []rune(text) {
 		if totalLineHeight+lineHeight > rectangle.H {
@@ -1318,16 +1352,10 @@ func (gp *GoPdf) IsFitMultiCell(rectangle *Rect, text string) (bool, float64, er
 	length := len([]rune(text))
 
 	// get lineHeight
-	text, err := gp.curr.FontISubset.AddChars(text)
+	lineHeight, err := gp.MeasureCellHeightByText(text)
 	if err != nil {
 		return false, totalLineHeight, err
 	}
-	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.CharSpacing, nil)
-
-	if err != nil {
-		return false, totalLineHeight, err
-	}
-	gp.PointsToUnitsVar(&lineHeight)
 
 	for i, v := range []rune(text) {
 		if totalLineHeight+lineHeight > rectangle.H {
@@ -1390,15 +1418,10 @@ func (gp *GoPdf) MultiCellWithOption(rectangle *Rect, text string, opt CellOptio
 	x := gp.GetX()
 
 	// get lineHeight
-	itext, err := gp.curr.FontISubset.AddChars(text)
+	lineHeight, err := gp.MeasureCellHeightByText(text)
 	if err != nil {
 		return err
 	}
-	_, lineHeight, _, err := createContent(gp.curr.FontISubset, itext, gp.curr.FontSize, gp.curr.CharSpacing, nil)
-	if err != nil {
-		return err
-	}
-	gp.PointsToUnitsVar(&lineHeight)
 
 	textSplits, err := gp.SplitTextWithOption(text, rectangle.W, opt.BreakOption)
 	if err != nil {
@@ -2010,12 +2033,12 @@ func (gp *GoPdf) SetFillColorCMYK(c, m, y, k uint8) {
 // MeasureTextWidth : measure Width of text (use current font)
 func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 
-	text, err := gp.curr.FontISubset.AddChars(text) //AddChars for create CharacterToGlyphIndex
+	layout, err := gp.resolveTextLayout(text)
 	if err != nil {
 		return 0, err
 	}
 
-	_, _, textWidthPdfUnit, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.CharSpacing, nil)
+	_, _, textWidthPdfUnit, err := createContentFromRuns(layout.runs, gp.curr.FontSize, gp.curr.CharSpacing, nil)
 	if err != nil {
 		return 0, err
 	}
@@ -2025,12 +2048,12 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 // MeasureCellHeightByText : measure Height of cell by text (use current font)
 func (gp *GoPdf) MeasureCellHeightByText(text string) (float64, error) {
 
-	text, err := gp.curr.FontISubset.AddChars(text) //AddChars for create CharacterToGlyphIndex
+	layout, err := gp.resolveTextLayout(text)
 	if err != nil {
 		return 0, err
 	}
 
-	_, cellHeightPdfUnit, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.CharSpacing, nil)
+	_, cellHeightPdfUnit, _, err := createContentFromRuns(layout.runs, gp.curr.FontSize, gp.curr.CharSpacing, nil)
 	if err != nil {
 		return 0, err
 	}
@@ -2112,6 +2135,28 @@ func (gp *GoPdf) Polygon(points []Point, style string) {
 		pointReals = append(pointReals, Point{X: x, Y: y})
 	}
 	gp.getContent().AppendStreamPolygon(pointReals, style, opts)
+}
+
+// SaveGraphicsState saves current graphics state.
+func (gp *GoPdf) SaveGraphicsState() {
+	gp.getContent().AppendStreamSaveGraphicsState()
+}
+
+// RestoreGraphicsState restores previous graphics state.
+func (gp *GoPdf) RestoreGraphicsState() {
+	gp.getContent().AppendStreamRestoreGraphicsState()
+}
+
+// ClipPolygon appends a polygon clipping path.
+func (gp *GoPdf) ClipPolygon(points []Point) {
+	var pointReals []Point
+	for _, p := range points {
+		x := p.X
+		y := p.Y
+		gp.UnitsToPointsVar(&x, &y)
+		pointReals = append(pointReals, Point{X: x, Y: y})
+	}
+	gp.getContent().AppendStreamClipPolygon(pointReals)
 }
 
 // Rectangle : draw rectangle, and add radius input to make a round corner, it helps to calculate the round corner coordinates and use Polygon functions to draw rectangle

@@ -54,6 +54,20 @@ func main() {
 
 ```
 
+### Font fallback
+
+Use `SetFontFallback` to try other registered TTF fonts when the current font does not contain a rune. Fallback is opt-in; without this call, missing glyphs keep the existing `OnGlyphNotFoundSubstitute` behavior.
+
+```go
+pdf.AddTTFFont("latin", "./latin.ttf")
+pdf.AddTTFFont("arabic", "./arabic.ttf")
+pdf.SetFontFallback("latin", "", gopdf.FontFallback{Family: "arabic"})
+pdf.SetFont("latin", "", 14)
+pdf.Cell(nil, "ABCش")
+```
+
+Fallback works per rune and does not provide full text shaping or cross-font kerning.
+
 ### Set text color using RGB color model
 
 ```go

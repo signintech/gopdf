@@ -38,6 +38,7 @@ type cacheContentText struct {
 	cellOpt        CellOption
 	lineWidth      float64
 	text           string
+	runs           []textRun
 	//---result---
 	cellWidthPdfUnit, textWidthPdfUnit float64
 	cellHeightPdfUnit                  float64
@@ -67,15 +68,39 @@ func (c *cacheContentText) Clone(f func() *GoPdf) ICacheContent {
 	cl.cellOpt = c.cellOpt.Clone()
 	cl.lineWidth = c.lineWidth
 	cl.text = c.text
+	if len(c.runs) > 0 {
+		cl.runs = make([]textRun, len(c.runs))
+		copy(cl.runs, c.runs)
+	}
 	cl.cellWidthPdfUnit = c.cellWidthPdfUnit
 	cl.textWidthPdfUnit = c.textWidthPdfUnit
 	cl.isPlaceHolder = c.isPlaceHolder
 	return cl
 }
 
+func (c *cacheContentText) rewireSubsetFonts(subFontByCount map[int]*SubsetFontObj) {
+	if c.fontSubset != nil {
+		if subFont, ok := subFontByCount[c.fontSubset.CountOfFont]; ok {
+			c.fontSubset = subFont
+		}
+	}
+	for i := range c.runs {
+		if c.runs[i].fontSubset == nil {
+			continue
+		}
+		if subFont, ok := subFontByCount[c.runs[i].fontSubset.CountOfFont]; ok {
+			c.runs[i].fontSubset = subFont
+		}
+	}
+}
+
 func (c *cacheContentText) isSame(cache cacheContentText) bool {
 	if c.rectangle != nil {
 		//if rectangle != nil we assume this is not same content
+		return false
+	}
+
+	if len(c.runs) > 0 || len(cache.runs) > 0 {
 		return false
 	}
 
@@ -189,35 +214,21 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	if c.txtColorMode == "color" {
 		c.textColor.write(w, protection)
 	}
-	io.WriteString(w, "[<")
 
-	unitsPerEm := int(c.fontSubset.ttfp.UnitsPerEm())
-	var leftRune rune
-	var leftRuneIndex uint
-	for i, r := range c.text {
-
-		glyphindex, err := c.fontSubset.CharIndex(r)
-		if err == ErrCharNotFound {
-			continue
-		} else if err != nil {
-			return err
-		}
-
-		pairvalPdfUnit := 0
-		if i > 0 && c.fontSubset.ttfFontOption.UseKerning { //kerning
-			pairval := kern(c.fontSubset, leftRune, r, leftRuneIndex, glyphindex)
-			pairvalPdfUnit = convertTTFUnit2PDFUnit(int(pairval), unitsPerEm)
-			if pairvalPdfUnit != 0 {
-				fmt.Fprintf(w, ">%d<", (-1)*pairvalPdfUnit)
+	if len(c.runs) > 0 {
+		for _, run := range c.runs {
+			fmt.Fprintf(w, "/F%d %s Tf %s Tc\n", run.fontCountIndex, FormatFloatTrim(c.fontSize), FormatFloatTrim(c.charSpacing))
+			if err := writeTextRun(w, run.fontSubset, run.text); err != nil {
+				return err
 			}
 		}
-
-		fmt.Fprintf(w, "%04X", glyphindex)
-		leftRune = r
-		leftRuneIndex = glyphindex
+	} else {
+		fmt.Fprintf(w, "/F%d %s Tf %s Tc\n", c.fontCountIndex, FormatFloatTrim(c.fontSize), FormatFloatTrim(c.charSpacing))
+		if err := writeTextRun(w, c.fontSubset, c.text); err != nil {
+			return err
+		}
 	}
 
-	io.WriteString(w, ">] TJ\n")
 	io.WriteString(w, "ET\n")
 
 	if c.fontStyle&Underline == Underline {
@@ -228,6 +239,36 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 
 	c.drawBorder(w)
 
+	return nil
+}
+
+func writeTextRun(w io.Writer, fontSubset *SubsetFontObj, text string) error {
+	fmt.Fprint(w, "[<")
+	unitsPerEm := int(fontSubset.ttfp.UnitsPerEm())
+	var leftRune rune
+	var leftRuneIndex uint
+	for i, r := range text {
+		glyphindex, err := fontSubset.CharIndex(r)
+		if err == ErrCharNotFound {
+			continue
+		} else if err != nil {
+			return err
+		}
+
+		pairvalPdfUnit := 0
+		if i > 0 && fontSubset.ttfFontOption.UseKerning {
+			pairval := kern(fontSubset, leftRune, r, leftRuneIndex, glyphindex)
+			pairvalPdfUnit = convertTTFUnit2PDFUnit(int(pairval), unitsPerEm)
+			if pairvalPdfUnit != 0 {
+				fmt.Fprintf(w, ">%d<", (-1)*pairvalPdfUnit)
+			}
+		}
+
+		fmt.Fprintf(w, "%04X", glyphindex)
+		leftRune = r
+		leftRuneIndex = glyphindex
+	}
+	fmt.Fprint(w, ">] TJ\n")
 	return nil
 }
 
@@ -326,7 +367,13 @@ func (c *cacheContentText) underline(w io.Writer) error {
 
 func (c *cacheContentText) createContent() (float64, float64, error) {
 
-	cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, err := createContent(c.fontSubset, c.text, c.fontSize, c.charSpacing, c.rectangle)
+	var cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit float64
+	var err error
+	if len(c.runs) > 0 {
+		cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, err = createContentFromRuns(c.runs, c.fontSize, c.charSpacing, c.rectangle)
+	} else {
+		cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, err = createContent(c.fontSubset, c.text, c.fontSize, c.charSpacing, c.rectangle)
+	}
 	if err != nil {
 		return 0, 0, err
 	}
@@ -334,6 +381,25 @@ func (c *cacheContentText) createContent() (float64, float64, error) {
 	c.cellHeightPdfUnit = cellHeightPdfUnit
 	c.textWidthPdfUnit = textWidthPdfUnit
 	return cellWidthPdfUnit, cellHeightPdfUnit, nil
+}
+
+func createContentFromRuns(runs []textRun, fontSize float64, charSpacing float64, rectangle *Rect) (float64, float64, float64, error) {
+	textWidthPdfUnit := float64(0)
+	cellHeightPdfUnit := float64(0)
+	for _, run := range runs {
+		_, runHeightPdfUnit, runWidthPdfUnit, err := createContent(run.fontSubset, run.text, fontSize, charSpacing, nil)
+		if err != nil {
+			return 0, 0, 0, err
+		}
+		textWidthPdfUnit += runWidthPdfUnit
+		if runHeightPdfUnit > cellHeightPdfUnit {
+			cellHeightPdfUnit = runHeightPdfUnit
+		}
+	}
+	if rectangle != nil {
+		return rectangle.W, rectangle.H, textWidthPdfUnit, nil
+	}
+	return textWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, nil
 }
 
 func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing float64, rectangle *Rect) (float64, float64, float64, error) {

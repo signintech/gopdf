@@ -77,8 +77,12 @@ func (gp *GoPdf) AddTTFFontFromFontContainer(family string, container *FontConta
 		return ErrFontNotFound
 	}
 	subsetFont := untypedSubsetFontObj.(SubsetFontObj)
-	subsetFont.init(func() *GoPdf {
+	subsetFont.funcGetRoot = func() *GoPdf {
 		return gp
-	})
+	}
+	if subsetFont.CharacterToGlyphIndex == nil {
+		subsetFont.CharacterToGlyphIndex = NewMapOfCharacterToGlyphIndex()
+	}
+	subsetFont.funcKernOverride = nil
 	return gp.setSubsetFontObject(&subsetFont, family, subsetFont.ttfFontOption)
 }

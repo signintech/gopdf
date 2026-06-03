@@ -7,12 +7,20 @@ import (
 
 type cacheContentSaveGraphicsState struct{}
 
+func (c *cacheContentSaveGraphicsState) Clone(f func() *GoPdf) ICacheContent {
+	return &cacheContentSaveGraphicsState{}
+}
+
 func (c *cacheContentSaveGraphicsState) write(w io.Writer, protection *PDFProtection) error {
 	fmt.Fprint(w, "q\n")
 	return nil
 }
 
 type cacheContentRestoreGraphicsState struct{}
+
+func (c *cacheContentRestoreGraphicsState) Clone(f func() *GoPdf) ICacheContent {
+	return &cacheContentRestoreGraphicsState{}
+}
 
 func (c *cacheContentRestoreGraphicsState) write(w io.Writer, protection *PDFProtection) error {
 	fmt.Fprint(w, "Q\n")

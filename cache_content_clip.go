@@ -10,6 +10,15 @@ type cacheContentClipPolygon struct {
 	points     []Point
 }
 
+func (c *cacheContentClipPolygon) Clone(f func() *GoPdf) ICacheContent {
+	cl := &cacheContentClipPolygon{
+		pageHeight: c.pageHeight,
+		points:     make([]Point, len(c.points)),
+	}
+	copy(cl.points, c.points)
+	return cl
+}
+
 func (c *cacheContentClipPolygon) write(w io.Writer, protection *PDFProtection) error {
 	for i, p := range c.points {
 		fmt.Fprintf(w, "%.2f %.2f", p.X, c.pageHeight-p.Y)

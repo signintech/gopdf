@@ -143,6 +143,13 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 		return err
 	}
 
+	hasTransparency := len(c.cellOpt.extGStateIndexes) > 0
+	if hasTransparency {
+		if _, err := io.WriteString(w, "q\n"); err != nil {
+			return err
+		}
+	}
+
 	for _, extGStateIndex := range c.cellOpt.extGStateIndexes {
 		linkToGSObj := fmt.Sprintf("/GS%d gs\n", extGStateIndex)
 		if _, err := io.WriteString(w, linkToGSObj); err != nil {
@@ -198,6 +205,12 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	}
 
 	c.drawBorder(w)
+
+	if hasTransparency {
+		if _, err := io.WriteString(w, "Q\n"); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

@@ -80,6 +80,20 @@ func convertTypoUnit(val float64, unitsPerEm uint, fontSize float64) float64 {
 	return val * fontSize / 1000.0
 }
 
+// justifyAdjustment returns the TJ-array number to emit after each interior
+// space so that a line of glyphs (textWidth) is stretched to fill its cell.
+// slackPts is (cellWidth - textWidth) in points, spread over gapCount gaps.
+// TJ numbers are thousandths of glyph space, scaled by font size, and are
+// SUBTRACTED from the pen advance, so a negative number widens the gap.
+// Returns 0 when there is nothing to distribute.
+func justifyAdjustment(slackPts float64, gapCount int, fontSize float64) int {
+	if gapCount <= 0 || slackPts <= 0 || fontSize <= 0 {
+		return 0
+	}
+	perGap := slackPts / float64(gapCount)
+	return int(math.Round(-(perGap * 1000.0 / fontSize)))
+}
+
 func (c *cacheContentText) calTypoAscender() float64 {
 	return convertTypoUnit(float64(c.fontSubset.ttfp.TypoAscender()), c.fontSubset.ttfp.UnitsPerEm(), float64(c.fontSize))
 }

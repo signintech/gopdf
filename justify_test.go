@@ -59,3 +59,21 @@ func TestInteriorSpaceCount(t *testing.T) {
 		}
 	}
 }
+
+func TestLineAlign(t *testing.T) {
+	if got := lineAlign(Justify, false); got != Justify {
+		t.Fatalf("non-last justify line = %d, want %d (Justify)", got, Justify)
+	}
+	if got := lineAlign(Justify, true); got != Left {
+		t.Fatalf("last justify line = %d, want %d (Left)", got, Left)
+	}
+	if got := lineAlign(Justify|Top, true); got != Left|Top {
+		t.Fatalf("last justify+top line = %d, want %d (Left|Top)", got, Left|Top)
+	}
+	if got := lineAlign(Center, true); got != Center {
+		t.Fatalf("last center line = %d, want %d (unchanged)", got, Center)
+	}
+	if got := lineAlign(Left, false); got != Left {
+		t.Fatalf("non-last left line = %d, want %d (unchanged)", got, Left)
+	}
+}

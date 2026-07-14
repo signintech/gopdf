@@ -126,6 +126,16 @@ func interiorSpaceCount(text string) int {
 	return count
 }
 
+// lineAlign returns the alignment to apply to a single wrapped line. The last
+// line of a justified paragraph is left-aligned (standard typographic
+// behavior) rather than stretched; all other cases are returned unchanged.
+func lineAlign(align int, isLastLine bool) int {
+	if isLastLine && align&Justify == Justify {
+		return align&^Justify | Left
+	}
+	return align
+}
+
 func (c *cacheContentText) calTypoAscender() float64 {
 	return convertTypoUnit(float64(c.fontSubset.ttfp.TypoAscender()), c.fontSubset.ttfp.UnitsPerEm(), float64(c.fontSize))
 }

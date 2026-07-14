@@ -94,6 +94,38 @@ func justifyAdjustment(slackPts float64, gapCount int, fontSize float64) int {
 	return int(math.Round(-(perGap * 1000.0 / fontSize)))
 }
 
+// nonSpaceBounds returns the byte index of the first and last non-space
+// (' ') rune in text, or (-1, -1) when text is empty or all spaces.
+func nonSpaceBounds(text string) (first, last int) {
+	first, last = -1, -1
+	for i, r := range text {
+		if r != ' ' {
+			if first < 0 {
+				first = i
+			}
+			last = i
+		}
+	}
+	return first, last
+}
+
+// interiorSpaceCount counts the ' ' runes that have a non-space rune both
+// before and after them (i.e. word gaps eligible for justification, with
+// leading/trailing spaces excluded).
+func interiorSpaceCount(text string) int {
+	first, last := nonSpaceBounds(text)
+	if first < 0 {
+		return 0
+	}
+	count := 0
+	for i, r := range text {
+		if r == ' ' && i > first && i < last {
+			count++
+		}
+	}
+	return count
+}
+
 func (c *cacheContentText) calTypoAscender() float64 {
 	return convertTypoUnit(float64(c.fontSubset.ttfp.TypoAscender()), c.fontSubset.ttfp.UnitsPerEm(), float64(c.fontSize))
 }

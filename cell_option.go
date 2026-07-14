@@ -12,12 +12,14 @@ const Bottom = 1 //000001
 const Center = 16 //010000
 // Middle middle
 const Middle = 32 //100000
+// Justify justify (stretch a line to fill the full cell width)
+const Justify = 64 //1000000
 // AllBorders allborders
 const AllBorders = 15 //001111
 
 // CellOption cell option
 type CellOption struct {
-	Align                  int //Allows to align the text. Possible values are: Left,Center,Right,Top,Bottom,Middle
+	Align                  int //Allows to align the text. Possible values are: Left,Center,Right,Justify,Top,Bottom,Middle
 	Border                 int //Indicates if borders must be drawn around the cell. Possible values are: Left, Top, Right, Bottom, ALL
 	Float                  int //Indicates where the current position should go after the call. Possible values are: Right, Bottom
 	Transparency           *Transparency

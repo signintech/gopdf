@@ -1,6 +1,9 @@
 package gopdf
 
-import "testing"
+import (
+	"bytes"
+	"testing"
+)
 
 func TestJustifyAdjustment(t *testing.T) {
 	tests := []struct {
@@ -75,5 +78,60 @@ func TestLineAlign(t *testing.T) {
 	}
 	if got := lineAlign(Left, false); got != Left {
 		t.Fatalf("non-last left line = %d, want %d (unchanged)", got, Left)
+	}
+}
+
+// newJustifyTestPDF returns a started A4 PDF with a font loaded and content
+// compression disabled so the content stream can be inspected as raw bytes.
+func newJustifyTestPDF(t *testing.T) *GoPdf {
+	t.Helper()
+	pdf := &GoPdf{}
+	pdf.Start(Config{PageSize: *PageSizeA4})
+	pdf.AddPage()
+	if err := pdf.AddTTFFont("LiberationSerif-Regular", "./test/res/LiberationSerif-Regular.ttf"); err != nil {
+		t.Fatal(err)
+	}
+	if err := pdf.SetFont("LiberationSerif-Regular", "", 14); err != nil {
+		t.Fatal(err)
+	}
+	pdf.SetNoCompression()
+	return pdf
+}
+
+// countAdjust counts justify/kerning adjustment markers ">-" in a content
+// stream. Justify numbers are always negative, so ">-" marks each injected gap.
+func countAdjust(b []byte) int {
+	return bytes.Count(b, []byte(">-"))
+}
+
+func TestJustifyCellInjectsAdjustments(t *testing.T) {
+	const text = "the quick brown fox" // 3 interior spaces
+
+	justified := newJustifyTestPDF(t)
+	justified.SetXY(20, 40)
+	if err := justified.CellWithOption(&Rect{W: 400, H: 20}, text,
+		CellOption{Align: Justify | Top}); err != nil {
+		t.Fatal(err)
+	}
+	jb, err := justified.GetBytesPdfReturnErr()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	left := newJustifyTestPDF(t)
+	left.SetXY(20, 40)
+	if err := left.CellWithOption(&Rect{W: 400, H: 20}, text,
+		CellOption{Align: Left | Top}); err != nil {
+		t.Fatal(err)
+	}
+	lb, err := left.GetBytesPdfReturnErr()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// The only systematic difference between the two documents is the injected
+	// justify adjustments — one per interior space.
+	if got := countAdjust(jb) - countAdjust(lb); got != 3 {
+		t.Fatalf("justify adjustment count delta = %d, want 3", got)
 	}
 }

@@ -225,6 +225,23 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	}
 	io.WriteString(w, "[<")
 
+	// justify: distribute leftover width across interior word gaps by emitting
+	// a negative TJ number after each interior space (widening the gap).
+	justify := c.contentType == ContentTypeCell &&
+		c.cellOpt.Align&Justify == Justify &&
+		c.rectangle != nil
+	tjAdjust := 0
+	firstNonSpace, lastNonSpace := -1, -1
+	if justify {
+		slack := c.cellWidthPdfUnit - c.textWidthPdfUnit
+		tjAdjust = justifyAdjustment(slack, interiorSpaceCount(c.text), c.fontSize)
+		if tjAdjust == 0 {
+			justify = false // no slack or no gaps: fall back to left alignment
+		} else {
+			firstNonSpace, lastNonSpace = nonSpaceBounds(c.text)
+		}
+	}
+
 	unitsPerEm := int(c.fontSubset.ttfp.UnitsPerEm())
 	var leftRune rune
 	var leftRuneIndex uint
@@ -247,6 +264,11 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 		}
 
 		fmt.Fprintf(w, "%04X", glyphindex)
+
+		if justify && r == ' ' && i > firstNonSpace && i < lastNonSpace {
+			fmt.Fprintf(w, ">%d<", tjAdjust)
+		}
+
 		leftRune = r
 		leftRuneIndex = glyphindex
 	}

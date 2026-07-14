@@ -201,3 +201,55 @@ func TestJustifyMultiCellLastLineNotStretched(t *testing.T) {
 		t.Fatalf("last (only) line must not be justified; adjustment delta = %d, want 0", got)
 	}
 }
+
+// renderKernedCell renders a single cell using the Ubuntu font (which has a
+// legacy `kern` table, unlike LiberationSerif) with kerning optionally enabled,
+// and returns the raw, uncompressed content bytes.
+func renderKernedCell(t *testing.T, text string, align int, useKerning bool) []byte {
+	t.Helper()
+	pdf := &GoPdf{}
+	pdf.Start(Config{PageSize: *PageSizeA4})
+	pdf.AddPage()
+	if err := pdf.AddTTFFontWithOption("Ubuntu-L",
+		"./examples/outline_example/Ubuntu-L.ttf", TtfOption{UseKerning: useKerning}); err != nil {
+		t.Fatal(err)
+	}
+	if err := pdf.SetFont("Ubuntu-L", "", 14); err != nil {
+		t.Fatal(err)
+	}
+	pdf.SetNoCompression()
+	pdf.SetXY(20, 40)
+	if err := pdf.CellWithOption(&Rect{W: 500, H: 20}, text,
+		CellOption{Align: align | Top}); err != nil {
+		t.Fatal(err)
+	}
+	b, err := pdf.GetBytesPdfReturnErr()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return b
+}
+
+// Justify must work when kerning is enabled: both mechanisms emit position
+// numbers into the same TJ array. This verifies (1) kerning genuinely alters
+// the output for this font/text, and (2) enabling justify on top of kerning
+// adds exactly one adjustment per interior space — i.e. justify coexists with
+// kerning and is unaffected by it.
+func TestJustifyCoexistsWithKerning(t *testing.T) {
+	const text = "AVA WAV YAV" // capital pairs that kern in Ubuntu; 2 interior spaces
+
+	leftNoKern := renderKernedCell(t, text, Left, false)
+	leftKern := renderKernedCell(t, text, Left, true)
+	justifyKern := renderKernedCell(t, text, Justify, true)
+
+	// (1) Kerning must actually be active for this font/text.
+	if bytes.Equal(leftNoKern, leftKern) {
+		t.Fatal("kerning enabled produced identical output to kerning disabled; " +
+			"the font/text no longer exercises kerning, so this test is vacuous")
+	}
+
+	// (2) Justify adds exactly its interior-space adjustments on top of kerning.
+	if got, want := countAdjust(justifyKern)-countAdjust(leftKern), interiorSpaceCount(text); got != want {
+		t.Fatalf("with kerning enabled, justify adjustment delta = %d, want %d", got, want)
+	}
+}

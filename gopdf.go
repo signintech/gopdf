@@ -1309,8 +1309,11 @@ func (gp *GoPdf) MultiCellWithOption(rectangle *Rect, text string, opt CellOptio
 		startHeight = rectangle.H - (lineHeight+1.5)*float64(shiftLines)
 	}
 
-	for _, text := range textSplits {
-		gp.CellWithOption(&Rect{W: rectangle.W, H: startHeight}, string(text), opt)
+	lastLine := len(textSplits) - 1
+	for i, text := range textSplits {
+		lineOpt := opt
+		lineOpt.Align = lineAlign(opt.Align, i == lastLine)
+		gp.CellWithOption(&Rect{W: rectangle.W, H: startHeight}, string(text), lineOpt)
 		gp.Br(lineHeight)
 		gp.SetX(x)
 	}

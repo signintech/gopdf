@@ -135,3 +135,69 @@ func TestJustifyCellInjectsAdjustments(t *testing.T) {
 		t.Fatalf("justify adjustment count delta = %d, want 3", got)
 	}
 }
+
+// A paragraph that wraps to multiple lines should have justify adjustments
+// (on all but the last line).
+func TestJustifyMultiCellWraps(t *testing.T) {
+	const text = "the quick brown fox jumps over the lazy dog again and again"
+
+	justified := newJustifyTestPDF(t)
+	justified.SetXY(20, 40)
+	if err := justified.MultiCellWithOption(&Rect{W: 150, H: 400}, text,
+		CellOption{Align: Justify}); err != nil {
+		t.Fatal(err)
+	}
+	jb, err := justified.GetBytesPdfReturnErr()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	left := newJustifyTestPDF(t)
+	left.SetXY(20, 40)
+	if err := left.MultiCellWithOption(&Rect{W: 150, H: 400}, text,
+		CellOption{Align: Left}); err != nil {
+		t.Fatal(err)
+	}
+	lb, err := left.GetBytesPdfReturnErr()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if countAdjust(jb)-countAdjust(lb) <= 0 {
+		t.Fatalf("expected justify adjustments in a wrapped paragraph, got delta %d",
+			countAdjust(jb)-countAdjust(lb))
+	}
+}
+
+// The last line of a justified paragraph is left-aligned. When the whole text
+// fits on ONE line, that sole line is the last line, so MultiCell must NOT
+// justify it (unlike CellWithOption, which does).
+func TestJustifyMultiCellLastLineNotStretched(t *testing.T) {
+	const text = "quick brown" // fits on one line in a 400-wide rect
+
+	justified := newJustifyTestPDF(t)
+	justified.SetXY(20, 40)
+	if err := justified.MultiCellWithOption(&Rect{W: 400, H: 100}, text,
+		CellOption{Align: Justify}); err != nil {
+		t.Fatal(err)
+	}
+	jb, err := justified.GetBytesPdfReturnErr()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	left := newJustifyTestPDF(t)
+	left.SetXY(20, 40)
+	if err := left.MultiCellWithOption(&Rect{W: 400, H: 100}, text,
+		CellOption{Align: Left}); err != nil {
+		t.Fatal(err)
+	}
+	lb, err := left.GetBytesPdfReturnErr()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if got := countAdjust(jb) - countAdjust(lb); got != 0 {
+		t.Fatalf("last (only) line must not be justified; adjustment delta = %d, want 0", got)
+	}
+}

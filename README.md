@@ -16,6 +16,7 @@ A minimum version of Go 1.13 is required.
   - Set image mask
 - Password protection
 - Font [kerning](https://en.wikipedia.org/wiki/Kerning)
+- Text alignment (left, center, right, justify)
 
 ## Installation
 
@@ -54,6 +55,24 @@ func main() {
 
 }
 
+```
+
+### Justified text
+
+Use `Justify` in `CellOption.Align` to stretch text to the full cell width.
+It works for a single line (`CellWithOption`) and for wrapped paragraphs
+(`MultiCellWithOption`). In a paragraph, every line is justified except the
+last line, which stays left-aligned. A line with no spaces, or one that already
+fills (or overflows) the cell, is left-aligned unchanged.
+
+```go
+// Single justified line
+pdf.CellWithOption(&gopdf.Rect{W: 400, H: 20}, text,
+    gopdf.CellOption{Align: gopdf.Justify | gopdf.Top})
+
+// Justified paragraph (last line left-aligned automatically)
+pdf.MultiCellWithOption(&gopdf.Rect{W: 400, H: 200}, paragraph,
+    gopdf.CellOption{Align: gopdf.Justify})
 ```
 
 ### Set text color using RGB color model

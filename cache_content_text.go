@@ -80,6 +80,62 @@ func convertTypoUnit(val float64, unitsPerEm uint, fontSize float64) float64 {
 	return val * fontSize / 1000.0
 }
 
+// justifyAdjustment returns the TJ-array number to emit after each interior
+// space so that a line of glyphs (textWidth) is stretched to fill its cell.
+// slackPts is (cellWidth - textWidth) in points, spread over gapCount gaps.
+// TJ numbers are thousandths of glyph space, scaled by font size, and are
+// SUBTRACTED from the pen advance, so a negative number widens the gap.
+// Returns 0 when there is nothing to distribute.
+func justifyAdjustment(slackPts float64, gapCount int, fontSize float64) int {
+	if gapCount <= 0 || slackPts <= 0 || fontSize <= 0 {
+		return 0
+	}
+	perGap := slackPts / float64(gapCount)
+	return int(math.Round(-(perGap * 1000.0 / fontSize)))
+}
+
+// nonSpaceBounds returns the byte index of the first and last non-space
+// (' ') rune in text, or (-1, -1) when text is empty or all spaces.
+func nonSpaceBounds(text string) (first, last int) {
+	first, last = -1, -1
+	for i, r := range text {
+		if r != ' ' {
+			if first < 0 {
+				first = i
+			}
+			last = i
+		}
+	}
+	return first, last
+}
+
+// interiorSpaceCount counts the ' ' runes that have a non-space rune both
+// before and after them (i.e. word gaps eligible for justification, with
+// leading/trailing spaces excluded).
+func interiorSpaceCount(text string) int {
+	first, last := nonSpaceBounds(text)
+	if first < 0 {
+		return 0
+	}
+	count := 0
+	for i, r := range text {
+		if r == ' ' && i > first && i < last {
+			count++
+		}
+	}
+	return count
+}
+
+// lineAlign returns the alignment to apply to a single wrapped line. The last
+// line of a justified paragraph is left-aligned (standard typographic
+// behavior) rather than stretched; all other cases are returned unchanged.
+func lineAlign(align int, isLastLine bool) int {
+	if isLastLine && align&Justify == Justify {
+		return align&^Justify | Left
+	}
+	return align
+}
+
 func (c *cacheContentText) calTypoAscender() float64 {
 	return convertTypoUnit(float64(c.fontSubset.ttfp.TypoAscender()), c.fontSubset.ttfp.UnitsPerEm(), float64(c.fontSize))
 }
@@ -169,6 +225,23 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	}
 	io.WriteString(w, "[<")
 
+	// justify: distribute leftover width across interior word gaps by emitting
+	// a negative TJ number after each interior space (widening the gap).
+	justify := c.contentType == ContentTypeCell &&
+		c.cellOpt.Align&Justify == Justify &&
+		c.rectangle != nil
+	tjAdjust := 0
+	firstNonSpace, lastNonSpace := -1, -1
+	if justify {
+		slack := c.cellWidthPdfUnit - c.textWidthPdfUnit
+		tjAdjust = justifyAdjustment(slack, interiorSpaceCount(c.text), c.fontSize)
+		if tjAdjust == 0 {
+			justify = false // no slack or no gaps: fall back to left alignment
+		} else {
+			firstNonSpace, lastNonSpace = nonSpaceBounds(c.text)
+		}
+	}
+
 	unitsPerEm := int(c.fontSubset.ttfp.UnitsPerEm())
 	var leftRune rune
 	var leftRuneIndex uint
@@ -191,6 +264,11 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 		}
 
 		fmt.Fprintf(w, "%04X", glyphindex)
+
+		if justify && r == ' ' && i > firstNonSpace && i < lastNonSpace {
+			fmt.Fprintf(w, ">%d<", tjAdjust)
+		}
+
 		leftRune = r
 		leftRuneIndex = glyphindex
 	}

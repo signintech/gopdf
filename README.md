@@ -75,6 +75,22 @@ pdf.MultiCellWithOption(&gopdf.Rect{W: 400, H: 200}, paragraph,
     gopdf.CellOption{Align: gopdf.Justify})
 ```
 
+### Superscript and subscript
+
+Set `gopdf.Superscript` or `gopdf.Subscript` with `SetFontWithStyle` and the
+glyph size and baseline shift are derived from the font's own metrics (with
+sensible fallbacks). The logical font size keeps governing line layout, so
+script runs share the baseline of the surrounding text.
+
+```go
+pdf.SetFont("font", "", 14)
+pdf.Cell(nil, "E = mc")
+pdf.SetFontWithStyle("font", gopdf.Superscript, 14)
+pdf.Cell(nil, "2")
+pdf.SetFontWithStyle("font", gopdf.Regular, 14)
+pdf.Cell(nil, ", said Einstein")
+```
+
 ### Set text color using RGB color model
 
 ```go

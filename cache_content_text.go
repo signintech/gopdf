@@ -94,6 +94,40 @@ func justifyAdjustment(slackPts float64, gapCount int, fontSize float64) int {
 	return int(math.Round(-(perGap * 1000.0 / fontSize)))
 }
 
+// Fallback ratios (fractions of the logical font size) used when a font's
+// OS/2 table carries no usable script metrics.
+const defaultScriptScale = 0.583
+const defaultSuperscriptRise = 0.333
+const defaultSubscriptDrop = 0.141
+
+// scriptFontSizeAndRise returns the glyph size to emit in Tf and the Ts
+// baseline rise (both in points) for the given style; plain styles return
+// (fontSize, 0). The logical fontSize keeps governing vertical layout; only
+// glyph size and baseline shift are derived here. Superscript wins if both
+// script bits are set.
+func scriptFontSizeAndRise(f *SubsetFontObj, fontStyle int, fontSize float64) (float64, float64) {
+	super := fontStyle&Superscript == Superscript
+	sub := fontStyle&Subscript == Subscript
+	if !super && !sub {
+		return fontSize, 0
+	}
+	unitsPerEm := float64(f.ttfp.UnitsPerEm())
+	// frac converts an OS/2 metric to a fraction of the em, or falls back
+	// when the font has no usable value.
+	frac := func(metric int, fallback float64) float64 {
+		if metric > 0 && unitsPerEm > 0 {
+			return float64(metric) / unitsPerEm
+		}
+		return fallback
+	}
+	if super {
+		return fontSize * frac(f.ttfp.SuperscriptYSize(), defaultScriptScale),
+			fontSize * frac(f.ttfp.SuperscriptYOffset(), defaultSuperscriptRise)
+	}
+	return fontSize * frac(f.ttfp.SubscriptYSize(), defaultScriptScale),
+		-fontSize * frac(f.ttfp.SubscriptYOffset(), defaultSubscriptDrop)
+}
+
 // nonSpaceBounds returns the byte index of the first and last non-space
 // (' ') rune in text, or (-1, -1) when text is empty or all spaces.
 func nonSpaceBounds(text string) (first, last int) {
@@ -217,8 +251,12 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 		return err
 	}
 
+	// Superscript/subscript: glyphs shrink to the effective size and the
+	// baseline shifts via Ts. Ts is written for every draw (0 for plain
+	// text) because text state persists across BT/ET blocks.
+	effFontSize, textRise := scriptFontSizeAndRise(c.fontSubset, c.fontStyle, c.fontSize)
 	fmt.Fprintf(w, "%0.2f %0.2f TD\n", x, y)
-	fmt.Fprintf(w, "/F%d %s Tf %s Tc\n", c.fontCountIndex, FormatFloatTrim(c.fontSize), FormatFloatTrim(c.charSpacing))
+	fmt.Fprintf(w, "/F%d %s Tf %s Tc %s Ts\n", c.fontCountIndex, FormatFloatTrim(effFontSize), FormatFloatTrim(c.charSpacing), FormatFloatTrim(textRise))
 
 	if c.txtColorMode == "color" {
 		c.textColor.write(w, protection)
@@ -234,7 +272,7 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	firstNonSpace, lastNonSpace := -1, -1
 	if justify {
 		slack := c.cellWidthPdfUnit - c.textWidthPdfUnit
-		tjAdjust = justifyAdjustment(slack, interiorSpaceCount(c.text), c.fontSize)
+		tjAdjust = justifyAdjustment(slack, interiorSpaceCount(c.text), effFontSize)
 		if tjAdjust == 0 {
 			justify = false // no slack or no gaps: fall back to left alignment
 		} else {
@@ -388,7 +426,7 @@ func (c *cacheContentText) underline(w io.Writer) error {
 
 func (c *cacheContentText) createContent() (float64, float64, error) {
 
-	cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, err := createContent(c.fontSubset, c.text, c.fontSize, c.charSpacing, c.rectangle)
+	cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, err := createContent(c.fontSubset, c.text, c.fontSize, c.fontStyle, c.charSpacing, c.rectangle)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -398,8 +436,12 @@ func (c *cacheContentText) createContent() (float64, float64, error) {
 	return cellWidthPdfUnit, cellHeightPdfUnit, nil
 }
 
-func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing float64, rectangle *Rect) (float64, float64, float64, error) {
+func createContent(f *SubsetFontObj, text string, fontSize float64, fontStyle int, charSpacing float64, rectangle *Rect) (float64, float64, float64, error) {
 
+	// Widths use the effective (script-scaled) glyph size so measurement and
+	// wrapping match rendering; heights keep the logical size so script text
+	// shares the line layout of its neighbors.
+	effFontSize, _ := scriptFontSizeAndRise(f, fontStyle, fontSize)
 	unitsPerEm := int(f.ttfp.UnitsPerEm())
 	var leftRune rune
 	var leftRuneIndex uint
@@ -425,7 +467,7 @@ func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing 
 			return 0, 0, 0, err
 		}
 
-		unitsPerPt := float64(unitsPerEm) / fontSize
+		unitsPerPt := float64(unitsPerEm) / effFontSize
 		spaceWidthInPt := unitsPerPt * charSpacing
 		spaceWidthPdfUnit := convertTTFUnit2PDFUnit(int(spaceWidthInPt), unitsPerEm)
 
@@ -437,7 +479,7 @@ func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing 
 	cellWidthPdfUnit := float64(0)
 	cellHeightPdfUnit := float64(0)
 	if rectangle == nil {
-		cellWidthPdfUnit = float64(sumWidth) * (float64(fontSize) / 1000.0)
+		cellWidthPdfUnit = float64(sumWidth) * (effFontSize / 1000.0)
 		typoAscender := convertTypoUnit(float64(f.ttfp.TypoAscender()), f.ttfp.UnitsPerEm(), float64(fontSize))
 		typoDescender := convertTypoUnit(float64(f.ttfp.TypoDescender()), f.ttfp.UnitsPerEm(), float64(fontSize))
 		cellHeightPdfUnit = typoAscender - typoDescender
@@ -445,7 +487,7 @@ func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing 
 		cellWidthPdfUnit = rectangle.W
 		cellHeightPdfUnit = rectangle.H
 	}
-	textWidthPdfUnit := float64(sumWidth) * (float64(fontSize) / 1000.0)
+	textWidthPdfUnit := float64(sumWidth) * (effFontSize / 1000.0)
 	return cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, nil
 }
 

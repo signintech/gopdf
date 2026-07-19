@@ -48,6 +48,11 @@ type TTFParser struct {
 	capHeight     int
 	sxHeight      int
 
+	ySubscriptYSize     int
+	ySubscriptYOffset   int
+	ySuperscriptYSize   int
+	ySuperscriptYOffset int
+
 	//post
 	italicAngle        int
 	underlinePosition  int
@@ -100,6 +105,28 @@ func (t *TTFParser) GroupingTables() []CmapFormat12GroupingTable {
 // UnderlineThickness thickness of underline
 func (t *TTFParser) UnderlineThickness() int {
 	return t.underlineThickness
+}
+
+// SubscriptYSize recommended subscript em size, in font units (OS/2)
+func (t *TTFParser) SubscriptYSize() int {
+	return t.ySubscriptYSize
+}
+
+// SubscriptYOffset recommended distance BELOW the baseline for subscripts,
+// stored positive, in font units (OS/2)
+func (t *TTFParser) SubscriptYOffset() int {
+	return t.ySubscriptYOffset
+}
+
+// SuperscriptYSize recommended superscript em size, in font units (OS/2)
+func (t *TTFParser) SuperscriptYSize() int {
+	return t.ySuperscriptYSize
+}
+
+// SuperscriptYOffset recommended distance above the baseline for
+// superscripts, in font units (OS/2)
+func (t *TTFParser) SuperscriptYOffset() int {
+	return t.ySuperscriptYOffset
 }
 
 func (t *TTFParser) XHeight() int {
@@ -433,7 +460,41 @@ func (t *TTFParser) ParseOS2(fd *bytes.Reader) error {
 	}
 	t.Embeddable = (fsType != 2) && ((fsType & 0x200) == 0)
 
-	err = t.Skip(fd, (11*2)+10+(4*4)+4)
+	err = t.Skip(fd, 2) // ySubscriptXSize
+	if err != nil {
+		return err
+	}
+	t.ySubscriptYSize, err = t.ReadShort(fd)
+	if err != nil {
+		return err
+	}
+	err = t.Skip(fd, 2) // ySubscriptXOffset
+	if err != nil {
+		return err
+	}
+	t.ySubscriptYOffset, err = t.ReadShort(fd)
+	if err != nil {
+		return err
+	}
+	err = t.Skip(fd, 2) // ySuperscriptXSize
+	if err != nil {
+		return err
+	}
+	t.ySuperscriptYSize, err = t.ReadShort(fd)
+	if err != nil {
+		return err
+	}
+	err = t.Skip(fd, 2) // ySuperscriptXOffset
+	if err != nil {
+		return err
+	}
+	t.ySuperscriptYOffset, err = t.ReadShort(fd)
+	if err != nil {
+		return err
+	}
+	// yStrikeoutSize, yStrikeoutPosition, sFamilyClass, panose(10),
+	// ulUnicodeRange(4*4), achVendID(4)
+	err = t.Skip(fd, (3*2)+10+(4*4)+4)
 	if err != nil {
 		return err
 	}

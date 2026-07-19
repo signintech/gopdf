@@ -174,3 +174,46 @@ func TestJustifyWithSuperscript(t *testing.T) {
 		t.Fatalf("justify adjustments = %d, want 3 (one per interior space)", got)
 	}
 }
+
+// Glyph advances are stored size-independently in thousandths, so a script
+// width must equal the normal width scaled by effectiveSize/fontSize.
+func TestMeasureTextWidthScriptScaled(t *testing.T) {
+	pdf := newScriptTestPDF(t)
+	normal, err := pdf.MeasureTextWidth("2222")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := pdf.SetFontWithStyle("LiberationSerif-Regular", Superscript, 14); err != nil {
+		t.Fatal(err)
+	}
+	scripted, err := pdf.MeasureTextWidth("2222")
+	if err != nil {
+		t.Fatal(err)
+	}
+	effSize, _ := scriptFontSizeAndRise(pdf.curr.FontISubset, Superscript, 14)
+	want := normal * effSize / 14
+	if math.Abs(scripted-want) > 0.001 {
+		t.Fatalf("superscript width = %v, want %v (normal %v scaled by %v/14)",
+			scripted, want, normal, effSize)
+	}
+}
+
+// Cell height stays at the logical size so script runs keep the line layout
+// of their neighbors.
+func TestMeasureCellHeightUnaffectedByScript(t *testing.T) {
+	pdf := newScriptTestPDF(t)
+	normal, err := pdf.MeasureCellHeightByText("2222")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := pdf.SetFontWithStyle("LiberationSerif-Regular", Subscript, 14); err != nil {
+		t.Fatal(err)
+	}
+	scripted, err := pdf.MeasureCellHeightByText("2222")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if normal != scripted {
+		t.Fatalf("cell height changed under subscript: %v != %v", scripted, normal)
+	}
+}

@@ -1174,7 +1174,7 @@ func (gp *GoPdf) MultiCell(rectangle *Rect, text string) error {
 	if err != nil {
 		return err
 	}
-	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.CharSpacing, nil)
+	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.FontStyle, gp.curr.CharSpacing, nil)
 	if err != nil {
 		return err
 	}
@@ -1217,7 +1217,7 @@ func (gp *GoPdf) IsFitMultiCell(rectangle *Rect, text string) (bool, float64, er
 	if err != nil {
 		return false, totalLineHeight, err
 	}
-	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.CharSpacing, nil)
+	_, lineHeight, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.FontStyle, gp.curr.CharSpacing, nil)
 
 	if err != nil {
 		return false, totalLineHeight, err
@@ -1289,7 +1289,7 @@ func (gp *GoPdf) MultiCellWithOption(rectangle *Rect, text string, opt CellOptio
 	if err != nil {
 		return err
 	}
-	_, lineHeight, _, err := createContent(gp.curr.FontISubset, itext, gp.curr.FontSize, gp.curr.CharSpacing, nil)
+	_, lineHeight, _, err := createContent(gp.curr.FontISubset, itext, gp.curr.FontSize, gp.curr.FontStyle, gp.curr.CharSpacing, nil)
 	if err != nil {
 		return err
 	}
@@ -1457,7 +1457,7 @@ func (gp *GoPdf) FillInPlaceHoldText(placeHolderName string, text string, align 
 		contentText.text = text
 
 		//Calculate position
-		_, _, textWidthPdfUnit, err := createContent(gp.curr.FontISubset, text, info.fontSize, info.charSpacing, nil)
+		_, _, textWidthPdfUnit, err := createContent(gp.curr.FontISubset, text, info.fontSize, contentText.fontStyle, info.charSpacing, nil)
 		if err != nil {
 			return err
 		}
@@ -1913,7 +1913,7 @@ func (gp *GoPdf) MeasureTextWidth(text string) (float64, error) {
 		return 0, err
 	}
 
-	_, _, textWidthPdfUnit, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.CharSpacing, nil)
+	_, _, textWidthPdfUnit, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.FontStyle, gp.curr.CharSpacing, nil)
 	if err != nil {
 		return 0, err
 	}
@@ -1928,7 +1928,7 @@ func (gp *GoPdf) MeasureCellHeightByText(text string) (float64, error) {
 		return 0, err
 	}
 
-	_, cellHeightPdfUnit, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.CharSpacing, nil)
+	_, cellHeightPdfUnit, _, err := createContent(gp.curr.FontISubset, text, gp.curr.FontSize, gp.curr.FontStyle, gp.curr.CharSpacing, nil)
 	if err != nil {
 		return 0, err
 	}

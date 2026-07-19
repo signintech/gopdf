@@ -426,7 +426,7 @@ func (c *cacheContentText) underline(w io.Writer) error {
 
 func (c *cacheContentText) createContent() (float64, float64, error) {
 
-	cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, err := createContent(c.fontSubset, c.text, c.fontSize, c.charSpacing, c.rectangle)
+	cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, err := createContent(c.fontSubset, c.text, c.fontSize, c.fontStyle, c.charSpacing, c.rectangle)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -436,8 +436,12 @@ func (c *cacheContentText) createContent() (float64, float64, error) {
 	return cellWidthPdfUnit, cellHeightPdfUnit, nil
 }
 
-func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing float64, rectangle *Rect) (float64, float64, float64, error) {
+func createContent(f *SubsetFontObj, text string, fontSize float64, fontStyle int, charSpacing float64, rectangle *Rect) (float64, float64, float64, error) {
 
+	// Widths use the effective (script-scaled) glyph size so measurement and
+	// wrapping match rendering; heights keep the logical size so script text
+	// shares the line layout of its neighbors.
+	effFontSize, _ := scriptFontSizeAndRise(f, fontStyle, fontSize)
 	unitsPerEm := int(f.ttfp.UnitsPerEm())
 	var leftRune rune
 	var leftRuneIndex uint
@@ -463,7 +467,7 @@ func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing 
 			return 0, 0, 0, err
 		}
 
-		unitsPerPt := float64(unitsPerEm) / fontSize
+		unitsPerPt := float64(unitsPerEm) / effFontSize
 		spaceWidthInPt := unitsPerPt * charSpacing
 		spaceWidthPdfUnit := convertTTFUnit2PDFUnit(int(spaceWidthInPt), unitsPerEm)
 
@@ -475,7 +479,7 @@ func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing 
 	cellWidthPdfUnit := float64(0)
 	cellHeightPdfUnit := float64(0)
 	if rectangle == nil {
-		cellWidthPdfUnit = float64(sumWidth) * (float64(fontSize) / 1000.0)
+		cellWidthPdfUnit = float64(sumWidth) * (effFontSize / 1000.0)
 		typoAscender := convertTypoUnit(float64(f.ttfp.TypoAscender()), f.ttfp.UnitsPerEm(), float64(fontSize))
 		typoDescender := convertTypoUnit(float64(f.ttfp.TypoDescender()), f.ttfp.UnitsPerEm(), float64(fontSize))
 		cellHeightPdfUnit = typoAscender - typoDescender
@@ -483,7 +487,7 @@ func createContent(f *SubsetFontObj, text string, fontSize float64, charSpacing 
 		cellWidthPdfUnit = rectangle.W
 		cellHeightPdfUnit = rectangle.H
 	}
-	textWidthPdfUnit := float64(sumWidth) * (float64(fontSize) / 1000.0)
+	textWidthPdfUnit := float64(sumWidth) * (effFontSize / 1000.0)
 	return cellWidthPdfUnit, cellHeightPdfUnit, textWidthPdfUnit, nil
 }
 

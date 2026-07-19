@@ -251,8 +251,12 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 		return err
 	}
 
+	// Superscript/subscript: glyphs shrink to the effective size and the
+	// baseline shifts via Ts. Ts is written for every draw (0 for plain
+	// text) because text state persists across BT/ET blocks.
+	effFontSize, textRise := scriptFontSizeAndRise(c.fontSubset, c.fontStyle, c.fontSize)
 	fmt.Fprintf(w, "%0.2f %0.2f TD\n", x, y)
-	fmt.Fprintf(w, "/F%d %s Tf %s Tc\n", c.fontCountIndex, FormatFloatTrim(c.fontSize), FormatFloatTrim(c.charSpacing))
+	fmt.Fprintf(w, "/F%d %s Tf %s Tc %s Ts\n", c.fontCountIndex, FormatFloatTrim(effFontSize), FormatFloatTrim(c.charSpacing), FormatFloatTrim(textRise))
 
 	if c.txtColorMode == "color" {
 		c.textColor.write(w, protection)
@@ -268,7 +272,7 @@ func (c *cacheContentText) write(w io.Writer, protection *PDFProtection) error {
 	firstNonSpace, lastNonSpace := -1, -1
 	if justify {
 		slack := c.cellWidthPdfUnit - c.textWidthPdfUnit
-		tjAdjust = justifyAdjustment(slack, interiorSpaceCount(c.text), c.fontSize)
+		tjAdjust = justifyAdjustment(slack, interiorSpaceCount(c.text), effFontSize)
 		if tjAdjust == 0 {
 			justify = false // no slack or no gaps: fall back to left alignment
 		} else {

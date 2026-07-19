@@ -1,6 +1,8 @@
 package gopdf
 
 import (
+	"bytes"
+	"fmt"
 	"math"
 	"testing"
 )
@@ -97,5 +99,78 @@ func TestScriptFontSizeAndRiseFallback(t *testing.T) {
 	size, rise = scriptFontSizeAndRise(f, Subscript, 10)
 	if math.Abs(size-5.83) > eps || math.Abs(rise+1.41) > eps {
 		t.Fatalf("subscript fallback = (%v, %v), want (5.83, -1.41)", size, rise)
+	}
+}
+
+func TestSuperscriptEmitsScaledTfAndTs(t *testing.T) {
+	pdf := newScriptTestPDF(t)
+	pdf.SetXY(20, 40)
+	if err := pdf.Cell(nil, "E = mc"); err != nil {
+		t.Fatal(err)
+	}
+	if err := pdf.SetFontWithStyle("LiberationSerif-Regular", Superscript, 14); err != nil {
+		t.Fatal(err)
+	}
+	if err := pdf.Cell(nil, "2"); err != nil {
+		t.Fatal(err)
+	}
+	b, err := pdf.GetBytesPdfReturnErr()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	effSize, rise := scriptFontSizeAndRise(pdf.curr.FontISubset, Superscript, 14)
+	wantState := fmt.Sprintf("%s Tf 0 Tc %s Ts", FormatFloatTrim(effSize), FormatFloatTrim(rise))
+	if !bytes.Contains(b, []byte(wantState)) {
+		t.Fatalf("content stream missing superscript state %q", wantState)
+	}
+	// The normal-text draw must reset the rise (text state persists across BT/ET).
+	if !bytes.Contains(b, []byte("14 Tf 0 Tc 0 Ts")) {
+		t.Fatalf("content stream missing 0 Ts reset for normal text")
+	}
+}
+
+func TestSubscriptEmitsNegativeTs(t *testing.T) {
+	pdf := newScriptTestPDF(t)
+	pdf.SetXY(20, 40)
+	if err := pdf.SetFontWithStyle("LiberationSerif-Regular", Subscript, 14); err != nil {
+		t.Fatal(err)
+	}
+	if err := pdf.Cell(nil, "2"); err != nil {
+		t.Fatal(err)
+	}
+	b, err := pdf.GetBytesPdfReturnErr()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	effSize, rise := scriptFontSizeAndRise(pdf.curr.FontISubset, Subscript, 14)
+	if rise >= 0 {
+		t.Fatalf("subscript rise = %v, want < 0", rise)
+	}
+	wantState := fmt.Sprintf("%s Tf 0 Tc %s Ts", FormatFloatTrim(effSize), FormatFloatTrim(rise))
+	if !bytes.Contains(b, []byte(wantState)) {
+		t.Fatalf("content stream missing subscript state %q", wantState)
+	}
+}
+
+// Justify must keep working for script-styled text; the TJ adjustment is
+// computed against the effective (scaled) Tf size.
+func TestJustifyWithSuperscript(t *testing.T) {
+	pdf := newScriptTestPDF(t)
+	if err := pdf.SetFontWithStyle("LiberationSerif-Regular", Superscript, 14); err != nil {
+		t.Fatal(err)
+	}
+	pdf.SetXY(20, 40)
+	if err := pdf.CellWithOption(&Rect{W: 400, H: 20}, "the quick brown fox",
+		CellOption{Align: Justify | Top}); err != nil {
+		t.Fatal(err)
+	}
+	b, err := pdf.GetBytesPdfReturnErr()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := countAdjust(b); got != 3 {
+		t.Fatalf("justify adjustments = %d, want 3 (one per interior space)", got)
 	}
 }

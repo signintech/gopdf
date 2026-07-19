@@ -949,7 +949,7 @@ func convertNumericToFloat64(size interface{}) (fontSize float64, err error) {
 	}
 }
 
-// SetFontWithStyle : set font style support Regular or Underline
+// SetFontWithStyle : set font style support Regular, Underline, Superscript, Subscript
 // for Bold|Italic should be loaded appropriate fonts with same styles defined
 // size MUST be uint*, int* or float64*
 func (gp *GoPdf) SetFontWithStyle(family string, style int, size interface{}) error {
@@ -965,7 +965,7 @@ func (gp *GoPdf) SetFontWithStyle(family string, style int, size interface{}) er
 			obj := gp.pdfObjs[i]
 			sub, ok := obj.(*SubsetFontObj)
 			if ok {
-				if sub.GetFamily() == family && sub.GetTtfFontOption().Style == style&^Underline {
+				if sub.GetFamily() == family && sub.GetTtfFontOption().Style == style&^decorationStyles {
 					gp.curr.FontSize = fontSize
 					gp.curr.FontStyle = style
 					gp.curr.FontFontCount = sub.CountOfFont
@@ -985,7 +985,7 @@ func (gp *GoPdf) SetFontWithStyle(family string, style int, size interface{}) er
 	return nil
 }
 
-// SetFont : set font style support "" or "U"
+// SetFont : set font style support "" or "U" (see SetFontWithStyle for Superscript/Subscript)
 // for "B" and "I" should be loaded appropriate fonts with same styles defined
 // size MUST be uint*, int* or float64*
 func (gp *GoPdf) SetFont(family string, style string, size interface{}) error {
@@ -1815,8 +1815,8 @@ func (gp *GoPdf) setSubsetFontObject(subsetFont *SubsetFontObj, family string, o
 
 	if gp.indexOfProcSet != -1 {
 		procset := gp.pdfObjs[gp.indexOfProcSet].(*ProcSetObj)
-		if !procset.Relates.IsContainsFamilyAndStyle(family, option.Style&^Underline) {
-			procset.Relates = append(procset.Relates, RelateFont{Family: family, IndexOfObj: index, CountOfFont: gp.curr.CountOfFont, Style: option.Style &^ Underline})
+		if !procset.Relates.IsContainsFamilyAndStyle(family, option.Style&^decorationStyles) {
+			procset.Relates = append(procset.Relates, RelateFont{Family: family, IndexOfObj: index, CountOfFont: gp.curr.CountOfFont, Style: option.Style &^ decorationStyles})
 			subsetFont.CountOfFont = gp.curr.CountOfFont
 			gp.curr.CountOfFont++
 		}

@@ -94,6 +94,40 @@ func justifyAdjustment(slackPts float64, gapCount int, fontSize float64) int {
 	return int(math.Round(-(perGap * 1000.0 / fontSize)))
 }
 
+// Fallback ratios (fractions of the logical font size) used when a font's
+// OS/2 table carries no usable script metrics.
+const defaultScriptScale = 0.583
+const defaultSuperscriptRise = 0.333
+const defaultSubscriptDrop = 0.141
+
+// scriptFontSizeAndRise returns the glyph size to emit in Tf and the Ts
+// baseline rise (both in points) for the given style; plain styles return
+// (fontSize, 0). The logical fontSize keeps governing vertical layout; only
+// glyph size and baseline shift are derived here. Superscript wins if both
+// script bits are set.
+func scriptFontSizeAndRise(f *SubsetFontObj, fontStyle int, fontSize float64) (float64, float64) {
+	super := fontStyle&Superscript == Superscript
+	sub := fontStyle&Subscript == Subscript
+	if !super && !sub {
+		return fontSize, 0
+	}
+	unitsPerEm := float64(f.ttfp.UnitsPerEm())
+	// frac converts an OS/2 metric to a fraction of the em, or falls back
+	// when the font has no usable value.
+	frac := func(metric int, fallback float64) float64 {
+		if metric > 0 && unitsPerEm > 0 {
+			return float64(metric) / unitsPerEm
+		}
+		return fallback
+	}
+	if super {
+		return fontSize * frac(f.ttfp.SuperscriptYSize(), defaultScriptScale),
+			fontSize * frac(f.ttfp.SuperscriptYOffset(), defaultSuperscriptRise)
+	}
+	return fontSize * frac(f.ttfp.SubscriptYSize(), defaultScriptScale),
+		-fontSize * frac(f.ttfp.SubscriptYOffset(), defaultSubscriptDrop)
+}
+
 // nonSpaceBounds returns the byte index of the first and last non-space
 // (' ') rune in text, or (-1, -1) when text is empty or all spaces.
 func nonSpaceBounds(text string) (first, last int) {

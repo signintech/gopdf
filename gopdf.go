@@ -488,7 +488,7 @@ func (gp *GoPdf) SetXY(x, y float64) {
 func (gp *GoPdf) ImageByHolder(img ImageHolder, x float64, y float64, rect *Rect) error {
 	gp.UnitsToPointsVar(&x, &y)
 
-	rect = rect.UnitsToPoints(gp.config.Unit)
+	rect = rect.unitsToPoints(gp.config)
 
 	imageOptions := ImageOptions{
 		X:    x,
@@ -502,7 +502,7 @@ func (gp *GoPdf) ImageByHolder(img ImageHolder, x float64, y float64, rect *Rect
 func (gp *GoPdf) ImageByHolderWithOptions(img ImageHolder, opts ImageOptions) error {
 	gp.UnitsToPointsVar(&opts.X, &opts.Y)
 
-	opts.Rect = opts.Rect.UnitsToPoints(gp.config.Unit)
+	opts.Rect = opts.Rect.unitsToPoints(gp.config)
 
 	imageTransparency, err := gp.getCachedTransparency(opts.Transparency)
 	if err != nil {
@@ -524,7 +524,7 @@ func (gp *GoPdf) ImageByHolderWithOptions(img ImageHolder, opts ImageOptions) er
 		}
 
 		gp.UnitsToPointsVar(&opts.Mask.ImageOptions.X, &opts.Mask.ImageOptions.Y)
-		opts.Mask.ImageOptions.Rect = opts.Mask.ImageOptions.Rect.UnitsToPoints(gp.config.Unit)
+		opts.Mask.ImageOptions.Rect = opts.Mask.ImageOptions.Rect.unitsToPoints(gp.config)
 
 		extGStateIndex, err := gp.maskHolder(opts.Mask.Holder, *opts.Mask)
 		if err != nil {
@@ -732,7 +732,7 @@ func (gp *GoPdf) imageByHolder(img ImageHolder, opts ImageOptions) error {
 // Image : draw image
 func (gp *GoPdf) Image(picPath string, x float64, y float64, rect *Rect) error {
 	gp.UnitsToPointsVar(&x, &y)
-	rect = rect.UnitsToPoints(gp.config.Unit)
+	rect = rect.unitsToPoints(gp.config)
 	imgh, err := ImageHolderByPath(picPath)
 	if err != nil {
 		return err
@@ -762,7 +762,7 @@ func (gp *GoPdf) ImageFromWithOption(img image.Image, opts ImageFromOption) erro
 	}
 
 	gp.UnitsToPointsVar(&opts.X, &opts.Y)
-	opts.Rect = opts.Rect.UnitsToPoints(gp.config.Unit)
+	opts.Rect = opts.Rect.unitsToPoints(gp.config)
 	r, w := io.Pipe()
 	go func() {
 		bw := bufio.NewWriter(w)
@@ -804,8 +804,8 @@ func (gp *GoPdf) AddPage() {
 
 // AddPageWithOption  : add new page with option
 func (gp *GoPdf) AddPageWithOption(opt PageOption) {
-	opt.TrimBox = opt.TrimBox.UnitsToPoints(gp.config.Unit)
-	opt.PageSize = opt.PageSize.UnitsToPoints(gp.config.Unit)
+	opt.TrimBox = opt.TrimBox.unitsToPoints(gp.config)
+	opt.PageSize = opt.PageSize.unitsToPoints(gp.config)
 
 	page := new(PageObj)
 	page.init(func() *GoPdf {
@@ -1128,7 +1128,7 @@ func (gp *GoPdf) CellWithOption(rectangle *Rect, text string, opt CellOption) er
 		opt.extGStateIndexes = append(opt.extGStateIndexes, transparency.extGStateIndex)
 	}
 
-	rectangle = rectangle.UnitsToPoints(gp.config.Unit)
+	rectangle = rectangle.unitsToPoints(gp.config)
 	text, err = gp.curr.FontISubset.AddChars(text)
 	if err != nil {
 		return err
@@ -1143,7 +1143,7 @@ func (gp *GoPdf) CellWithOption(rectangle *Rect, text string, opt CellOption) er
 // Cell : create cell of text ( use current x,y is upper-left corner of cell)
 // Note that this has no effect on Rect.H pdf (now). Fix later :-)
 func (gp *GoPdf) Cell(rectangle *Rect, text string) error {
-	rectangle = rectangle.UnitsToPoints(gp.config.Unit)
+	rectangle = rectangle.unitsToPoints(gp.config)
 	defaultopt := CellOption{
 		Align:  Left | Top,
 		Border: 0,

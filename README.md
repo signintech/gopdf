@@ -345,6 +345,7 @@ Import existing PDF power by package [gofpdi](https://github.com/phpdave11/gofpd
 package main
 
 import (
+        "fmt"
         "github.com/signintech/gopdf"
         "io"
         "net/http"
@@ -355,13 +356,13 @@ func main() {
         var err error
 
         // Download a Font
-        fontUrl := "https://github.com/google/fonts/raw/master/ofl/daysone/DaysOne-Regular.ttf"
+        fontUrl := "https://github.com/google/fonts/raw/main/ofl/daysone/DaysOne-Regular.ttf"
         if err = DownloadFile("example-font.ttf", fontUrl); err != nil {
             panic(err)
         }
 
         // Download a PDF
-        fileUrl := "https://tcpdf.org/files/examples/example_012.pdf"
+        fileUrl := "https://tcpdf.org/files/examples/E036_graphic_methods.pdf"
         if err = DownloadFile("example-pdf.pdf", fileUrl); err != nil {
             panic(err)
         }
@@ -409,6 +410,9 @@ func DownloadFile(filepath string, url string) error {
             return err
         }
         defer resp.Body.Close()
+        if resp.StatusCode != http.StatusOK {
+            return fmt.Errorf("download %s: %s", url, resp.Status)
+        }
 
         // Create the file
         out, err := os.Create(filepath)

@@ -35,6 +35,10 @@ func (ci *CIDFontObj) write(w io.Writer, objID int) error {
 	io.WriteString(w, ">>\n")
 	fmt.Fprintf(w, "/FontDescriptor %d 0 R\n", ci.indexObjSubfontDescriptor+1) //TODO fix
 	io.WriteString(w, "/Subtype /CIDFontType2\n")
+	// ISO 32000-1 table 117 requires CIDToGIDMap on a Type 2 CIDFont.
+	// The embedded subset keeps the original glyph ids, and the text
+	// uses those ids as CIDs, so the mapping is Identity.
+	io.WriteString(w, "/CIDToGIDMap /Identity\n")
 	io.WriteString(w, "/Type /Font\n")
 	glyphIndexs := ci.PtrToSubsetFontObj.CharacterToGlyphIndex.AllVals()
 	io.WriteString(w, "/W [")

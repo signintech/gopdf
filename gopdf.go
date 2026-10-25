@@ -2235,9 +2235,9 @@ func (gp *GoPdf) protection() *PDFProtection {
 
 func (gp *GoPdf) prepare() {
 
-	if gp.isUseProtection() {
+	if gp.isUseProtection() && gp.encryptionObjID == 0 {
 		encObj := gp.pdfProtection.encryptionObj()
-		gp.addObj(encObj)
+		gp.encryptionObjID = gp.addObj(encObj) + 1
 	}
 
 	if gp.outlines.Count() > 0 {
@@ -2248,12 +2248,15 @@ func (gp *GoPdf) prepare() {
 	if gp.indexOfPagesObj != -1 {
 		indexCurrPage := -1
 		pagesObj := gp.pdfObjs[gp.indexOfPagesObj].(*PagesObj)
+		pagesObj.Kids = ""
+		pagesObj.PageCount = 0
 		i := 0 //gp.indexOfFirstPageObj
 		max := len(gp.pdfObjs)
 		for i < max {
 			objtype := gp.pdfObjs[i].getType()
 			switch objtype {
 			case "Page":
+				gp.pdfObjs[i].(*PageObj).Contents = ""
 				pagesObj.Kids = fmt.Sprintf("%s %d 0 R ", pagesObj.Kids, i+1)
 				pagesObj.PageCount++
 				indexCurrPage = i

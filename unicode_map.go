@@ -3,6 +3,7 @@ package gopdf
 import (
 	"fmt"
 	"io"
+	"unicode/utf16"
 )
 
 // UnicodeMap unicode map
@@ -73,7 +74,7 @@ func (u *UnicodeMap) write(w io.Writer, objID int) error {
 	indexs := glyphIndexToCharacter.allIndexs()
 	for _, k := range indexs {
 		v, _ := glyphIndexToCharacter.runeByIndex(k)
-		fmt.Fprintf(buff, "<%04X><%04X><%04X>\n", k, k, v)
+		fmt.Fprintf(buff, "<%04X><%04X><%s>\n", k, k, utf16Hex(v))
 	}
 	buff.WriteString("endbfrange\n")
 	buff.WriteString(suffix)
@@ -96,6 +97,17 @@ func (u *UnicodeMap) write(w io.Writer, objID int) error {
 	io.WriteString(w, "endstream\n")
 
 	return nil
+}
+
+// utf16Hex returns r in UTF-16BE as hex digits, the encoding of a ToUnicode
+// destination string. A character outside the Basic Multilingual Plane takes a
+// surrogate pair.
+func utf16Hex(r rune) string {
+	if r <= 0xFFFF {
+		return fmt.Sprintf("%04X", r)
+	}
+	r1, r2 := utf16.EncodeRune(r)
+	return fmt.Sprintf("%04X%04X", r1, r2)
 }
 
 type mapGlyphIndexToCharacter struct {

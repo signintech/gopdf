@@ -293,11 +293,9 @@ func (p *PdfDictionaryObj) completeGlyphClosure(mapOfglyphs *MapOfCharacterToGly
 		glyphArray = append(glyphArray, 0)
 	}
 
-	i := 0
-	count := len(glyphs)
-	for i < count {
+	// Also visit the components added on the way, as they can be composite glyphs too.
+	for i := 0; i < len(glyphArray); i++ {
 		p.AddCompositeGlyphs(&glyphArray, glyphArray[i])
-		i++
 	}
 	return glyphArray
 }

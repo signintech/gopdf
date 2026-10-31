@@ -2391,8 +2391,10 @@ func encodeUtf8(str string) string {
 }
 
 func infodate(t time.Time) string {
-	ft := t.Format("20060102150405-07'00'")
-	return ft
+	// A PDF date writes the UTC offset as +HH'mm'. Go layouts have no token for
+	// the offset minutes alone, so they are taken from the -0700 form.
+	offset := t.Format("-0700")
+	return t.Format("20060102150405") + offset[:3] + "'" + offset[3:] + "'"
 }
 
 // SetTransparency sets transparency.

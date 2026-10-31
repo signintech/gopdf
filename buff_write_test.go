@@ -3,6 +3,7 @@ package gopdf
 import (
 	"bytes"
 	"testing"
+	"time"
 )
 
 func TestWriteUInt32(t *testing.T) {
@@ -39,8 +40,25 @@ func TestEncodeUTF8(t *testing.T) {
 	}
 }
 
-/*
 func TestInfoDate(t *testing.T) {
-	str := infodate(time.Now())
-	fmt.Printf("%s\n", str)
-}*/
+	tests := []struct {
+		name   string
+		offset int
+		want   string
+	}{
+		{"UTC", 0, "20261029120000+00'00'"},
+		{"whole hours east", 3 * 3600, "20261029120000+03'00'"},
+		{"whole hours west", -5 * 3600, "20261029120000-05'00'"},
+		{"half hour east", 5*3600 + 30*60, "20261029120000+05'30'"},
+		{"quarter hour east", 5*3600 + 45*60, "20261029120000+05'45'"},
+		{"half hour west", -(3*3600 + 30*60), "20261029120000-03'30'"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			date := time.Date(2026, 10, 29, 12, 0, 0, 0, time.FixedZone(tt.name, tt.offset))
+			if got := infodate(date); got != tt.want {
+				t.Errorf("infodate() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}

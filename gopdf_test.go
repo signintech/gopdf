@@ -649,6 +649,9 @@ func TestClearValue(t *testing.T) {
 	if pdf.info != nil {
 		t.Fatalf("pdf.info %v", pdf.info)
 	}
+	if pdf.infoObjID != 0 {
+		t.Fatalf("infoObjID %d", pdf.infoObjID)
+	}
 }
 
 func TestSplitTextWithOptions(t *testing.T) {

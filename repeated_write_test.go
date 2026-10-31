@@ -2,10 +2,13 @@ package gopdf
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+	"time"
 )
 
 type failedPDFWriter struct{}
@@ -41,11 +44,42 @@ func TestRepeatedPDFWrites(t *testing.T) {
 				t.Fatal(err)
 			}
 			pdf.Line(10, 10, 50, 50)
+			pdf.SetInfo(PdfInfo{
+				Title:        "Test Title",
+				Author:       "Test Author",
+				Subject:      "Test Subject",
+				Creator:      "Test Creator",
+				Producer:     "Test Producer",
+				CreationDate: time.Date(2026, 10, 31, 12, 0, 0, 0, time.FixedZone("IST", 5*3600+30*60)),
+			})
 			first, err := pdf.GetBytesPdfReturnErr()
 			if err != nil {
 				t.Fatal(err)
 			}
 			first = append([]byte(nil), first...)
+
+			expectedInfoRef := fmt.Sprintf("/Info %d 0 R\n", pdf.infoObjID)
+			if !strings.Contains(string(first), expectedInfoRef) {
+				t.Fatalf("trailer missing indirect Info reference %q", expectedInfoRef)
+			}
+			plainInfoObj := fmt.Sprintf("%d 0 obj\n<<\n/Author <FEFF005400650073007400200041007500740068006F0072>\n/Title <FEFF00540065007300740020005400690074006C0065>\n/Subject <FEFF00540065007300740020005300750062006A006500630074>\n/Creator <FEFF0054006500730074002000430072006500610074006F0072>\n/Producer <FEFF0054006500730074002000500072006F00640075006300650072>\n/CreationDate(D:20261031120000+05'30')\n>>\nendobj\n", pdf.infoObjID)
+			if !protected {
+				if !strings.Contains(string(first), plainInfoObj) {
+					t.Fatalf("PDF body missing expected Info object:\n%s", plainInfoObj)
+				}
+			} else {
+				if strings.Contains(string(first), "20261031120000") {
+					t.Fatalf("protected PDF leaked unencrypted CreationDate in Info object")
+				}
+				encDate, err := rc4Cip(pdf.protection().objectkey(pdf.infoObjID), []byte("D:20261031120000+05'30'"))
+				if err != nil {
+					t.Fatal(err)
+				}
+				expectedEncDate := fmt.Sprintf("/CreationDate <%X>\n", encDate)
+				if !strings.Contains(string(first), expectedEncDate) {
+					t.Fatalf("protected PDF missing encrypted CreationDate %q", expectedEncDate)
+				}
+			}
 
 			var output bytes.Buffer
 			if _, err := pdf.WriteTo(&output); err != nil {

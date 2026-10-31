@@ -89,6 +89,7 @@ type GoPdf struct {
 	//info
 	isUseInfo bool
 	info      *PdfInfo
+	infoObjID int
 
 	//outlines
 	outlines           *OutlinesObj
@@ -2139,6 +2140,7 @@ func (gp *GoPdf) init(importer ...*gofpdi.Importer) {
 	gp.encryptionObjID = 0
 	gp.isUseInfo = false
 	gp.info = nil
+	gp.infoObjID = 0
 
 	//default
 	gp.margins = Margins{
@@ -2240,6 +2242,14 @@ func (gp *GoPdf) prepare() {
 		gp.encryptionObjID = gp.addObj(encObj) + 1
 	}
 
+	if gp.isUseInfo && gp.infoObjID == 0 {
+		infObj := new(infoObj)
+		infObj.init(func() *GoPdf {
+			return gp
+		})
+		gp.infoObjID = gp.addObj(infObj) + 1
+	}
+
 	if gp.outlines.Count() > 0 {
 		catalogObj := gp.pdfObjs[gp.indexOfCatalogObj].(*CatalogObj)
 		catalogObj.SetIndexObjOutlines(gp.indexOfOutlinesObj)
@@ -2281,6 +2291,8 @@ func (gp *GoPdf) prepare() {
 				}
 			case "Encryption":
 				gp.encryptionObjID = i + 1
+			case "Info":
+				gp.infoObjID = i + 1
 			}
 			i++
 		}
@@ -2308,7 +2320,7 @@ func (gp *GoPdf) xref(w io.Writer, xrefbyteoffset int64, linelens []int64, i int
 		io.WriteString(w, "/ID [()()]\n")
 	}
 	if gp.isUseInfo {
-		gp.writeInfo(w)
+		fmt.Fprintf(w, "/Info %d 0 R\n", gp.infoObjID)
 	}
 	io.WriteString(w, ">>\n")
 	io.WriteString(w, "startxref\n")
@@ -2316,37 +2328,6 @@ func (gp *GoPdf) xref(w io.Writer, xrefbyteoffset int64, linelens []int64, i int
 	io.WriteString(w, "\n%%EOF\n")
 
 	return nil
-}
-
-func (gp *GoPdf) writeInfo(w io.Writer) {
-	var zerotime time.Time
-	io.WriteString(w, "/Info <<\n")
-
-	if gp.info.Author != "" {
-		fmt.Fprintf(w, "/Author <FEFF%s>\n", encodeUtf8(gp.info.Author))
-	}
-
-	if gp.info.Title != "" {
-		fmt.Fprintf(w, "/Title <FEFF%s>\n", encodeUtf8(gp.info.Title))
-	}
-
-	if gp.info.Subject != "" {
-		fmt.Fprintf(w, "/Subject <FEFF%s>\n", encodeUtf8(gp.info.Subject))
-	}
-
-	if gp.info.Creator != "" {
-		fmt.Fprintf(w, "/Creator <FEFF%s>\n", encodeUtf8(gp.info.Creator))
-	}
-
-	if gp.info.Producer != "" {
-		fmt.Fprintf(w, "/Producer <FEFF%s>\n", encodeUtf8(gp.info.Producer))
-	}
-
-	if !zerotime.Equal(gp.info.CreationDate) {
-		fmt.Fprintf(w, "/CreationDate(D:%s)\n", infodate(gp.info.CreationDate))
-	}
-
-	io.WriteString(w, " >>\n")
 }
 
 // ปรับ xref ให้เป็น 10 หลัก

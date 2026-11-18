@@ -2,8 +2,11 @@ package gopdf
 
 import (
 	"bytes"
+	"encoding/binary"
+	"encoding/hex"
 	"testing"
 	"time"
+	"unicode/utf16"
 )
 
 func TestWriteUInt32(t *testing.T) {
@@ -37,6 +40,43 @@ func TestEncodeUTF8(t *testing.T) {
 	buff := encodeUtf8(str)
 	if buff != "0042006F006F006E00630068006100690020004D0061006E0061007300690072006900730075006B" {
 		t.Error("not match")
+	}
+}
+
+// TestEncodeUTF8NonBMP checks that characters outside the BMP (like emoji)
+// are encoded as valid UTF-16 surrogate pairs, not broken 5-digit hex.
+func TestEncodeUTF8NonBMP(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{"empty", "", ""},
+		{"emoji", "Report 😀", "005200650070006F007200740020D83DDE00"},
+		{"cjk ext b", "𠀀", "D840DC00"},
+		{"mixed bmp and emoji", "Aไทย😀", "00410E440E170E22D83DDE00"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := encodeUtf8(tt.input)
+			if got != tt.want {
+				t.Fatalf("encodeUtf8(%q) = %q, want %q", tt.input, got, tt.want)
+			}
+			raw, err := hex.DecodeString(got)
+			if err != nil {
+				t.Fatalf("hex.DecodeString(%q) failed: %v", got, err)
+			}
+			if len(raw)%2 != 0 {
+				t.Fatalf("decoded UTF-16BE byte length %d is odd", len(raw))
+			}
+			u16 := make([]uint16, len(raw)/2)
+			for i := range u16 {
+				u16[i] = binary.BigEndian.Uint16(raw[i*2 : i*2+2])
+			}
+			if decoded := string(utf16.Decode(u16)); decoded != tt.input {
+				t.Fatalf("round-trip decoded %q, want %q", decoded, tt.input)
+			}
+		})
 	}
 }
 

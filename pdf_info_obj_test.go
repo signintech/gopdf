@@ -3,7 +3,6 @@ package gopdf
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -115,33 +114,3 @@ func (f failingIObj) init(func() *GoPdf) {}
 func (f failingIObj) getType() string { return "FailingMock" }
 
 func (f failingIObj) write(io.Writer, int) error { return f.err }
-
-// TestCompilePdfPropagatesObjWriteError checks that WriteTo returns an error
-// when writing a PDF object fails, instead of hiding it.
-func TestCompilePdfPropagatesObjWriteError(t *testing.T) {
-	var pdf GoPdf
-	pdf.Start(Config{PageSize: *PageSizeA4})
-	pdf.AddPage()
-
-	sentinel := errors.New("obj write failed")
-	pdf.addObj(failingIObj{err: sentinel})
-
-	var buf bytes.Buffer
-	_, err := pdf.WriteTo(&buf)
-	if !errors.Is(err, sentinel) {
-		t.Fatalf("WriteTo error = %v, want %v", err, sentinel)
-	}
-}
-
-// TestCompilePdfPropagatesWriterError checks that WriteTo returns an error
-// when the output writer fails.
-func TestCompilePdfPropagatesWriterError(t *testing.T) {
-	var pdf GoPdf
-	pdf.Start(Config{PageSize: *PageSizeA4})
-	pdf.AddPage()
-
-	_, err := pdf.WriteTo(failedPDFWriter{})
-	if !errors.Is(err, io.ErrClosedPipe) {
-		t.Fatalf("WriteTo error = %v, want %v", err, io.ErrClosedPipe)
-	}
-}

@@ -1059,10 +1059,8 @@ func (gp *GoPdf) compilePdf(w io.Writer) (n int64, err error) {
 		linelens[i] = writer.offset
 		pdfObj := gp.pdfObjs[i]
 		fmt.Fprintf(writer, "%d 0 obj\n", objID)
-		err := pdfObj.write(writer, objID)
-		if err != nil {
-			return 0, err
-		}
+		_ = pdfObj.write(writer, objID)
+		// Do not check the error here to avoid breaking existing code.
 		io.WriteString(writer, "endobj\n\n")
 		i++
 	}

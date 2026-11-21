@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf16"
 
 	"github.com/phpdave11/gofpdi"
 )
@@ -1058,7 +1059,8 @@ func (gp *GoPdf) compilePdf(w io.Writer) (n int64, err error) {
 		linelens[i] = writer.offset
 		pdfObj := gp.pdfObjs[i]
 		fmt.Fprintf(writer, "%d 0 obj\n", objID)
-		pdfObj.write(writer, objID)
+		_ = pdfObj.write(writer, objID)
+		// Do not check the error here to avoid breaking existing code.
 		io.WriteString(writer, "endobj\n\n")
 		i++
 	}
@@ -2361,12 +2363,8 @@ func (gp *GoPdf) getContent() *ContentObj {
 
 func encodeUtf8(str string) string {
 	var buff bytes.Buffer
-	for _, r := range str {
-		c := fmt.Sprintf("%X", r)
-		for len(c) < 4 {
-			c = "0" + c
-		}
-		buff.WriteString(c)
+	for _, u := range utf16.Encode([]rune(str)) {
+		fmt.Fprintf(&buff, "%04X", u)
 	}
 	return buff.String()
 }

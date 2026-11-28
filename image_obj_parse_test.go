@@ -7,6 +7,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"strings"
 	"testing"
 )
 
@@ -93,6 +94,43 @@ func TestParsePngTrnsColorKey(t *testing.T) {
 			}
 			if !bytes.Equal(info.trns, tc.want) {
 				t.Fatalf("trns = %v, want %v", info.trns, tc.want)
+			}
+		})
+	}
+}
+
+func TestImageTrnsFiles(t *testing.T) {
+	badFilePaths := []string{
+		"test/res/bad_trns_grayscale_truncated.png",
+		"test/res/bad_trns_grayscale_empty.png",
+		"test/res/bad_trns_truecolor_truncated.png",
+	}
+
+	goodFilePaths := []string{
+		"test/res/good_trns_grayscale_valid.png",
+	}
+	for _, path := range badFilePaths {
+		t.Run(path, func(t *testing.T) {
+			var pdf GoPdf
+			pdf.Start(Config{PageSize: *PageSizeA4})
+			pdf.AddPage()
+			err := pdf.Image(path, 0, 0, &Rect{W: 10, H: 10})
+			if err == nil {
+				t.Fatalf("expected error for %s, got nil", path)
+			}
+			if !strings.Contains(err.Error(), "invalid tRNS chunk length") {
+				t.Fatalf("expected invalid tRNS chunk length error for %s, got: %v", path, err)
+			}
+		})
+	}
+
+	for _, path := range goodFilePaths {
+		t.Run(path, func(t *testing.T) {
+			var pdf GoPdf
+			pdf.Start(Config{PageSize: *PageSizeA4})
+			pdf.AddPage()
+			if err := pdf.Image(path, 0, 0, &Rect{W: 10, H: 10}); err != nil {
+				t.Fatalf("unexpected error for %s: %v", path, err)
 			}
 		})
 	}

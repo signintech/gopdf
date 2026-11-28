@@ -330,8 +330,16 @@ func parsePng(f *bytes.Reader, info *imgInfo, imgConfig image.Config) error {
 			}
 
 			if ct[0] == 0 {
-				trns = []byte{(t[1])}
+				// A grayscale tRNS chunk must carry the 2-byte transparent sample.
+				if len(t) < 2 {
+					return fmt.Errorf("invalid tRNS chunk length %d for grayscale image", len(t))
+				}
+				trns = []byte{t[1]}
 			} else if ct[0] == 2 {
+				// A truecolor tRNS chunk must carry the three 2-byte samples.
+				if len(t) < 6 {
+					return fmt.Errorf("invalid tRNS chunk length %d for truecolor image", len(t))
+				}
 				trns = []byte{t[1], t[3], t[5]}
 			} else {
 				pos := strings.Index(string(t), "\x00")

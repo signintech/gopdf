@@ -1,6 +1,6 @@
 # gopdf
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Supported by Tidelift](https://tidelift.com/badges/package/go/github.com/signintech/gopdf)](https://tidelift.com/subscription/pkg/go-github.com-signintech-gopdf?utm_source=go-github.com-signintech-gopdf&utm_medium=referral&utm_campaign=readme)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Supported by Tidelift](https://tidelift.com/badges/package/go/github.com/signintech/gopdf)](https://tidelift.com/subscription/pkg/go-github.com-signintech-gopdf?utm_source=go-github.com-signintech-gopdf&utm_medium=referral&utm_campaign=readme) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/17190/badge)](https://www.bestpractices.dev/projects/17190)
 
 gopdf is a simple library for generating PDF document written in Go.
 
